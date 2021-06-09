@@ -1,0 +1,1521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dist">
+
+    <parameterMap class="java.util.Map" id="TransItemTrxParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="LOTNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXGUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXTYPE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXUNITPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <!-- <parameter property="TRXWAREHOUSING" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> -->
+        <parameter property="TRXNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXIUD" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REMARKS" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="MatEtcItemTrxParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <!-- <parameter property="LOTNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> -->
+        <parameter property="TRXGUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXTYPE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <!-- <parameter property="TRXUNITPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/> -->
+        <!-- <parameter property="TRXWAREHOUSING" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> -->
+        <parameter property="TRXNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXIUD" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REMARKS" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="dist.trans.item.transaction.call.procedure" parameterClass="java.util.Map"  parameterMap="TransItemTrxParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call ITEM_TRX.TRANS_TRX( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="dist.etc.item.transaction.call.procedure" parameterClass="java.util.Map"  parameterMap="MatEtcItemTrxParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call ITEM_TRX.ETC_TRX( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <!-- Dummy Lov 시작 -->
+    <sql id="dist.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM
+                 ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                 ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                 ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                 ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                 ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                 ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                 ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="dist.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="dist.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.dummy.month.sql-select" />
+        <include refid="dist.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+
+    <sql id="dist.mat.list.sql-select">
+          SELECT RANK() OVER(ORDER BY CTH.TRANS_NO DESC) AS RN
+                ,CTH.ORG_ID AS ORGID
+                ,CTH.COMPANY_ID AS COMPANYID
+                ,CTH.TRANS_NO AS TRANSNO
+                ,TO_CHAR(CTH.TRANS_DATE,'YYYY-MM-DD') AS TRANSDATE
+                ,TO_CHAR(CTH.TRADE_DATE,'YYYY-MM-DD') AS TRADEDATE
+                ,CTH.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,CTH.TRANS_DIV AS TRANSDIV
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'TRANS_DIV'
+                                                            ,CTH.TRANS_DIV
+                                                            ,'LABEL') AS TRANSDIVNAME
+                ,CTH.PAID_YN AS PAIDYN
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'PAID_YN'
+                                                            ,CTH.PAID_YN
+                                                            ,'LABEL') AS PAIDYNNAME
+                ,CUSTOMER_CODE_S AS CUSTOMERCODES
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE_S) AS CUSTOMERNAMES
+                ,CTH.REMARKS AS REMARKS
+        FROM CB_TRANS_H CTH
+            ,CB_TRANS_D CTD
+    </sql>
+
+    <sql id="dist.mat.list.sql-where">
+      <![CDATA[
+         WHERE 1 = 1
+         AND CTH.ORG_ID = CTD.ORG_ID
+         AND CTH.COMPANY_ID = CTD.COMPANY_ID
+         AND CTH.TRANS_NO = CTD.TRANS_NO
+         AND SUBSTR(CTD.ITEM_CODE,0,1)<>'T'
+      ]]>
+       <isNotEmpty property="ORGID" prepend="AND">
+          CTH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CTH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSTO">
+             <isNotEmpty property="TRANSFROM" prepend="AND">
+                CTH.TRANS_DATE BETWEEN TO_DATE(#TRANSFROM#,'YYYY-MM-DD')  AND TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="TRANSFROM" prepend="AND">
+                CTH.TRANS_DATE = TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="TRANSNO" prepend="AND">
+            CTH.TRANS_NO = #TRANSNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            CTH.TRANS_NO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CTH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODES" prepend="AND">
+            CTH.CUSTOMER_CODE_S = #CUSTOMERCODES#
+         </isNotEmpty>
+         <isNotEmpty property="TRANSDIV" prepend="AND">
+            CTH.TRANS_DIV = #TRANSDIV#
+         </isNotEmpty>
+         <isNotEmpty property="PAIDYN" prepend="AND">
+            CTH.PAID_YN = #PAIDYN#
+         </isNotEmpty>
+         AND (CTH.ORG_ID , CTH.COMPANY_ID ,CTH.TRANS_NO ) IN (SELECT RD.ORGID , RD.COMPANYID , RD.TRANSNO
+                                                 FROM CB_TRANS_DETAIL_V RD
+                                                WHERE 1=1
+        <isNotEmpty property="ORGID" prepend="AND">
+          RD.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          RD.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            RD.ITEMCODE LIKE '%'|| #ITEMCODE# ||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            RD.ITEMNAME LIKE '%'|| #ITEMNAME# ||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            RD.ORDERNAME LIKE '%'|| #ORDERNAME# ||'%'
+         </isNotEmpty>
+                                               )
+         GROUP BY CTH.ORG_ID, CTH.COMPANY_ID, CTH.TRANS_NO, CTH.TRANS_DATE, CTH.TRADE_DATE, CTH.CUSTOMER_CODE, CTH.TRANS_DIV, CTH.PAID_YN, CTH.CUSTOMER_CODE_S, CTH.REMARKS
+         ORDER BY CTH.TRANS_NO DESC
+    </sql>
+
+    <select id="dist.mat.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.list.sql-select" />
+        <include refid="dist.mat.list.sql-where" />
+    </select>
+
+    <select id="dist.mat.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.list.sql-select" />
+            <include refid="dist.mat.list.sql-where" />
+        ) TOT
+    </select>
+
+    <sql id="dist.mat.detaillist.sql-select">
+        SELECT RANK() OVER(ORDER BY TRANSNOSEQ) AS RN
+                ,ORGID
+                ,COMPANYID
+                ,TRANSNO
+								,TRANSSEQ
+								,TRANSNOSEQ
+								,PONO
+								,POSEQ 
+								,POQTY
+								,TRANSDATE
+								,CUSTOMERCODE
+								,CUSTOMERNAME
+								,TAXDIV
+								,TRADEDATE
+								,TRANSPERSON
+								,ITEMCODE
+								,ITEMNAME
+								,ORDERNAME
+								,UOM
+								,UOMNAME
+								,MODEL
+				        ,MODELNAME
+				        ,ITEMSTANDARDDETAIL
+				        ,OLDQTY
+								,TRANSQTY
+								,INSPQTY
+								,INSPDATE
+								,DUEQTY
+								,UNITPRICE
+                ,UNITPRICEOLD
+								,SUPPLYPRICE
+								,ADDITIONALTAX
+								,TOTAL
+								,INSPECTION_TYPE
+								,INSPECTIONMETHOD
+								,INSPECTIONDATE
+								,DUESTATUS
+								,TRANSFINISHYN
+								,TRANSFINISHYNNAME
+								,LOTNO
+								,REMARKS
+								,PURCHASECONFIRM
+								,LOTYN
+								,TRANSSTATUS
+								,INSPYN
+								,INSPCHK
+								,LOTCHK
+								,CUSTOMERLOT
+								,MATCUSTOMER
+								,LOCATION
+								,WAREHOUSING
+								,WAREHOUSINGNAME
+								,ITEMSTANDARD
+								,MATERIALTYPE
+          FROM CB_TRANS_DETAIL_V CTD
+    </sql>
+
+    <sql id="dist.mat.detaillist.sql-where">
+         WHERE 1 = 1
+         AND   TRANSNO = #TRANSNO#
+       <isNotEmpty property="ORGID" prepend="AND">
+          CTD.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CTD.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEMCODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+    </sql>
+
+    <select id="dist.mat.detaillist.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.detaillist.sql-select" />
+        <include refid="dist.mat.detaillist.sql-where" />
+    </select>
+
+    <select id="dist.mat.detaillist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.detaillist.sql-select" />
+            <include refid="dist.mat.detaillist.sql-where" />
+        ) TOT
+    </select>
+
+
+    <select id="dist.new.transno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'T' || TO_CHAR(TO_DATE(#TransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS TRANSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(TRANS_NO), -3)), 0) AS NUM 
+                  FROM CB_TRANS_H
+                 WHERE 1 = 1
+                   AND TRANS_NO LIKE 'T' || TO_CHAR(TO_DATE(#TransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+      <select id ="dist.trans.orderqty" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT SUM(ORDER_QTY) AS ORDERQTY
+          FROM CB_ORDER_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+    <select id= "dist.trans.old.transqty" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT SUM(TRANS_QTY) AS OLDTRANSQTY
+          FROM CB_TRANS_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+        <select id= "dist.trans.count.order.status" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT count(*)
+            FROM CB_ORDER_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+    <select id= "dist.trans.count.trans.status" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT count(*)
+            FROM CB_TRANS_D
+          WHERE PO_NO = #PONO#
+             AND TRANS_FINISH_YN='Y' 
+    </select>
+    
+    
+       <update id="dist.trans.update.order.status" parameterClass="java.util.Map">
+        UPDATE CB_ORDER_H
+        SET PO_STATUS = #COMPLETE#
+        , LAST_UPDATED_BY = #UPDATEID#
+        , LAST_UPDATE_DATE = SYSDATE
+        WHERE PO_NO = #PONO#
+    
+    </update>
+    
+<!--     입하등록 상세 화면에서 마스터 정보 isnert -->
+    <insert id="dist.mat.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TRANS_H
+              (TRANS_NO
+               ,TRANS_DATE
+               ,TRADE_DATE
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="TransDiv" prepend=",">
+               TRANS_DIV
+        </isNotEmpty>
+        <isNotEmpty property="PaidYn" prepend=",">
+               PAID_YN
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+               CUSTOMER_CODE_S
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#TRANSNO#
+               ,TO_DATE(#TransDate#, 'YYYY-MM-DD')
+               ,TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="TransDiv" prepend=",">
+               #TransDiv#
+        </isNotEmpty>
+        <isNotEmpty property="PaidYn" prepend=",">
+               #PaidYn#
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+               #CustomerCodeS#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+
+<!-- 입하등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="dist.mat.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TRANS_D (
+                ORG_ID
+               ,COMPANY_ID
+               ,TRANS_NO
+               ,TRANS_SEQ
+               ,ITEM_CODE
+               ,TRANS_QTY
+               ,TRANS_UNIT_PRICE
+               ,UNIT_PRICE_OLD
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,PO_NO
+               ,PO_SEQ
+               ,TRANS_FINISH_YN
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES (
+                #ORGID#
+               ,#COMPANYID#
+               ,#TRANSNO#
+               ,$TRANSSEQ$
+               ,#ITEMCODE#
+               ,$TRANSQTY$
+               ,#UNITPRICE#
+               ,#UNITPRICEOLD#
+               ,#SUPPLYPRICE#
+               ,#ADDITIONALTAX#
+               ,#PONO#
+               ,#POSEQ#
+               ,#TRANSFINISHYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+
+    <delete id="dist.mat.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_D
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRANS_NO = #TRANSNO#
+           AND TRANS_SEQ = $TRANSSEQ$
+    </delete>
+ 
+    <update id="dist.mat.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , TRANS_DATE = TO_DATE(#TransDate#, 'YYYY-MM-DD')
+               , TRADE_DATE = TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+               , TRANS_DIV = #TransDiv#
+               , PAID_YN = #PaidYn#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+            CUSTOMER_CODE_S = #CustomerCodeS#
+        </isNotEmpty>
+        <isEmpty property="CustomerCodeS" prepend=",">
+            CUSTOMER_CODE_S = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID =  #searchOrgId#
+           AND COMPANY_ID  =  #searchCompanyId#
+           AND TRANS_NO = #TransNo#
+        ]]>
+    </update>
+
+    <sql id="dist.mat.detail.find.sql-select">
+        SELECT COUNT(PD.TRANS_NO) AS COUNT
+          FROM CB_TRANS_H PH, CB_TRANS_D PD
+    </sql>
+
+    <sql id="dist.mat.detail.find.sql-where">
+         WHERE PH.TRANS_NO = PD.TRANS_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSNO" prepend="AND">
+          PD.TRANS_NO = #TRANSNO#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSSEQ" prepend="AND">
+          PD.TRANS_SEQ = #TRANSSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.mat.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.detail.find.sql-select" />
+        <include refid="dist.mat.detail.find.sql-where" />
+    </select>
+ 
+   <update id="dist.mat.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , ITEM_CODE = #ITEMCODE#
+               , TRANS_QTY = $TRANSQTY$
+               , TRANS_UNIT_PRICE = #UNITPRICE#
+               , UNIT_PRICE_OLD = #UNITPRICEOLD#
+               , SUPPLY_PRICE = #SUPPLYPRICE#
+               , ADDITIONAL_TAX = #ADDITIONALTAX#
+               , TRANS_FINISH_YN = #TRANSFINISHYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRANS_NO = #TRANSNO#
+           AND TRANS_SEQ = $TRANSSEQ$
+        ]]>
+    </update>       
+
+   <delete id="dist.mat.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_H
+        WHERE ORG_ID =  #searchOrgId#
+           AND COMPANY_ID  =  #searchCompanyId#
+           AND TRANS_NO = #TransNo#
+    </delete>
+
+
+    <!-- (이동, 기타입) 출고 조회 / 등록 시작 -->
+    <sql id="dist.mat.release.master.list.sql-select">
+        SELECT RANK() OVER(ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC) AS RN
+					      ,RH.ORG_ID AS ORGID
+					      ,RH.COMPANY_ID AS COMPANYID
+					      ,RH.RELEASE_NO AS RELEASENO
+					      ,TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM-DD') AS RELEASEDATE
+					      ,RH.USE_DIV AS USEDIV
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE SC.ORG_ID = RH.ORG_ID
+					           AND SC.COMPANY_ID = RH.COMPANY_ID
+					           AND SC.BIG_CODE = 'MAT'
+					           AND SC.MIDDLE_CODE = 'USE_DIV'
+					           AND SC.SMALL_CODE = RH.USE_DIV) AS USEDIVNAME
+					      ,RH.RELEASE_PERSON AS RELEASEPERSON
+					      ,(SELECT HV.KR_NAME
+					          FROM CB_HUMANRESOURCE_MANAGER_V HV
+					         WHERE HV.ORG_ID = RH.ORG_ID
+					           AND HV.COMPANY_ID = RH.COMPANY_ID
+					           AND HV.EMPLOYEE_NUMBER = RH.RELEASE_PERSON) AS RELEASEPERSONNAME
+					      ,RH.REMARKS AS REMARKS
+			  FROM CB_RELEASE_H RH
+    </sql>
+
+    <sql id="dist.mat.release.master.list.sql-where">
+         WHERE 1 = 1
+					<isNotEmpty property="ORGID" prepend="AND">
+					   RH.ORG_ID = #ORGID#
+					</isNotEmpty>
+					<isNotEmpty property="COMPANYID" prepend="AND">
+					   RH.COMPANY_ID = #COMPANYID#
+					</isNotEmpty>
+					<isNotEmpty property="USEDIV">
+					  <isEqual property="USEDIV" compareValue="E" prepend="AND">
+					          RH.USE_DIV IN ('E','F')
+					  </isEqual>
+					  <isNotEqual property="USEDIV" compareValue="E" prepend="AND">
+					         RH.USE_DIV = #USEDIV#
+					  </isNotEqual>
+					</isNotEmpty>
+          <isNotEmpty property="USEDIV2" prepend="AND">
+             RH.USE_DIV = #USEDIV2#
+          </isNotEmpty>
+	         <isNotEmpty property="SEARCHTO">
+	             <isNotEmpty property="SEARCHFROM" prepend="AND">
+	                RH.RELEASE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+	             </isNotEmpty>
+	             <isEmpty property="SEARCHFROM" prepend="AND">
+	                RH.RELEASE_DATE = TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+	             </isEmpty>
+	         </isNotEmpty>
+	         <isNotEmpty property="RELNO" prepend="AND">
+	            RH.RELEASE_NO = #RELNO#
+	         </isNotEmpty>
+	         <isNotEmpty property="RELEASEPERSON" prepend="AND">
+	            RH.RELEASE_PERSON = #RELEASEPERSON#
+	         </isNotEmpty>
+							   AND RH.RELEASE_NO IN (SELECT RD.RELEASE_NO FROM CB_RELEASE_D RD , CB_ITEM_MASTER CIM
+						                                    WHERE 1 = 1
+										                            AND RD.ORG_ID = CIM.ORG_ID
+										                            AND RD.COMPANY_ID = CIM.COMPANY_ID
+										                            AND RD.ITEM_CODE = CIM.ITEM_CODE
+	         <isNotEmpty property="ITEMCODE" prepend="AND">
+	            RD.ITEM_CODE LIKE '%'|| #ITEMCODE#||'%'
+	         </isNotEmpty>
+	         <isNotEmpty property="ITEMNAME" prepend="AND">
+              CIM.ITEM_NAME LIKE '%'|| #ITEMNAME#||'%'
+           </isNotEmpty>
+           <isNotEmpty property="ORDERNAME" prepend="AND">
+              CIM.ORDER_NAME LIKE '%'|| #ORDERNAME#||'%'
+           </isNotEmpty>
+	         <isNotEmpty property="WAREHOUSINGCODE" prepend="AND">
+	            RD.WAREHOUSING = #WAREHOUSINGCODE#
+	         </isNotEmpty>
+											                         )
+    </sql>
+
+    <select id="dist.mat.release.master.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.master.list.sql-select" />
+        <include refid="dist.mat.release.master.list.sql-where" />
+         ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC
+    </select>
+
+    <select id="dist.mat.release.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.release.master.list.sql-select" />
+            <include refid="dist.mat.release.master.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="dist.mat.release.detail.list.sql-select">
+        SELECT RD.ORG_ID AS ORGID
+					      ,RD.COMPANY_ID AS COMPANYID
+					      ,RD.RELEASE_NO AS RELEASENO
+					      ,RD.RELEASE_SEQ AS RELEASESEQ
+					      ,RD.ITEM_CODE AS ITEMCODE
+					      ,IM.ITEM_NAME AS ITEMNAME
+					      ,IM.ORDER_NAME AS ORDERNAME
+					      ,IM.ITEM_STANDARD AS ITEMSTANDARD
+					      ,IM.MATERIAL_TYPE AS MATERIALTYPE
+					      ,IM.UOM AS UOM
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE 1=1
+					           AND SC.ORG_ID = RD.ORG_ID
+					           AND SC.COMPANY_ID = RD.COMPANY_ID
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'UOM'
+					           AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+					      ,RD.RELEASE_QTY AS RELEASEQTY
+					      ,RD.REMARKS AS REMARKS
+					      ,RD.WAREHOUSING AS WAREHOUSING
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE 1=1
+					           AND SC.ORG_ID = RD.ORG_ID
+					           AND SC.COMPANY_ID = RD.COMPANY_ID
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'WAREHOUSING'
+					           AND SC.SMALL_CODE = RD.WAREHOUSING) AS WAREHOUSINGNAME
+			  FROM CB_RELEASE_D RD, CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="dist.mat.release.detail.list.sql-where">
+         WHERE 1 = 1
+				    AND RD.ORG_ID = IM.ORG_ID
+				    AND RD.COMPANY_ID = IM.COMPANY_ID
+				    AND RD.ITEM_CODE = IM.ITEM_CODE
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            RD.ITEM_CODE LIKE '%' || #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="orgid" prepend="AND">
+            RD.ORG_ID = #orgid#
+         </isNotEmpty>
+         <isNotEmpty property="companyid" prepend="AND">
+            RD.COMPANY_ID = #companyid#
+         </isNotEmpty>
+         <isNotEmpty property="releaseno" prepend="AND">
+            RD.RELEASE_NO = #releaseno#
+         </isNotEmpty>
+         <isNotEmpty property="ORGID" prepend="AND">
+            RD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            RD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="RELEASENO" prepend="AND">
+            RD.RELEASE_NO = #RELEASENO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="dist.mat.release.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.detail.list.sql-select" />
+        <include refid="dist.mat.release.detail.list.sql-where" />
+        ORDER BY RD.RELEASE_NO DESC , RD.RELEASE_SEQ
+    </select>
+
+    <select id="dist.mat.release.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.release.detail.list.sql-select" />
+            <include refid="dist.mat.release.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <delete id="dist.mat.release.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_RELEASE_H
+         WHERE 1=1
+          AND RELEASE_NO = #RELNO#
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+    </delete>
+    
+    <delete id="dist.mat.release.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_RELEASE_D
+         WHERE 1=1
+          AND RELEASE_NO = #RELEASENO#
+          AND RELEASE_SEQ = $RELEASESEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+    </delete>
+    
+    <select id="dist.mat.release.new.relno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #USEDIV# || TO_CHAR(TO_DATE(#ReleaseDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS RELNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(RELEASE_NO), -3)), 0) AS NUM
+                  FROM CB_RELEASE_H
+                 WHERE 1 = 1
+                   AND RELEASE_NO LIKE #USEDIV# || TO_CHAR(TO_DATE(#ReleaseDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="dist.mat.release.header.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_RELEASE_H
+              (ORG_ID
+              ,COMPANY_ID
+              ,RELEASE_NO
+              ,RELEASE_DATE
+              ,USE_DIV
+              ,RELEASE_STATUS
+        ]]>
+        <isNotEmpty property="ReleaseType" prepend=",">
+              RELEASE_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="ReleasePerson" prepend=",">
+               RELEASE_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+              ,#searchCompanyId#
+              ,#RELNO#
+               ,TO_DATE(#ReleaseDate#, 'YYYY-MM-DD')
+               ,#USEDIV#
+               ,#RELEASESTATUS#
+        ]]>
+        <isNotEmpty property="ReleaseType" prepend=",">
+               #ReleaseType#
+        </isNotEmpty>
+        <isNotEmpty property="ReleasePerson" prepend=",">
+               #ReleasePerson#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <insert id="dist.mat.release.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_RELEASE_D
+              (ORG_ID
+              ,COMPANY_ID
+              ,RELEASE_NO
+              ,RELEASE_SEQ
+              ,ITEM_CODE
+              ,RELEASE_QTY
+        ]]>
+        <isNotEmpty property="WAREHOUSING" prepend=",">
+               WAREHOUSING
+        </isNotEmpty>
+        <isNotEmpty property="WAREHOUSINGTO" prepend=",">
+               WAREHOUSING_TO
+        </isNotEmpty>
+        <isNotEmpty property="LOTNO" prepend=",">
+               LOT_NO
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#RELEASENO#
+              ,$RELEASESEQ$
+              ,#ITEMCODE#
+              ,$RELEASEQTY$
+        ]]>
+        <isNotEmpty property="WAREHOUSING" prepend=",">
+              #WAREHOUSING#
+        </isNotEmpty>
+        <isNotEmpty property="WAREHOUSINGTO" prepend=",">
+               #WAREHOUSINGTO#
+        </isNotEmpty>
+        <isNotEmpty property="LOTNO" prepend=",">
+               #LOTNO#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="dist.mat.release.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_RELEASE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , RELEASE_DATE = TO_DATE(#ReleaseDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="ReleasePerson" prepend=",">
+            RELEASE_PERSON = #ReleasePerson#
+        </isNotEmpty>
+        <isEmpty property="ReleasePerson" prepend=",">
+            RELEASE_PERSON = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND RELEASE_NO = #RelNo#
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+        ]]>
+    </update>
+    
+    <sql id="dist.mat.release.detail.find.sql-select">
+        SELECT COUNT(RD.RELEASE_NO) AS COUNT
+          FROM CB_RELEASE_H RH, CB_RELEASE_D RD
+    </sql>
+
+    <sql id="dist.mat.release.detail.find.sql-where">
+         WHERE 1 = 1
+					   AND RH.ORG_ID = RD.ORG_ID
+					   AND RH.COMPANY_ID = RD.COMPANY_ID
+					   AND RH.RELEASE_NO = RD.RELEASE_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          RD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          RD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="RELEASENO" prepend="AND">
+          RD.RELEASE_NO = #RELEASENO#
+        </isNotEmpty>
+        <isNotEmpty property="RELEASESEQ" prepend="AND">
+          RD.RELEASE_SEQ = #RELEASESEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.mat.release.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.detail.find.sql-select" />
+        <include refid="dist.mat.release.detail.find.sql-where" />
+    </select>
+    
+    <update id="dist.mat.release.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_RELEASE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , ITEM_CODE = #ITEMCODE#
+        ]]>
+        <isNotEmpty property="WAREHOUSING" prepend=",">
+            WAREHOUSING = #WAREHOUSING#
+        </isNotEmpty>
+        <isEmpty property="WAREHOUSING" prepend=",">
+            WAREHOUSING = NULL
+        </isEmpty>
+        <isNotEmpty property="WAREHOUSINGTO" prepend=",">
+            WAREHOUSING_TO = #WAREHOUSINGTO#
+        </isNotEmpty>
+        <isEmpty property="WAREHOUSINGTO" prepend=",">
+            WAREHOUSING_TO = NULL
+        </isEmpty>
+        <isNotEmpty property="RELEASEQTY" prepend=",">
+            RELEASE_QTY = #RELEASEQTY#
+        </isNotEmpty>
+        <isEmpty property="RELEASEQTY" prepend=",">
+            RELEASE_QTY = 0
+        </isEmpty>
+        <isNotEmpty property="LOTNO" prepend=",">
+            LOT_NO = #LOTNO#
+        </isNotEmpty>
+        <isEmpty property="LOTNO" prepend=",">
+            LOT_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND RELEASE_NO = #RELEASENO#
+          AND RELEASE_SEQ = $RELEASESEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+        ]]>
+    </update>
+    
+    
+    <sql id="dist.mat.release.master.move.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            RH.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            RH.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="USEDIV" prepend="AND">
+            RH.USE_DIV = #USEDIV#
+         </isNotEmpty>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                RH.RELEASE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SEARCHFROM" prepend="AND">
+                RH.RELEASE_DATE = TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="RELNO" prepend="AND">
+            RH.RELEASE_NO = #RELNO#
+         </isNotEmpty>
+         <isNotEmpty property="RELEASEPERSON" prepend="AND">
+            RH.RELEASE_PERSON = #RELEASEPERSON#
+         </isNotEmpty>
+               AND RH.RELEASE_NO IN (SELECT RD.RELEASE_NO FROM CB_RELEASE_D RD , CB_ITEM_MASTER CIM
+                                              WHERE 1 = 1
+                                              AND RD.ORG_ID = CIM.ORG_ID
+                                              AND RD.COMPANY_ID = CIM.COMPANY_ID
+                                              AND RD.ITEM_CODE = CIM.ITEM_CODE
+           <isNotEmpty property="ITEMCODE" prepend="AND">
+              RD.ITEM_CODE LIKE '%'|| #ITEMCODE#||'%'
+           </isNotEmpty>
+           <isNotEmpty property="ITEMNAME" prepend="AND">
+              CIM.ITEM_NAME LIKE '%'|| #ITEMNAME#||'%'
+           </isNotEmpty>
+           <isNotEmpty property="ORDERNAME" prepend="AND">
+              CIM.ORDER_NAME LIKE '%'|| #ORDERNAME#||'%'
+           </isNotEmpty>
+	        <isNotEmpty property="LOTNO" prepend="AND">
+	           RD.LOT_NO LIKE '%' || #LOTNO# || '%'
+	        </isNotEmpty>
+	        <isNotEmpty property="WAREHOUSINGCODEFROM" prepend="AND">
+	           RD.WAREHOUSING = #WAREHOUSINGCODEFROM#
+	        </isNotEmpty>
+	        <isNotEmpty property="WAREHOUSINGCODETO" prepend="AND">
+	           RD.WAREHOUSING_TO = #WAREHOUSINGCODETO#
+	        </isNotEmpty>
+                                               )
+    </sql>
+
+    <select id="dist.mat.release.master.move.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.master.list.sql-select" />
+        <include refid="dist.mat.release.master.move.sql-where" />
+         ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC
+    </select>
+
+    <select id="dist.mat.release.master.move.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.release.master.list.sql-select" />
+            <include refid="dist.mat.release.master.move.sql-where" />
+        ) TOT
+    </select>
+ 
+<!--  2017.01.20 생산출고 분리 -->
+
+    <!-- 생산 출고 조회 / 등록 시작 -->
+    <sql id="dist.mat.release.master.prod.sql-select">
+        SELECT RANK() OVER(ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC) AS RN
+                ,RH.ORG_ID AS ORGID
+                ,RH.COMPANY_ID AS COMPANYID
+                ,RH.RELEASE_NO AS RELEASENO
+                ,TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM-DD') AS RELEASEDATE
+                ,RH.USE_DIV AS USEDIV
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RH.ORG_ID
+                     AND SC.COMPANY_ID = RH.COMPANY_ID
+                     AND SC.BIG_CODE = 'MAT'
+                     AND SC.MIDDLE_CODE = 'USE_DIV'
+                     AND SC.SMALL_CODE = RH.USE_DIV) AS USEDIVNAME
+                ,RH.RELEASE_PERSON AS RELEASEPERSON
+                ,(SELECT HV.KR_NAME
+                    FROM CB_HUMANRESOURCE_MANAGER_V HV
+                   WHERE 1=1
+                     AND HV.ORG_ID = RH.ORG_ID
+                     AND HV.COMPANY_ID = RH.COMPANY_ID
+                     AND HV.EMPLOYEE_NUMBER = RH.RELEASE_PERSON) AS RELEASEPERSONNAME
+                ,RH.REMARKS AS REMARKS
+                ,RH.WORK_ORDER_ID AS WORKORDERID
+                ,RH.ITEM_CODE AS ITEMCODE 
+                ,IM.ITEM_NAME AS ITEMNAME 
+					      ,IM.ORDER_NAME AS ORDERNAME 
+					      ,IM.UOM 
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE 1 = 1
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'UOM'
+					           AND SC.SMALL_CODE = IM.UOM
+					           AND SC.ORG_ID = IM.ORG_ID
+					           AND SC.COMPANY_ID = IM.COMPANY_ID 
+					       ) AS UOMNAME
+					      ,RH.REQUIRE_QTY AS REQUIREQTY
+					      ,RH.NEED_QTY AS NEEDQTY
+					      ,RH.REL_QTY AS RELQTY
+					      ,RH.WORK_DEPT AS WORKDEPT
+					      ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1 = 1
+                     AND SC.ORG_ID = RH.ORG_ID
+                     AND SC.COMPANY_ID = RH.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'WORK_DEPT'
+                     AND SC.SMALL_CODE = RH.WORK_DEPT) AS WORKDEPTNAME
+               ,(SELECT SUM(RELEASE_QTY)
+                   FROM CB_RELEASE_D B
+                  WHERE B.ORG_ID = RH.ORG_ID
+                     AND B.COMPANY_ID = RH.COMPANY_ID
+                     AND B.RELEASE_NO = RH.RELEASE_NO) AS RELEASEQTY
+        FROM CB_RELEASE_H RH
+               , CB_ITEM_MASTER   IM
+    </sql>
+ 
+     <sql id="dist.mat.release.master.prod.sql-where">
+         WHERE 1 = 1
+             AND RH.ORG_ID = IM.ORG_ID
+					   AND RH.COMPANY_ID = IM.COMPANY_ID
+					   AND RH.ITEM_CODE     = IM.ITEM_CODE
+         <isNotEmpty property="ORGID" prepend="AND">
+            RH.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            RH.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="USEDIV" prepend="AND">
+            RH.USE_DIV = #USEDIV#
+         </isNotEmpty>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                RH.RELEASE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SEARCHFROM" prepend="AND">
+                RH.RELEASE_DATE = TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="RELNO" prepend="AND">
+            RH.RELEASE_NO = #RELNO#
+         </isNotEmpty>
+         <isNotEmpty property="WORKID" prepend="AND">
+            RH.WORK_ORDER_ID = #WORKID#
+         </isNotEmpty>
+         <isNotEmpty property="RELEASEPERSON" prepend="AND">
+            RH.RELEASE_PERSON = #RELEASEPERSON#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            RH.ITEM_CODE LIKE '%' || #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMTYPE" prepend="AND">
+            IM.ITEM_TYPE =  #ITEMTYPE#  
+         </isNotEmpty>
+         <isNotEmpty property="WORKDEPT" prepend="AND">
+            RH."WORK_DEPT" LIKE '%' || #"WORKDEPT"# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="WAREHOUSINGCODEFROM" prepend="AND">
+            RD.WAREHOUSING = #WAREHOUSINGCODEFROM#
+         </isNotEmpty>
+         <isNotEmpty property="WAREHOUSINGCODETO" prepend="AND">
+            RD.WAREHOUSING_TO = #WAREHOUSINGCODETO#
+         </isNotEmpty>
+    </sql>
+       
+     <select id="dist.mat.release.master.prod.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.master.prod.sql-select" />
+        <include refid="dist.mat.release.master.prod.sql-where" />
+         ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC
+    </select>
+
+    <select id="dist.mat.release.master.prod.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.release.master.prod.sql-select" />
+            <include refid="dist.mat.release.master.prod.sql-where" />
+        ) TOT
+    </select>
+<!--  2017.01.20 생산출고 분리 끝-->
+ 
+    
+    <select id="dist.mat.release.detail.move.first.select" parameterClass="java.util.Map"
+         resultClass="java.util.HashMap">
+         SELECT RELEASENO,ORGID,COMPANYID
+           FROM (
+          <include refid="dist.mat.release.master.list.sql-select" />
+          <include refid="dist.mat.release.master.move.sql-where" />
+          ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO DESC
+         )
+         WHERE 1=1
+           AND ROWNUM = 1
+     </select>
+     
+    <sql id="dist.mat.release.detail.move.sql-select">
+        SELECT RD.ORG_ID AS ORGID
+                ,RD.COMPANY_ID AS COMPANYID
+                ,RD.RELEASE_NO AS RELEASENO
+                ,RD.RELEASE_SEQ AS RELEASESEQ
+                ,RD.ITEM_CODE AS ITEMCODE
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.UOM AS UOM
+                ,IM.ITEM_STANDARD AS ITEMSTANDARD
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RD.ORG_ID
+                     AND SC.COMPANY_ID = RD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+                ,RD.RELEASE_QTY AS RELEASEQTY
+                ,RD.REMARKS AS REMARKS
+                ,RD.WAREHOUSING AS WAREHOUSING
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RD.ORG_ID
+                     AND SC.COMPANY_ID = RD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'WAREHOUSING'
+                     AND SC.SMALL_CODE = RD.WAREHOUSING) AS WAREHOUSINGNAME
+                ,RD.WAREHOUSING_TO AS WAREHOUSINGTO
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RD.ORG_ID
+                     AND SC.COMPANY_ID = RD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'WAREHOUSING'
+                     AND SC.SMALL_CODE = RD.WAREHOUSING_TO) AS WAREHOUSINGTONAME
+                ,RD.LOT_NO AS LOTNO
+        FROM CB_RELEASE_D RD, CB_ITEM_MASTER IM
+    </sql>
+
+    <select id="dist.mat.release.detail.move.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.release.detail.move.sql-select" />
+        <include refid="dist.mat.release.detail.list.sql-where" />
+        ORDER BY RD.RELEASE_NO DESC , RD.RELEASE_SEQ
+    </select>
+
+    <select id="dist.mat.release.detail.move.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.release.detail.move.sql-select" />
+            <include refid="dist.mat.release.detail.list.sql-where" />
+        ) TOT
+    </select>
+    <!-- (이동, 기타입, 생산) 출고 조회 / 등록 종료 -->
+    
+    <sql id="dist.mat.start.month.sql-select" >
+        SELECT TO_CHAR(TRUNC(SYSDATE, 'YYYY'), 'YYYY-MM-DD') AS DATEYEAR,
+                  TO_CHAR(TRUNC(SYSDATE, 'MM'),'YYYY-MM-DD') AS DATEFROM,
+                  TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+          FROM DUAL
+    </sql>
+    
+    <sql id="dist.mat.start.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="dist.mat.start.month.sql.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.start.month.sql-select" />
+        <include refid="dist.mat.start.month.sql-where" />
+    </select>
+
+  <!-- 2017.02.22 입하상세정보 화면에서 입하대기LIST(발주정보) // POPUP LIST  시작-->
+    <sql id="dist.mat.list.pop1.sql-select">
+        SELECT  RANK() OVER(ORDER BY  PONO DESC, POSEQ) AS RN
+                 ,PONO
+                 ,POSEQ
+                 ,PODATE
+                 ,CUSTOMERCODE
+                 ,CUSTOMERNAME
+                 ,POPERSON
+                 ,POPERSONNAME
+                 ,ITEMCODE
+                 ,ITEMNAME
+                 ,ORDERNAME
+                 ,UOM
+                 ,UOMNAME
+                 ,ORGID
+                 ,COMPANYID
+                 ,UOM
+                 ,UOMNAME
+                 ,MODEL
+                 ,MODELNAME
+                 ,SUBITEM
+                 ,SUBITEMNAME
+                 ,ORDERQTY
+                 ,TRANSQTY AS OLDQTY
+                 ,(ORDERQTY - TRANSQTY) AS TRANSQTY
+                 ,ITEMSTANDARD
+                 ,MATERIALTYPE
+                 ,UNITPRICE
+                 ,SUPPLYPRICE
+                 ,ADDITIONALTAX
+                 ,TOTAL
+                 ,TRANSFINISHYN
+          FROM CB_ORDER_DETAIL_LIST_V IM
+    </sql>
+    
+    <sql id="dist.mat.list.pop1.sql-where">
+         WHERE 1 = 1
+           AND TRANSFINISHYN ='N'
+          <![CDATA[  
+            AND SUBSTR(IM.ITEMCODE,0,1)<>'T'
+            ]]>
+        <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            CUSTOMERNAME LIKE '%' || #CUSTOMERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="POTO">
+           <isNotEmpty property="POFROM" prepend="AND">
+              TO_DATE(PODATE,'YYYY-MM-DD') BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD') AND TO_DATE(#POTO#,'YYYY-MM-DD')
+           </isNotEmpty>
+           <isEmpty property="POFROM" prepend="AND">
+              TO_DATE(PODATE,'YYYY-MM-DD') = TO_DATE(#POTO#,'YYYY-MM-DD')
+           </isEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEMCODE LIKE  '%' || #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+         <isNotEmpty property="MODELNAME" prepend="AND">
+            IM.MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+            IM.ITEMSTANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+        </isNotEmpty>
+        ORDER BY PONO DESC ,POSEQ
+    </sql>
+
+    <select id="dist.mat.list.pop1.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="dist.mat.list.pop1.sql-select" />
+            <include refid="dist.mat.list.pop1.sql-where" />
+    </select>
+    
+    <select id="dist.mat.list.pop1.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.list.pop1.sql-select" />
+            <include refid="dist.mat.list.pop1.sql-where" />
+        ) TOT
+    </select>
+  <!-- 2017.02.22 입하상세정보 화면에서 입하대기LIST(발주정보) // POPUP LIST  긑-->    
+  
+  
+    <!-- 발주대비 입고현황 조회 시작 -->
+    <sql id="dist.mat.matorderreceive.list.sql-select">
+			SELECT RANK() OVER(ORDER BY OD.ORG_ID, OD.COMPANY_ID, OH.PO_DATE DESC, OD.PO_NO DESC, OD.PO_SEQ) AS RN
+			      ,OD.ORG_ID AS ORGID
+			      ,OD.COMPANY_ID AS COMPANYID
+			      ,OD.PO_NO AS PONO
+			      ,OD.PO_SEQ AS POSEQ
+			      ,OD.ITEM_CODE AS ITEMCODE
+			      ,IM.ITEM_NAME AS ITEMNAME
+			      ,IM.ORDER_NAME AS ORDERNAME
+			      ,IM.UOM AS UOM
+			      ,IM.ITEM_TYPE AS ITEMTYPE
+			      ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE SC.ORG_ID = IM.ORG_ID
+			           AND SC.COMPANY_ID = IM.COMPANY_ID
+			           AND SC.SMALL_CODE = IM.ITEM_TYPE
+			           AND SC.BIG_CODE = 'CMM'
+			           AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+			       ) AS ITEMTYPENAME
+			      ,IM.ITEM_STANDARD AS ITEMSTANDARD
+			      ,OD.PO_NO ||'-'|| OD.PO_SEQ AS PONOSEQ
+			      ,OH.CUSTOMER_CODE AS CUSTOMERCODE
+			      ,(SELECT CC.CUSTOMER_NAME
+			          FROM CB_CUSTOMER CC
+			         WHERE CC.ORG_ID = OH.ORG_ID
+			           AND CC.COMPANY_ID = OH.COMPANY_ID
+			           AND CC.CUSTOMER_CODE = OH.CUSTOMER_CODE
+			       ) AS CUSTOMERNAME
+			      ,OD.ORDER_QTY AS ORDERQTY
+			      ,TO_CHAR(OH.PO_DATE, 'YYYY-MM-DD') AS PODATE
+			      ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+			      ,OH.PO_PERSON AS POPERSON 
+			      ,(SELECT HM.KR_NAME
+			          FROM CB_HUMANRESOURCE_MANAGER HM
+			         WHERE HM.EMPLOYEE_NUMBER = OH.PO_PERSON
+			       ) AS POPERSONNAME
+			       ,OH.PO_STATUS AS POSTATUS
+			       ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE SC.ORG_ID = OH.ORG_ID
+			           AND SC.COMPANY_ID = OH.COMPANY_ID
+			           AND SC.SMALL_CODE = OH.PO_STATUS
+			           AND SC.BIG_CODE = 'MAT'
+			           AND SC.MIDDLE_CODE = 'STATUS_CODE'
+			       ) POSTATUSNAME
+			       ,OH.USE_DIV AS USEDIV
+			       ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE 1 = 1
+			           AND SC.ORG_ID = OH.ORG_ID
+			           AND SC.COMPANY_ID = OH.COMPANY_ID
+			           AND SC.BIG_CODE = 'MAT'
+			           AND SC.MIDDLE_CODE = 'ORDER_DIV'
+			           AND SC.SMALL_CODE = OH.USE_DIV) AS USEDIVNAME
+             ,TV.TRANSQTY AS TRANSQTY
+             ,OD.ORDER_QTY - NVL(TV.TRANSQTY, 0) AS BEFOREQTY
+				     ,TV.UNITPRICE AS UNITPRICE
+				     ,TV.SUPPLYPRICE AS SUPPLYPRICE
+				     ,TV.ADDITIONALTAX AS ADDITIONALTAX
+				     ,TV.TOTAL AS TOTAL
+				     ,NVL((SELECT COUNT(*)
+				              FROM CB_TRANS_D CTD
+				             WHERE 1=1
+				               AND CTD.ORG_ID = OD.ORG_ID
+				               AND CTD.COMPANY_ID = OD.COMPANY_ID
+				               AND CTD.PO_NO = OD.PO_NO
+				               AND CTD.PO_SEQ = OD.PO_SEQ), 0) AS TRANSCHK
+			  FROM CB_ORDER_D OD
+			      ,CB_ORDER_H OH
+			      ,CB_ITEM_MASTER IM
+			      ,CB_TRANS_DETAIL_V TV
+    </sql>
+
+    <sql id="dist.mat.matorderreceive.list.sql-where">
+       WHERE 1 = 1
+         AND OD.ORG_ID = IM.ORG_ID
+         AND OD.COMPANY_ID = IM.COMPANY_ID
+         AND OD.ITEM_CODE = IM.ITEM_CODE
+         AND OD.ORG_ID = OH.ORG_ID
+         AND OD.COMPANY_ID = OH.COMPANY_ID
+         AND OD.PO_NO = OH.PO_NO
+			   AND OD.ORG_ID = TV.ORGID(+)
+			   AND OD.COMPANY_ID = TV.COMPANYID(+)
+			   AND OD.PO_NO = TV.PONO(+)
+			   AND OD.PO_SEQ = TV.POSEQ(+)
+         <isNotEmpty property="ORGID" prepend="AND">
+            OD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            OD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                OH.PO_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+             </isNotEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PONO" prepend="AND">
+            OD.PO_NO LIKE '%' || #PONO# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            OH.CUSTOMER_CODE IN (SELECT CC.CUSTOMER_CODE
+                                            FROM CB_CUSTOMER CC
+                                           WHERE CC.ORG_ID = OH.ORG_ID
+                                              AND CC.COMPANY_ID = OH.COMPANY_ID
+                                              AND CC.CUSTOMER_NAME LIKE '%' || #CUSTOMERNAME# || '%'
+                                           )
+         </isNotEmpty>
+         <isNotEmpty property="ITEMTYPE" prepend="AND">
+            IM.ITEM_TYPE = #ITEMTYPE#
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERDIV" prepend="AND">
+            OH.USE_DIV = #ORDERDIV#
+         </isNotEmpty>
+         <isNotEmpty property="STATUS" prepend="AND">
+            OH.PO_STATUS = #STATUS#
+         </isNotEmpty>
+         <isEqual property="TRANSCHK" compareValue="Y" prepend="AND">
+            NVL((SELECT COUNT(*)
+                      FROM CB_TRANS_D CTD
+                     WHERE 1=1
+                       AND CTD.ORG_ID = OD.ORG_ID
+                       AND CTD.COMPANY_ID = OD.COMPANY_ID
+                       AND CTD.PO_NO = OD.PO_NO
+                       AND CTD.PO_SEQ = OD.PO_SEQ), 0) > 0
+         </isEqual>
+         <isEqual property="TRANSCHK" compareValue="N" prepend="AND">
+            NVL((SELECT COUNT(*)
+                      FROM CB_TRANS_D CTD
+                     WHERE 1=1
+                       AND CTD.ORG_ID = OD.ORG_ID
+                       AND CTD.COMPANY_ID = OD.COMPANY_ID
+                       AND CTD.PO_NO = OD.PO_NO
+                       AND CTD.PO_SEQ = OD.PO_SEQ), 0) = 0
+         </isEqual>
+         <isNotEmpty property="TRANSDIV" prepend="AND">
+            TV.TRANSDIV = #TRANSDIV#
+         </isNotEmpty>
+       ORDER BY OD.ORG_ID, OD.COMPANY_ID, OH.PO_DATE DESC, OD.PO_NO DESC, OD.PO_SEQ
+    </sql>
+
+    <select id="dist.mat.matorderreceive.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.mat.matorderreceive.list.sql-select" />
+        <include refid="dist.mat.matorderreceive.list.sql-where" />
+    </select>
+
+    <select id="dist.mat.matorderreceive.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.mat.matorderreceive.list.sql-select" />
+            <include refid="dist.mat.matorderreceive.list.sql-where" />
+        ) TOT
+        WHERE 1 = 1
+    </select>
+    <!-- 발주대비 입고현황 조회 끝 -->
+</sqlMap>

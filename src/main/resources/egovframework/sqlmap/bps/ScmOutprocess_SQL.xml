@@ -1,0 +1,3329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="scmoutprocess">
+
+    <parameterMap class="java.util.Map" id="procScmNcrParams">
+        <parameter property="ORGID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="OUTTRANSNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="OUTTRANSSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRANSYN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="scmoutprocess.change.ncr.update.call.Procedure" parameterClass="java.util.Map"  parameterMap="procScmNcrParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SCM_PKG.CB_CHANGE_NCR_U( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+     <!-- SCM 외주입고등록 Header 조회 -->
+    <sql id="scm.outprocess.list.sql-select">
+        SELECT   RANK() OVER(ORDER BY TH.OUT_TRANS_NO DESC) AS RN
+                   ,TH.ORG_ID AS ORGID
+                   ,TH.COMPANY_ID AS COMPANYID
+                   ,TH.OUT_TRANS_NO AS OUTTRANSNO
+                   ,TO_CHAR(TH.OUT_TRANS_DATE, 'YYYY-MM-DD') AS OUTTRANSDATE
+                   ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+                   ,(SELECT CC.CUSTOMER_NAME
+                       FROM CB_CUSTOMER CC
+                      WHERE CC.ORG_ID = TH.ORG_ID 
+                        AND CC.COMPANY_ID = TH.COMPANY_ID
+                        AND CC.CUSTOMER_CODE = TH.CUSTOMER_CODE) AS CUSTOMERNAME
+                   ,TH.TRANS_PERSON AS TRANSPERSON
+                   ,(SELECT HM.KR_NAME
+                       FROM CB_HUMANRESOURCE_MANAGER HM
+                      WHERE HM.EMPLOYEE_NUMBER = TH.TRANS_PERSON) AS TRANSPERSONNAME
+                   ,TH.TRADE_DATE AS TRADEDATE
+                   ,(SELECT TD.ITEM_CODE
+                      FROM CB_OUT_TRANS_D TD
+                     WHERE TH.ORG_ID = TD.ORG_ID
+                       AND TH.COMPANY_ID = TD.COMPANY_ID
+                       AND TH.OUT_TRANS_NO = TD.OUT_TRANS_NO
+                       AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                             FROM CB_OUT_TRANS_D T
+                                                            WHERE T.ORG_ID = TH.ORG_ID
+                                                              AND T.COMPANY_ID = TH.COMPANY_ID
+                                                              AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                           )) AS ITEMCODE
+                  ,(SELECT IM.ORDER_NAME
+                      FROM CB_ITEM_MASTER IM
+                    WHERE IM.ORG_ID = TH.ORG_ID
+                      AND IM.COMPANY_ID = TH.COMPANY_ID
+                      AND IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                             FROM CB_OUT_TRANS_D TD
+                                            WHERE TD.ORG_ID = TH.ORG_ID
+                                               AND TD.COMPANY_ID = TH.COMPANY_ID
+                                               AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                              AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                    FROM CB_OUT_TRANS_D T
+                                                                                   WHERE T.ORG_ID = TH.ORG_ID
+                                                                                     AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                     AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                  ))
+                   ) AS ORDERNAME
+                  ,(SELECT IM.ITEM_NAME
+                     FROM CB_ITEM_MASTER IM
+                    WHERE IM.ORG_ID = TH.ORG_ID
+                      AND IM.COMPANY_ID = TH.COMPANY_ID
+                      AND IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                                      FROM CB_OUT_TRANS_D TD
+                                                     WHERE TD.ORG_ID = TH.ORG_ID
+                                                        AND TD.COMPANY_ID = TH.COMPANY_ID
+                                                        AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                        AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                              FROM CB_OUT_TRANS_D T
+                                                                                             WHERE T.ORG_ID = TH.ORG_ID
+                                                                                               AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                               AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                            ))
+                  ) AS ITEMNAME
+                  ,(SELECT CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                                                                  ,IM.COMPANY_ID
+                                                                                                  ,'CMM'
+                                                                                                  ,'MODEL'
+                                                                                                  ,IM.CAR_TYPE
+                                                                                                  ,'LABEL')
+                     FROM CB_ITEM_MASTER IM
+                    WHERE IM.ORG_ID = TH.ORG_ID
+                      AND IM.COMPANY_ID = TH.COMPANY_ID
+                      AND IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                                      FROM CB_OUT_TRANS_D TD
+                                                     WHERE TD.ORG_ID = TH.ORG_ID
+                                                        AND TD.COMPANY_ID = TH.COMPANY_ID
+                                                        AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                        AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                              FROM CB_OUT_TRANS_D T
+                                                                                             WHERE T.ORG_ID = TH.ORG_ID
+                                                                                               AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                               AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                            ))
+                  ) AS MODELNAME
+                  ,(SELECT IM.ITEM_STANDARD_DETAIL
+                     FROM CB_ITEM_MASTER IM
+                    WHERE IM.ORG_ID = TH.ORG_ID
+                      AND IM.COMPANY_ID = TH.COMPANY_ID
+                      AND IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                                      FROM CB_OUT_TRANS_D TD
+                                                     WHERE TD.ORG_ID = TH.ORG_ID
+                                                        AND TD.COMPANY_ID = TH.COMPANY_ID
+                                                        AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                        AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                              FROM CB_OUT_TRANS_D T
+                                                                                             WHERE T.ORG_ID = TH.ORG_ID
+                                                                                               AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                               AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                            ))
+                  ) AS ITEMSTANDARDDETAIL
+                   ,(SELECT SUM(TD2.TRANS_QTY)
+                       FROM CB_OUT_TRANS_D TD2
+                      WHERE TH.ORG_ID               = TD2.ORG_ID 
+                         AND TH.COMPANY_ID       = TD2.COMPANY_ID 
+                         AND TH.OUT_TRANS_NO    = TD2.OUT_TRANS_NO
+                   GROUP BY TD2.OUT_TRANS_NO) AS TRANSQTYSUM
+                   ,(SELECT SUM(NVL(TD2.SUPPLY_PRICE, 0) + NVL(TD2.ADDITIONAL_TAX, 0))
+                       FROM CB_OUT_TRANS_D TD2
+                      WHERE TH.ORG_ID              = TD2.ORG_ID
+                         AND TH.COMPANY_ID       = TD2.COMPANY_ID
+                         AND TH.OUT_TRANS_NO   = TD2.OUT_TRANS_NO
+                  GROUP BY TD2.OUT_TRANS_NO) AS TOTALSUM
+                   ,TH.REMARKS
+              FROM CB_OUT_TRANS_H TH
+    </sql>
+
+    <sql id="scm.outprocess.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+           TH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+           TH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="TRANSNO" prepend="AND">
+            TH.OUT_TRANS_NO LIKE '%' || #TRANSNO# || '%'
+         </isNotEmpty>
+        <isNotEmpty property="WORKORDERTO">
+             <isNotEmpty property="WORKORDERFROM" prepend="AND">
+                TH.OUT_TRANS_DATE BETWEEN TO_DATE(#WORKORDERFROM#,'YYYY-MM-DD')  AND TO_DATE(#WORKORDERTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="WORKORDERFROM" prepend="AND">
+                TH.OUT_TRANS_DATE = TO_DATE(#WORKORDERTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            TH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            TH.CUSTOMERNAME = #CUSTOMERNAME#
+         </isNotEmpty>
+         
+             AND (TH.ORG_ID , TH.COMPANY_ID ,TH.OUT_TRANS_NO ) IN (SELECT RD.ORGID , RD.COMPANYID , RD.OUTTRANSNO
+                                                     FROM CB_OUT_TRANS_DETAIL_HV RD
+                                                    WHERE 1=1
+            <isNotEmpty property="ORGID" prepend="AND">
+              RD.ORGID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              RD.COMPANYID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              RD.ITEMCODE LIKE '%' || #ITEMCODE# || '%'
+            </isNotEmpty>
+            <isNotEmpty property="ITEMNAME" prepend="AND">
+              RD.ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+            </isNotEmpty>
+            <isNotEmpty property="ORDERNAME" prepend="AND">
+              RD.ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+            </isNotEmpty>
+            <isNotEmpty property="WORKORDERID" prepend="AND">
+              RD.WORKORDERID LIKE '%' || #WORKORDERID# || '%'
+            </isNotEmpty>
+            <isNotEmpty property="no" prepend="AND">
+		          RD.WORKORDERID = #no#
+		        </isNotEmpty>
+		        <isNotEmpty property="TRANSYN" prepend="AND">
+              RD.TRANSYN = #TRANSYN#
+            </isNotEmpty>
+                                                   )
+    </sql>
+
+    <select id="scm.outprocess.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.list.sql-select" />
+        <include refid="scm.outprocess.list.sql-where" />
+    </select>
+
+    <select id="scm.outprocess.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.list.sql-select" />
+            <include refid="scm.outprocess.list.sql-where" />
+        ) TOT
+    </select>
+
+
+    <!-- 외주입고등록 Detail 조회 -->
+    <sql id="scm.outprocess.detail.sql-select">
+        SELECT   RANK() OVER(ORDER BY OUTTRANSNO, OUTTRANSSEQ) AS RN
+                   ,OUTTRANSNO
+                   ,OUTTRANSSEQ
+                   ,OUTTRANSNOSEQ
+                   ,ORGID
+                   ,COMPANYID
+                   ,ITEMCODE
+                   ,ORDERNAME
+                   ,ITEMNAME
+                   ,MODEL
+                   ,MODELNAME
+                   ,ITEMSTANDARDDETAIL
+                   ,UOM
+                   ,UOMNAME
+                   ,WORKORDERID
+                   ,WORKORDERSEQ
+                   ,ORDERQTY
+                   ,TRANSQTY
+                   ,(SELECT NVL(SUM(TD.TRANS_QTY), 0)
+                      FROM CB_OUT_TRANS_D TD
+                     WHERE TD.OUT_PO_NO  = OUTPONO
+                        AND TD.OUT_PO_SEQ = OUTPOSEQ
+                    ) AS EXTRANSQTY
+                   ,UNITPRICE
+                   ,SUPPLYPRICE
+                   ,ADDITIONALTAX
+                   ,TOTAL
+                   ,OUTPONO
+                   ,OUTPOSEQ
+                   ,OUTPONOSEQ
+                   ,FINISHYN
+                   ,FINISHYNNAME
+                   ,REMARKS
+                   ,ROUTINGCODE
+                   ,ROUTINGNAME
+                   ,POSTATUS
+                   ,WORKSTATUS
+                   ,TRANSYN
+                   ,TRANSYNNAME
+                    ,CON1
+                    ,CON2
+                    ,CON3
+                    ,CON4
+                    ,CON5
+                    ,CON6
+                    ,CON7
+                    ,CON8
+                    ,CON9
+                    ,CON10
+                    ,CON11
+                    ,CON12
+                    ,CON13
+                    ,CON14
+                    ,CON15
+                    ,CON16
+                    ,CON17
+                    ,CON18
+                    ,CON19
+                    ,CON20
+                    ,CON21
+                    ,CON22
+                    ,CON23
+                    ,CON24
+                    ,CON25
+                    ,CON26
+                    ,CON27
+                    ,CON28
+                    ,CON29
+                    ,CON30
+                    ,CON31
+                    ,CON32
+                    ,CON33
+                    ,CON34
+                    ,CON35
+                    ,CON36
+                    ,CON37
+                    ,CON38
+                    ,CON39
+                    ,CON40
+                    ,TOTALFAULTQTY
+                    ,OUTPRODLOT
+                    ,INSPECTIONPLANNO
+                    ,TRANSCHKQTY AS TRANSCHKQTY
+              FROM CB_OUT_TRANS_DETAIL_V 
+    </sql>
+
+    <sql id="scm.outprocess.detail.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSNO" prepend="AND">
+          OUTTRANSNO = #OUTTRANSNO#
+        </isNotEmpty>
+         <isNotEmpty property="WORKORDERID" prepend="AND">
+          WORKORDERID = #WORKORDERID#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEMCODE LIKE '%' || #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+    </sql>
+
+    <select id="scm.outprocess.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.detail.sql-select" />
+        <include refid="scm.outprocess.detail.sql-where" />
+    </select>
+
+    <select id="scm.outprocess.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.detail.sql-select" />
+            <include refid="scm.outprocess.detail.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- 외주입고 대기리스트 조회 -->
+    <sql id="scm.outprocess.list.pop.sql-select">
+		<![CDATA[
+		SELECT ROW_NUMBER() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.OUT_PO_DATE, OH.OUT_PO_NO, OD.OUT_PO_SEQ) AS RNUM
+              ,RANK() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.OUT_PO_DATE, OH.OUT_PO_NO, OD.OUT_PO_SEQ) AS NOWCNT
+				      ,RANK() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.OUT_PO_DATE, OH.OUT_PO_NO, OD.OUT_PO_SEQ, (CASE WHEN NVL(IH.PASS_QTY, 0) -
+				                                                                                                              NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				                                                                                                                     FROM CB_OUT_TRANS_D TD
+				                                                                                                                    WHERE TD.ORG_ID = OD.ORG_ID
+				                                                                                                                      AND TD.COMPANY_ID = OD.COMPANY_ID
+				                                                                                                                      AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				                                                                                                                      AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0) > 0 THEN
+				                                                                                                           IH.INSPECTION_PLAN_NO
+				                                                                                                         ELSE
+				                                                                                                           NULL
+				                                                                                                         END)) AS PRECNT
+				      ,OH.ORG_ID AS ORGID
+              ,OH.COMPANY_ID AS COMPANYID
+              ,TO_CHAR(OH.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE
+				      ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+				      ,OH.OUT_PO_NO AS OUTPONO
+				      ,OD.OUT_PO_SEQ AS OUTPOSEQ
+				      ,OD.WORK_ORDER_ID AS WORKORDERID
+				      ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ
+				      ,IH.INSPECTION_PLAN_NO AS INSPECTIONPLANNO
+				      ,OD.ITEM_CODE AS ITEMCODE
+				      ,IM.ITEM_NAME AS ITEMNAME
+				      ,IM.DRAWING_NO AS DRAWINGNO
+				      ,IM.ORDER_NAME AS ORDERNAME
+				      ,IM.CAR_TYPE AS MODEL
+				      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+				                                                  ,IM.COMPANY_ID
+				                                                  ,'CMM'
+				                                                  ,'MODEL'
+				                                                  ,IM.CAR_TYPE
+				                                                  ,'LABEL') AS MODELNAME
+				      ,IM.UOM
+				      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+				                                                  ,IM.COMPANY_ID
+				                                                  ,'CMM'
+				                                                  ,'UOM'
+				                                                  ,IM.UOM
+				                                                  ,'LABEL') AS UOMNAME
+				      ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+				      ,(CASE WHEN OD.ROUTING_NO IS NULL THEN
+				               (SELECT RC.ROUTING_NO
+				                  FROM CB_WORK_ORDER WO
+				                      ,CB_ROUTING_CONTROL RC
+				                 WHERE WO.ORG_ID = OD.ORG_ID
+				                   AND WO.COMPANY_ID = OD.COMPANY_ID
+				                   AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+				                   AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ
+				                   AND WO.ORG_ID = RC.ORG_ID
+				                   AND WO.COMPANY_ID = RC.COMPANY_ID
+				                   AND WO.ROUTING_CODE = RC.ROUTING_ID)
+				             ELSE
+				               OD.ROUTING_NO
+				             END) AS ROUTINGNO
+				      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(OD.ORG_ID
+				                                                  ,OD.COMPANY_ID
+				                                                  ,'MFG'
+				                                                  ,'ROUTING_NAME'
+				                                                  ,(CASE WHEN OD.ROUTING_NO IS NULL THEN
+				                                                           (SELECT RC.ROUTING_NO
+				                                                              FROM CB_WORK_ORDER WO
+				                                                                  ,CB_ROUTING_CONTROL RC
+				                                                             WHERE WO.ORG_ID = OD.ORG_ID
+				                                                               AND WO.COMPANY_ID = OD.COMPANY_ID
+				                                                               AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+				                                                               AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ
+				                                                               AND WO.ORG_ID = RC.ORG_ID
+				                                                               AND WO.COMPANY_ID = RC.COMPANY_ID
+				                                                               AND WO.ROUTING_CODE = RC.ROUTING_ID)
+				                                                         ELSE
+				                                                           OD.ROUTING_NO
+				                                                         END)
+				                                                  ,'LABEL') AS ROUTINGNAME
+				      ,NVL((SELECT MAX(TD.FINISH_YN)
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 'N') AS FINISHCHECK
+				      ,NVL(IH.CHECK_QTY, 0) AS CHECKQTY
+				      
+				      ,OD.ORDER_QTY AS ORDERQTY
+				      ,NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0) AS TRANSQTY
+				      ,NVL(IH.PASS_QTY, 0) AS PASSQTY
+				      ,NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.INSPECTION_PLAN_NO = IH.INSPECTION_PLAN_NO), 0) AS INSPQTY
+				      ,NVL((SELECT SUM(NVL(TD.CON1 , 0) + NVL(TD.CON2 , 0) + NVL(TD.CON3 , 0) + NVL(TD.CON4 , 0) + NVL(TD.CON5 , 0) +
+				                       NVL(TD.CON6 , 0) + NVL(TD.CON7 , 0) + NVL(TD.CON8 , 0) + NVL(TD.CON9 , 0) + NVL(TD.CON10, 0) +
+				                       NVL(TD.CON11, 0) + NVL(TD.CON12, 0) + NVL(TD.CON13, 0) + NVL(TD.CON14, 0) + NVL(TD.CON15, 0) +
+				                       NVL(TD.CON16, 0) + NVL(TD.CON17, 0) + NVL(TD.CON18, 0) + NVL(TD.CON19, 0) + NVL(TD.CON20, 0) +
+				                       NVL(TD.CON21, 0) + NVL(TD.CON22, 0) + NVL(TD.CON23, 0) + NVL(TD.CON24, 0) + NVL(TD.CON25, 0) +
+				                       NVL(TD.CON26, 0) + NVL(TD.CON27, 0) + NVL(TD.CON28, 0) + NVL(TD.CON29, 0) + NVL(TD.CON30, 0) +
+				                       NVL(TD.CON31, 0) + NVL(TD.CON32, 0) + NVL(TD.CON33, 0) + NVL(TD.CON34, 0) + NVL(TD.CON35, 0) +
+				                       NVL(TD.CON36, 0) + NVL(TD.CON37, 0) + NVL(TD.CON38, 0) + NVL(TD.CON39, 0) + NVL(TD.CON40, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0) AS FAULTQTY
+				      ,OD.UNIT_PRICE AS UNITPRICE
+				      ,NVL(OD.UNIT_PRICE, 0) *
+				       NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0) AS SUPPLYPRICE
+				      ,TRUNC((NVL(OD.UNIT_PRICE, 0) *
+				       NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0)) * 0.1, 0) AS ADDITIONALTAX
+				      ,NVL(OD.UNIT_PRICE, 0) *
+				       NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0) +
+				       TRUNC((NVL(OD.UNIT_PRICE, 0) *
+				       NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+				              FROM CB_OUT_TRANS_D TD
+				             WHERE TD.ORG_ID = OD.ORG_ID
+				               AND TD.COMPANY_ID = OD.COMPANY_ID
+				               AND TD.OUT_PO_NO = OD.OUT_PO_NO
+				               AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ), 0)) * 0.1, 0) AS TOTAL
+				      ,OH.CUSTOMER_CODE AS CUSTOMERCODEOUT
+				      ,(SELECT CC.CUSTOMER_NAME
+				          FROM CB_CUSTOMER CC
+				         WHERE CC.ORG_ID = OH.ORG_ID
+				           AND CC.COMPANY_ID = OH.COMPANY_ID
+				           AND CC.CUSTOMER_CODE = OH.CUSTOMER_CODE) AS CUSTOMERNAMEOUT
+				      ,OH.OUT_PO_PERSON AS OUTPOPERSON
+				      ,OH.OUT_PO_STATUS AS OUTPOSTATUS
+				      ,(SELECT WO.WORK_STATUS
+				          FROM CB_WORK_ORDER WO
+				         WHERE WO.ORG_ID = OD.ORG_ID
+				           AND WO.COMPANY_ID = OD.COMPANY_ID
+				           AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+				           AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ) AS WORKSTATUS
+				      ,(CASE WHEN NVL((SELECT COUNT(*)
+				                         FROM CB_CHECK_MASTER CM
+				                        WHERE CM.ORG_ID = OD.ORG_ID
+				                          AND CM.COMPANY_ID = OD.COMPANY_ID
+				                          AND CM.ITEM_CODE = OD.ITEM_CODE
+				                          AND CM.CHECK_BIG = 'L'
+				                          AND CM.ROUTING_ID = (SELECT WO.ROUTING_CODE
+				                                                 FROM CB_WORK_ORDER WO
+				                                                WHERE WO.ORG_ID = OD.ORG_ID
+				                                                  AND WO.COMPANY_ID = OD.COMPANY_ID
+				                                                   AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+				                                                  AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ)
+				                          AND OH.OUT_PO_DATE BETWEEN CM.EFFECTIVE_START_DATE AND CM.EFFECTIVE_END_DATE), 0) > 0 THEN
+				               'Y'
+				             ELSE
+				               'N'
+				             END) AS OUTCHECK
+				      ,OD.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+		  FROM CB_OUT_ORDER_H OH
+				      ,CB_OUT_ORDER_D OD
+				      ,CB_ITEM_MASTER IM
+				      ,CB_SCM_INSPECTION_H IH
+		]]>
+    </sql>
+
+    <sql id="scm.outprocess.list.pop.sql-where">
+			 WHERE OH.ORG_ID = OD.ORG_ID
+			   AND OH.COMPANY_ID = OD.COMPANY_ID
+			   AND OH.OUT_PO_NO = OD.OUT_PO_NO
+			   AND OD.ORG_ID = IM.ORG_ID
+			   AND OD.COMPANY_ID = IM.COMPANY_ID
+			   AND OD.ITEM_CODE = IM.ITEM_CODE
+			   AND OD.ORG_ID = IH.ORG_ID (+)
+			   AND OD.COMPANY_ID = IH.COMPANY_ID (+)
+			   AND OD.OUT_PO_NO = IH.ORDER_NO (+)
+			   AND OD.OUT_PO_SEQ = IH.ORDER_SEQ (+)
+			   AND (OD.SCM_INSPECTION_YN = 'N'
+			    OR IH.INSPECTION_PLAN_NO IS NOT NULL)
+			   AND (OD.ORG_ID, OD.COMPANY_ID, OD.OUT_PO_NO, OD.OUT_PO_SEQ) NOT IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.OUT_PO_NO, TD.OUT_PO_SEQ
+			                                                                         FROM CB_OUT_TRANS_D TD
+			                                                                        WHERE TD.ORG_ID = OD.ORG_ID
+			                                                                          AND TD.COMPANY_ID = OD.COMPANY_ID
+			                                                                          AND TD.FINISH_YN = 'Y')
+	       <isNotEmpty property="OUTPONO" prepend="AND">
+	         OD.OUT_PO_NO LIKE '%' || #OUTPONO# || '%'
+	       </isNotEmpty>
+	      <isNotEmpty property="ORGID" prepend="AND">
+	         OD.ORG_ID = #ORGID#
+	       </isNotEmpty>
+	       <isNotEmpty property="COMPANYID" prepend="AND">
+	         OD.COMPANY_ID  = #COMPANYID#
+	       </isNotEmpty>
+	       <isNotEmpty property="POTO">
+	            <isNotEmpty property="POFROM" prepend="AND">
+	               OD.DUE_DATE BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD')  AND TO_DATE(#POTO#,'YYYY-MM-DD')
+	            </isNotEmpty>
+	            <isEmpty property="POTO" prepend="AND">
+	               OD.DUE_DATE = TO_DATE(#POTO#,'YYYY-MM-DD')
+	            </isEmpty>
+	        </isNotEmpty>
+	        <isNotEmpty property="ITEMCODE" prepend="AND">
+	           OD.ITEM_CODE LIKE #ITEMCODE# || '%'
+	        </isNotEmpty>
+	        <isNotEmpty property="ITEMNAME" prepend="AND">
+	           IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+	        </isNotEmpty>
+	        <isNotEmpty property="ORDERNAME" prepend="AND">
+	           IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+	        </isNotEmpty>
+	        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+	           OH.CUSTOMER_CODE = #CUSTOMERCODE#
+	        </isNotEmpty>
+	        <isNotEmpty property="MODELNAME" prepend="AND">
+             IM.CAR_TYPE_NAME LIKE '%' || #MODELNAME# || '%'
+          </isNotEmpty>
+          <isNotEmpty property="ITEMTYPE" prepend="AND">
+             IM.ITEM_STANDARD_DETAIL LIKE  '%' || #ITEMTYPE# || '%'
+          </isNotEmpty>
+    </sql>
+    
+    <select id="scm.outprocess.list.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <![CDATA[
+        SELECT  ROW_NUMBER() OVER(ORDER BY R.OUTPONO, R.OUTPOSEQ) AS RN
+                  ,R.ORGID
+                  ,R.COMPANYID
+                  ,R.RNUM
+                  ,R.PRECNT
+                  ,R.NOWCNT
+                  ,R.OUTPODATE
+                  ,R.DUEDATE
+                  ,R.OUTPONO
+                  ,R.OUTPOSEQ
+                  ,R.WORKORDERID
+                  ,R.WORKORDERSEQ
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.INSPECTIONPLANNO
+                   END) AS INSPECTIONPLANNO
+                  ,R.ITEMCODE
+                  ,R.ITEMNAME
+                  ,R.ORDERNAME
+                  ,R.MODEL
+                  ,R.MODELNAME
+                  ,R.UOM
+                  ,R.UOMNAME
+                  ,R.ITEMSTANDARDDETAIL
+                  ,R.ROUTINGNO
+                  ,R.ROUTINGNAME                  
+                  ,R.ORDERQTY
+                  ,R.TRANSQTY                      
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.PASSQTY
+                      ELSE 0
+                    END) AS PASSQTY
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.INSPQTY
+                      ELSE 0
+                    END) AS INSPQTY
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN 0
+                     ELSE R.FAULTQTY
+                   END) AS FAULTQTY             
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (R.PASSQTY - R.INSPQTY)
+                     WHEN (R.PASSQTY - R.INSPQTY)  <= 0  THEN ((R.ORDERQTY - R.TRANSQTY) - R.FAULTQTY)
+                   END) AS EXTRANSQTY
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (R.PASSQTY - R.INSPQTY)
+                     WHEN (R.PASSQTY - R.INSPQTY)  <= 0  THEN ((R.ORDERQTY - R.TRANSQTY) - R.FAULTQTY)
+                   END) AS EXTRANSQTY2
+                  
+                  ,R.UNITPRICE
+                  ,R.SUPPLYPRICE
+                  ,R.ADDITIONALTAX
+                  ,R.TOTAL
+                  ,R.CUSTOMERCODEOUT
+                  ,R.CUSTOMERNAMEOUT
+                  ,R.OUTPOPERSON
+                  ,R.OUTPOSTATUS
+                  ,R.WORKSTATUS
+         FROM (
+         ]]>
+                  <include refid="scm.outprocess.list.pop.sql-select" />
+                  <include refid="scm.outprocess.list.pop.sql-where" />
+                  <![CDATA[
+                 ) R
+       WHERE (ORDERQTY - TRANSQTY) > 0
+         AND (R.INSPECTIONPLANNO NOT IN NVL((CASE
+                                                               WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (SELECT SIH.INSPECTION_PLAN_NO
+                                                                                                        FROM CB_SCM_INSPECTION_H SIH
+                                                                                                       WHERE SIH.ORG_ID = R.ORGID
+                                                                                                         AND SIH.COMPANY_ID = R.COMPANYID
+                                                                                                         AND SIH.INSPECTION_PLAN_NO = R.INSPECTIONPLANNO
+                                                                                                         AND SIH.PASS_QTY  <  R.INSPQTY)
+                                                             END), 'ATA')
+              OR R.INSPECTIONPLANNO IS NULL)
+              ]]>
+         <!-- 해당 발주로 외주검사를 2개이상 등록 했을 때 입고화면의 팝업에서 2개가 뜨게 되는데 2개 이상일 때 외주검사수량을 완료했을 시 해당 레코드는 없애기 위해서 넣음 -->
+         <![CDATA[
+          AND (CASE
+                   WHEN (R.PASSQTY - R.INSPQTY)  <=  0 THEN R.NOWCNT
+                   ELSE R.PRECNT
+                 END) =  (CASE
+                              WHEN (R.PASSQTY - R.INSPQTY)  <=  0  THEN R.RNUM
+                              ELSE R.PRECNT
+                            END)
+            AND FINISHCHECK = 'N'
+         ]]>
+    </select>
+
+    <select id="scm.outprocess.list.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <![CDATA[
+        SELECT  ROW_NUMBER() OVER(ORDER BY R.OUTPONO, R.OUTPOSEQ) AS RN
+                  ,R.ORGID
+                  ,R.COMPANYID
+                  ,R.RNUM
+                  ,R.PRECNT
+                  ,R.NOWCNT
+                  ,R.OUTPODATE
+                  ,R.DUEDATE
+                  ,R.OUTPONO
+                  ,R.OUTPOSEQ
+                  ,R.WORKORDERID
+                  ,R.WORKORDERSEQ
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.INSPECTIONPLANNO
+                   END) AS INSPECTIONPLANNO
+                  ,R.ITEMCODE
+                  ,R.ITEMNAME
+                  ,R.ORDERNAME
+                  ,R.MODEL
+                  ,R.MODELNAME
+                  ,R.UOM
+                  ,R.UOMNAME
+                  ,R.ITEMSTANDARDDETAIL
+                  ,R.ROUTINGNO
+                  ,R.ROUTINGNAME                  
+                  ,R.ORDERQTY
+                  ,R.TRANSQTY                      
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.PASSQTY
+                      ELSE 0
+                    END) AS PASSQTY
+                  ,(CASE
+                      WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN R.INSPQTY
+                      ELSE 0
+                    END) AS INSPQTY
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN 0
+                     ELSE R.FAULTQTY
+                   END) AS FAULTQTY             
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (R.PASSQTY - R.INSPQTY)
+                     WHEN (R.PASSQTY - R.INSPQTY)  <= 0  THEN ((R.ORDERQTY - R.TRANSQTY) - R.FAULTQTY)
+                   END) AS EXTRANSQTY
+                  ,(CASE
+                     WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (R.PASSQTY - R.INSPQTY)
+                     WHEN (R.PASSQTY - R.INSPQTY)  <= 0  THEN ((R.ORDERQTY - R.TRANSQTY) - R.FAULTQTY)
+                   END) AS EXTRANSQTY2
+                  
+                  ,R.UNITPRICE
+                  ,R.SUPPLYPRICE
+                  ,R.ADDITIONALTAX
+                  ,R.TOTAL
+                  ,R.CUSTOMERCODEOUT
+                  ,R.CUSTOMERNAMEOUT
+                  ,R.OUTPOPERSON
+                  ,R.OUTPOSTATUS
+                  ,R.WORKSTATUS
+         FROM (
+         ]]>
+                  <include refid="scm.outprocess.list.pop.sql-select" />
+                  <include refid="scm.outprocess.list.pop.sql-where" />
+                  <![CDATA[
+                 ) R
+       WHERE (ORDERQTY - TRANSQTY) > 0
+         AND (R.INSPECTIONPLANNO NOT IN NVL((CASE
+                                                               WHEN (R.PASSQTY - R.INSPQTY) > 0 THEN (SELECT SIH.INSPECTION_PLAN_NO
+                                                                                                        FROM CB_SCM_INSPECTION_H SIH
+                                                                                                       WHERE SIH.ORG_ID = R.ORGID
+                                                                                                         AND SIH.COMPANY_ID = R.COMPANYID
+                                                                                                         AND SIH.INSPECTION_PLAN_NO = R.INSPECTIONPLANNO
+                                                                                                         AND SIH.PASS_QTY  <  R.INSPQTY)
+                                                             END), 'ATA')
+              OR R.INSPECTIONPLANNO IS NULL)
+              ]]>
+         <!-- 해당 발주로 외주검사를 2개이상 등록 했을 때 입고화면의 팝업에서 2개가 뜨게 되는데 2개 이상일 때 외주검사수량을 완료했을 시 해당 레코드는 없애기 위해서 넣음 -->
+         <![CDATA[
+          AND (CASE
+                   WHEN (R.PASSQTY - R.INSPQTY)  <=  0 THEN R.NOWCNT
+                   ELSE R.PRECNT
+                 END) =  (CASE
+                              WHEN (R.PASSQTY - R.INSPQTY)  <=  0  THEN R.RNUM
+                              ELSE R.PRECNT
+                            END)
+            AND FINISHCHECK = 'N'
+         ]]>
+        ) TOT
+    </select>
+    <!-- 외주입고 대기리스트 조회 끝 -->
+    
+    <select id="scm.outprocess.new.outtransno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'OT' || TO_CHAR(TO_DATE(#searchTransFrom#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS OUTTRANSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(OUT_TRANS_NO), -3)), 0) AS NUM 
+                  FROM CB_OUT_TRANS_H
+                 WHERE OUT_TRANS_NO LIKE 'OT' || TO_CHAR(TO_DATE(#searchTransFrom#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <!--     입고등록 상세 화면에서 마스터 정보 isnert -->
+    <insert id="scm.outprocess.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_OUT_TRANS_H (
+               OUT_TRANS_NO
+               ,OUT_TRANS_DATE
+        ]]>
+        <isNotEmpty property="searchPersonCode" prepend=",">
+               TRANS_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="searchCustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="searchRemark" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES (
+              #OUTTRANSNO#
+               ,TO_DATE(#searchTransFrom#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="searchPersonCode" prepend=",">
+               #searchPersonCode#
+        </isNotEmpty>
+        <isNotEmpty property="searchCustomerCode" prepend=",">
+               #searchCustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="searchRemark" prepend=",">
+              #searchRemark#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+    <!--     입고등록 상세 화면에서 마스터 정보 isnert 끝  -->
+    
+    <!-- 입하등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="scm.outprocess.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_OUT_TRANS_D
+              ( OUT_TRANS_NO
+               ,OUT_TRANS_SEQ
+               ,ORG_ID
+               ,COMPANY_ID
+               ,ITEM_CODE
+               ,OUT_PO_NO
+               ,OUT_PO_SEQ
+               ,TRANS_QTY
+               ,TRANS_UNIT_PRICE
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,FINISH_YN
+               ,CONFIRM_DATE
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #OUTTRANSNO#
+               ,$OUTTRANSSEQ$
+               ,#ORGID#
+               ,#COMPANYID#
+               ,#ITEMCODE#
+               ,#OUTPONO#
+               ,#OUTPOSEQ#
+               ,$TRANSQTY$
+               ,$UNITPRICE$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,#FINISHYN#
+               ,#CONFIRMDATE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 입하등록 상세 화면에서 그리드 정보 insert 끝 -->
+    
+    
+    <!-- 입하등록 상세 화면에서 Header 정보 update  -->
+     <update id="scm.outprocess.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_TRANS_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , OUT_TRANS_DATE = TO_DATE(#searchTransFrom#, 'YYYY-MM-DD')
+               , REMARKS = #searchRemark#
+        ]]>
+        <isNotEmpty property="searchCustomerCode" prepend=",">
+            CUSTOMER_CODE = #searchCustomerCode#
+        </isNotEmpty>
+        <isEmpty property="searchCustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="searchPersonCode" prepend=",">
+            TRANS_PERSON = #searchPersonCode#
+        </isNotEmpty>
+        <isEmpty property="searchPersonCode" prepend=",">
+            TRANS_PERSON = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND OUT_TRANS_NO = #searchTransNo#
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+        ]]>
+    </update>
+    <!-- 입하등록 상세 화면에서 Header 정보 update 끝 -->
+    
+    <sql id="scm.outprocess.detail.find.sql-select">
+        SELECT COUNT(PD.OUT_TRANS_NO) AS COUNT
+          FROM CB_OUT_TRANS_H PH, CB_OUT_TRANS_D PD
+    </sql>
+
+    <sql id="scm.outprocess.detail.find.sql-where">
+         WHERE 1 = 1
+           AND PH.OUT_TRANS_NO = PD.OUT_TRANS_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSNO" prepend="AND">
+          PD.OUT_TRANS_NO = #OUTTRANSNO#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSSEQ" prepend="AND">
+          PD.OUT_TRANS_SEQ = #OUTTRANSSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="scm.outprocess.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.detail.find.sql-select" />
+        <include refid="scm.outprocess.detail.find.sql-where" />
+    </select>
+    
+    <!-- 입고등록 상세 화면에서 Detail 정보 update -->
+   <update id="scm.outprocess.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_TRANS_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , TRANS_QTY = $TRANSQTY$
+               , TRANS_UNIT_PRICE =  $UNITPRICE$
+               , SUPPLY_PRICE = $SUPPLYPRICE$
+               , ADDITIONAL_TAX = $ADDITIONALTAX$
+               , FINISH_YN = #FINISHYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <isNotEmpty property="TRANSYN" prepend=",">
+            TRANS_YN = #TRANSYN#
+        </isNotEmpty>
+        <isEmpty property="TRANSYN" prepend=",">
+            TRANS_YN = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND OUT_TRANS_NO = #OUTTRANSNO#
+          AND OUT_TRANS_SEQ = $OUTTRANSSEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+        ]]>
+    </update>
+    <!-- 입고등록 상세 화면에서 Detail 정보 update 끝 -->
+    
+    <delete id="scm.outprocess.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_TRANS_D
+         WHERE 1=1
+          AND OUT_TRANS_NO = #OUTTRANSNO#
+          AND OUT_TRANS_SEQ = $OUTTRANSSEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+    </delete>
+    
+    <delete id="scm.outprocess.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_TRANS_H
+         WHERE 1=1
+          AND OUT_TRANS_NO = #searchTransNo#
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+    </delete>
+    
+    <!-- 외주공정LOT바코드 관리 시작 -->
+    <sql id="scm.outprocess.outproclotregist.master.sql-select">
+      SELECT RANK() OVER(ORDER BY HV.ORGID, HV.COMPANYID, HV.LOTDATE DESC, HV.LOTNO) AS RN
+            ,HV.ORGID AS ORGID
+            ,HV.COMPANYID AS COMPANYID
+            ,HV.LOTNO AS LOTNO
+            ,HV.LOTDATE AS LOTDATE
+            ,HV.CUSTOMERCODE AS CUSTOMERCODE
+            ,HV.CUSTOMERNAME AS CUSTOMERNAME
+            ,HV.LOTUSER AS LOTUSER
+            ,HV.LOTQTY AS LOTQTY
+            ,HV.INPUTQTY AS INPUTQTY
+            ,HV.INTQTY AS INTQTY
+            ,HV.RESTQTY AS RESTQTY
+            ,HV.LOTCNT AS LOTCNT
+            ,HV.ITEMCODE AS ITEMCODE
+            ,HV.ITEMNAME AS ITEMNAME
+            ,HV.ORDERNAME AS ORDERNAME
+            ,HV.MATERIALTYPE AS MATERIALTYPE
+            ,HV.ITEMSTANDARD AS ITEMSTANDARD
+            ,HV.ITEMTYPE AS ITEMTYPE
+            ,HV.ITEMTYPENAME AS ITEMTYPENAME
+            ,HV.MODEL AS MODEL
+            ,HV.MODELNAME AS MODELNAME
+            ,HV.CUSTOMERGUBUN AS CUSTOMERGUBUN
+            ,HV.CUSTOMERGUBUNNAME AS CUSTOMERGUBUNNAME
+            ,HV.UOM AS UOM
+            ,HV.UOMNAME AS UOMNAME
+            ,HV.WORKQTY AS WORKQTY
+            ,HV.RELEASEQTY AS RELEASEQTY
+            ,HV.ORDERNO AS ORDERNO
+            ,HV.ORDERSEQ AS ORDERSEQ
+            ,HV.REMARKS AS REMARKS
+        FROM CB_TRANS_LOT_H_V HV
+    </sql>
+    
+    <sql id="scm.outprocess.outproclotregist.master.sql-where">
+       WHERE 1=1
+          AND HV.CHECKTYPE = 'L'
+        <isNotEmpty property="ORGID" prepend="AND">
+            HV.ORGID = $ORGID$
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            HV.COMPANYID = $COMPANYID$
+        </isNotEmpty>
+        <isNotEmpty property="LOTNO" prepend="AND">
+            HV.LOTNO = #LOTNO#
+        </isNotEmpty>
+        <isNotEmpty property="LOTTO">
+          <isNotEmpty property="LOTFROM" prepend="AND">
+              HV.LOTDATE BETWEEN TO_DATE(#LOTFROM#, 'YYYY-MM-DD')
+              AND TO_DATE(#LOTTO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            HV.CUSTOMERCODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            HV.ITEMCODE = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            HV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            HV.ORDERNAME LIKE '%'||#ORDERNAME#||'%'
+        </isNotEmpty>
+       ORDER BY HV.ORGID, HV.COMPANYID, HV.LOTDATE DESC, HV.LOTNO
+    </sql>
+    
+    <select id="scm.outprocess.outproclotregist.master.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+            <include refid="scm.outprocess.outproclotregist.master.sql-select" />
+            <include refid="scm.outprocess.outproclotregist.master.sql-where" />
+    </select> 
+    
+    <select id="scm.outprocess.outproclotregist.master.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outproclotregist.master.sql-select" />
+            <include refid="scm.outprocess.outproclotregist.master.sql-where" />
+        )
+    </select>
+    
+    <select id="scm.outprocess.outproclotregist.firstmaster.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT LOTNO AS LOTNO FROM (
+        <include refid="scm.outprocess.outproclotregist.master.sql-select" />
+        <include refid="scm.outprocess.outproclotregist.master.sql-where" />
+        )
+        WHERE 1=1
+          AND ROWNUM = 1
+    </select>
+    
+    <sql id="scm.outprocess.outproclotregist.detail.sql-select">
+			SELECT RANK() OVER(ORDER BY LD.ORG_ID, LD.COMPANY_ID, LD.LOT_NO, LD.LOT_SEQ) AS RN
+            ,LD.ORG_ID AS ORGID
+			      ,LD.COMPANY_ID AS COMPANYID
+			      ,LD.LOT_NO AS LOTNO
+			      ,LD.LOT_SEQ AS LOTSEQ
+			      ,LD.OUT_TRANS_NO AS OUTTRANSNO
+			      ,LD.OUT_TRANS_SEQ AS OUTTRANSSEQ
+            ,OD.WORK_ORDER_ID AS WORKORDERID
+            ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ
+            ,(SELECT WV.ROUTINGNAME
+                FROM CB_WORK_ORDER_LIST_V WV
+               WHERE 1=1
+                 AND WV.ORGID = OD.ORG_ID
+                 AND WV.COMPANYID = OD.COMPANY_ID
+                 AND WV.WORKORDERID = OD.WORK_ORDER_ID
+                 AND WV.WORKORDERSEQ = OD.WORK_ORDER_SEQ) AS ROUTINGNAME
+			      ,IM.ITEM_CODE AS ITEMCODE
+			      ,IM.ITEM_NAME AS ITEMNAME
+			      ,IM.ORDER_NAME AS ORDERNAME
+			      ,IM.UOM AS UOM
+			      ,IM.UOM_NAME AS UOMNAME
+			      ,LD.LOT_QTY AS LOTQTY
+			      ,LD.REMARKS AS REMARKS
+			      ,TD.TRANS_QTY AS TRANSQTY
+			      ,TD.TRANS_QTY AS PASSQTY
+			  FROM CB_TRANS_LOT_D LD
+			      ,CB_OUT_TRANS_D TD
+			      ,CB_OUT_ORDER_D OD
+			      ,CB_ITEM_MASTER_V IM
+    </sql>
+    
+    <sql id="scm.outprocess.outproclotregist.detail.sql-where">
+       WHERE 1=1
+         AND LD.ORG_ID = TD.ORG_ID
+         AND LD.COMPANY_ID = TD.COMPANY_ID
+         AND LD.OUT_TRANS_NO = TD.OUT_TRANS_NO
+         AND LD.OUT_TRANS_SEQ = TD.OUT_TRANS_SEQ
+         AND TD.OUT_PO_NO = OD.OUT_PO_NO
+         AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ
+         AND LD.ORG_ID = IM.ORG_ID
+         AND LD.COMPANY_ID = IM.COMPANY_ID
+         AND LD.ITEM_CODE = IM.ITEM_CODE
+        <isNotEmpty property="ORGID" prepend="AND">
+          LD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          LD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="LOTNO" prepend="AND">
+          LD.LOT_NO = #LOTNO#
+        </isNotEmpty>
+        <isNotEmpty property="LOTSEQ" prepend="AND">
+          LD.LOT_SEQ = #LOTSEQ#
+        </isNotEmpty>
+         ORDER BY LD.ORG_ID, LD.COMPANY_ID, LD.LOT_NO, LD.LOT_SEQ
+    </sql>
+    
+    <select id="scm.outprocess.outproclotregist.detail.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+            <include refid="scm.outprocess.outproclotregist.detail.sql-select" />
+            <include refid="scm.outprocess.outproclotregist.detail.sql-where" />
+    </select> 
+    
+    <select id="scm.outprocess.outproclotregist.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outproclotregist.detail.sql-select" />
+            <include refid="scm.outprocess.outproclotregist.detail.sql-where" />
+        )
+    </select> 
+    
+    <sql id="scm.outprocess.outproclotregist.detail.find.sql-select">
+        SELECT COUNT(PD.LOT_NO) AS COUNT
+          FROM CB_TRANS_LOT_H PH, CB_TRANS_LOT_D PD
+    </sql>
+
+    <sql id="scm.outprocess.outproclotregist.detail.find.sql-where">
+         WHERE 1 = 1
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+           AND PH.LOT_NO = PD.LOT_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="LOTNO" prepend="AND">
+          PD.LOT_NO = #LOTNO#
+        </isNotEmpty>
+        <isNotEmpty property="LOTSEQ" prepend="AND">
+          PD.LOT_SEQ = #LOTSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="scm.outprocess.outproclotregist.detail.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.outproclotregist.detail.find.sql-select" />
+        <include refid="scm.outprocess.outproclotregist.detail.find.sql-where" />
+    </select>
+    
+    <select id="scm.outprocess.outproclotregist.lotno.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #ItemCode#||'-'||TO_CHAR(TO_DATE(#LotDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) 
+                ||'-'|| #InputQty# AS LOTNO
+          FROM (SELECT COUNT(*) AS NUM
+                  FROM CB_TRANS_LOT_H A
+                 WHERE 1 = 1
+                   AND A.ITEM_CODE = #ItemCode#
+                   AND A.LOT_DATE = TO_DATE(#LotDate#,'YYYY-MM-DD') 
+                  )
+    </select>
+    
+    <insert id="scm.outprocess.outproclotregist.master.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TRANS_LOT_H
+              (LOT_NO
+               ,CHECK_TYPE
+               ,LOT_DATE
+               ,ITEM_CODE
+               ,LOT_QTY
+               ,INPUT_QTY
+               ,INT_QTY
+               ,REST_QTY
+               ,LOT_CNT
+               ,LOT_USER
+               ,CUSTOMER_CODE
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#LOTNO#
+               ,'L'
+               ,TO_DATE(#LotDate#, 'YYYY-MM-DD')
+               ,#ItemCode#
+               ,#LotQty#
+               ,#InputQty#
+               ,#IntQty#
+               ,#RestQty#
+               ,#LotCnt#
+               ,#REGISTID#
+               ,#CustomerCode#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+    
+     <insert id="scm.outprocess.outproclotregist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TRANS_LOT_D
+              (ORG_ID
+               ,COMPANY_ID
+               ,LOT_NO
+               ,LOT_SEQ
+               ,OUT_TRANS_NO
+               ,OUT_TRANS_SEQ
+               ,ITEM_CODE
+               ,LOT_QTY
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+               ,#COMPANYID#
+               ,#LOTNO#
+               ,$LOTSEQ$
+               ,#OUTTRANSNO#
+               ,#OUTTRANSSEQ#
+               ,#ITEMCODE#
+               ,#LOTQTY#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+ 
+    <update id="scm.outprocess.outproclotregist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_LOT_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , LOT_DATE = TO_DATE(#LotDate#, 'YYYY-MM-DD')
+               , ITEM_CODE = #ItemCode#
+               , LOT_QTY = #LotQty#
+               , INPUT_QTY = #InputQty#
+               , INT_QTY = #IntQty#
+               , REST_QTY = #RestQty#
+               , LOT_CNT = #LotCnt#
+               ,LOT_USER = #UPDATEID#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND LOT_NO = #LotNo#
+        ]]>
+    </update>
+ 
+   <update id="scm.outprocess.outproclotregist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_LOT_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , OUT_TRANS_NO = #OUTTRANSNO#
+               , OUT_TRANS_SEQ = #OUTTRANSSEQ#
+               , ITEM_CODE = #ITEMCODE#
+               , LOT_QTY = #LOTQTY#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND LOT_NO = #LOTNO#
+          AND LOT_SEQ = $LOTSEQ$
+        ]]>
+    </update>       
+
+   <delete id="scm.outprocess.outproclotregist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_LOT_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND LOT_NO = #LotNo#
+    </delete>
+    
+    <delete id="scm.outprocess.outproclotregist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_LOT_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND LOT_NO = #LOTNO#
+          AND LOT_SEQ = #LOTSEQ#
+    </delete>
+    
+    <sql id="scm.outprocess.outproclotregistd.listpop.sql-select">
+			SELECT RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.OUT_TRANS_DATE, TH.OUT_TRANS_NO, TD.OUT_TRANS_SEQ) AS RN
+	            ,TH.ORG_ID AS ORGID
+	            ,TH.COMPANY_ID AS COMPANYID
+	            ,TO_CHAR(TH.OUT_TRANS_DATE, 'YYYY-MM-DD') AS OUTTRANSDATE
+	            ,TH.OUT_TRANS_NO AS OUTTRANSNO
+	            ,TD.OUT_TRANS_SEQ AS OUTTRANSSEQ
+              ,OD.WORK_ORDER_ID AS WORKORDERID
+              ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ
+              ,(SELECT WV.ROUTINGNAME
+                  FROM CB_WORK_ORDER_LIST_V WV
+                 WHERE 1=1
+                   AND WV.ORGID = OD.ORG_ID
+                   AND WV.COMPANYID = OD.COMPANY_ID
+                   AND WV.WORKORDERID = OD.WORK_ORDER_ID
+                   AND WV.WORKORDERSEQ = OD.WORK_ORDER_SEQ) AS ROUTINGNAME
+	            ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+	            ,(SELECT CC.CUSTOMER_NAME
+	                FROM CB_CUSTOMER CC
+	               WHERE 1=1
+	                 AND CC.ORG_ID = TH.ORG_ID
+	                 AND CC.COMPANY_ID = TH.COMPANY_ID
+	                 AND CC.CUSTOMER_CODE = TH.CUSTOMER_CODE) AS CUSTOMERNAME
+	            ,TD.ITEM_CODE AS ITEMCODE
+	            ,IM.ORDER_NAME AS ORDERNAME
+	            ,IM.ITEM_NAME AS ITEMNAME
+	            ,IM.ITEM_STANDARD AS ITEMSTANDARD
+	            ,IM.MATERIAL_TYPE AS MATERIALTYPE
+	            ,IM.UOM AS UOM
+	            ,IM.UOM_NAME AS UOMNAME
+	            ,OD.ORDER_QTY AS ORDERQTY
+	            ,TD.TRANS_QTY AS TRANSQTY
+	            ,NVL((SELECT SUM(LD.LOT_QTY)
+	                    FROM CB_TRANS_LOT_D LD
+	                   WHERE 1=1
+	                     AND LD.ORG_ID = TD.ORG_ID
+	                     AND LD.COMPANY_ID = TD.COMPANY_ID
+	                     AND LD.OUT_TRANS_NO = TD.OUT_TRANS_NO
+	                     AND LD.OUT_TRANS_SEQ = TD.OUT_TRANS_SEQ), 0) AS AFTERQTY
+	            ,(TD.TRANS_QTY - NVL((SELECT SUM(LD.LOT_QTY)
+	                                    FROM CB_TRANS_LOT_D LD
+	                                   WHERE 1=1
+	                                     AND LD.ORG_ID = TD.ORG_ID
+	                                     AND LD.COMPANY_ID = TD.COMPANY_ID
+	                                     AND LD.OUT_TRANS_NO = TD.OUT_TRANS_NO
+	                                     AND LD.OUT_TRANS_SEQ = TD.OUT_TRANS_SEQ), 0)) AS POSTQTY
+	            ,TD.TRANS_UNIT_PRICE AS TRANSUNITPRICE
+	            ,TD.SUPPLY_PRICE AS SUPPLYPRICE
+	            ,TD.ADDITIONAL_TAX AS ADDITIONALTAX
+	            ,(TD.SUPPLY_PRICE + TD.ADDITIONAL_TAX) AS TOTAL
+        FROM CB_OUT_TRANS_H TH
+            ,CB_OUT_TRANS_D TD
+            ,CB_ITEM_MASTER_V IM
+            ,CB_OUT_ORDER_D OD
+    </sql>
+    
+    <sql id="scm.outprocess.outproclotregistd.listpop.sql-where">
+       WHERE 1=1 
+         AND TH.ORG_ID = TD.ORG_ID
+         AND TH.COMPANY_ID = TD.COMPANY_ID
+         AND TH.OUT_TRANS_NO = TD.OUT_TRANS_NO
+         AND TD.ORG_ID = IM.ORG_ID
+         AND TD.COMPANY_ID = IM.COMPANY_ID
+         AND TD.ITEM_CODE = IM.ITEM_CODE
+         AND TD.ORG_ID = OD.ORG_ID
+         AND TD.COMPANY_ID = OD.COMPANY_ID
+         AND TD.OUT_PO_NO = OD.OUT_PO_NO
+         AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ
+         AND (TD.TRANS_QTY - NVL((SELECT SUM(LD.LOT_QTY)
+                                    FROM CB_TRANS_LOT_D LD
+                                   WHERE 1=1
+                                     AND LD.ORG_ID = TD.ORG_ID
+                                     AND LD.COMPANY_ID = TD.COMPANY_ID
+                                     AND LD.OUT_TRANS_NO = TD.OUT_TRANS_NO
+                                     AND LD.OUT_TRANS_SEQ = TD.OUT_TRANS_SEQ), 0)) > 0
+        <isNotEmpty property="ORGID" prepend="AND">
+            TH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            TH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSTO">
+          <isNotEmpty property="TRANSFROM" prepend="AND">
+             TH.OUT_TRANS_DATE BETWEEN TO_DATE(#TRANSFROM#, 'YYYY-MM-DD') AND TO_DATE(#TRANSTO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            TH.CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+       ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.OUT_TRANS_DATE, TH.OUT_TRANS_NO, TD.OUT_TRANS_SEQ
+    </sql>
+
+    <select id="scm.outprocess.outproclotregistd.listpop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="scm.outprocess.outproclotregistd.listpop.sql-select" />
+            <include refid="scm.outprocess.outproclotregistd.listpop.sql-where" />
+    </select>
+    
+    <select id="scm.outprocess.outproclotregistd.listpop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outproclotregistd.listpop.sql-select" />
+            <include refid="scm.outprocess.outproclotregistd.listpop.sql-where" />
+        ) TOT
+    </select>
+    <!-- 외주공정LOT바코드 관리 끝 -->
+    
+    
+    
+    <!-- SCM 외주공정검사관리 -->
+   
+   <!-- SCM 외주공정검사관리 Header 조회 -->
+   <sql id="scm.outprocess.outprocessinspregist.list.sql-select">
+         SELECT  H.ORGID
+                   ,H.COMPANYID
+                   ,RANK() OVER(ORDER BY H.ORGID, H.COMPANYID, H.INSPECTIONPLANNO DESC) AS RN
+                   ,H.INSPECTIONPLANNO     
+                   ,TO_CHAR(H.INSPECTIONDATE, 'YYYY-MM-DD') AS INSPECTIONDATE
+                   ,H.WORKORDERID
+                   ,H.WORKORDERSEQ
+                   ,H.ORDERNO
+                   ,H.ORDERSEQ   
+                   ,H.ROUTINGNAME
+                   ,H.CUSTOMERCODE
+                   ,H.CUSTOMERNAME
+                   ,H.ITEMCODE 
+                   ,H.ORDERNAME 
+                   ,H.ITEMNAME 
+                   ,H.ORDERQTY
+                   ,H.CHECKQTY
+                   ,H.PASSQTY 
+                   ,H.FAILQTY 
+                   ,H.CHECKYN
+                   ,H.CHECKYNNAME
+                   ,H.REMARKS
+                   ,H.EXTRANSQTY
+              FROM CB_SCM_INSPECTION_H_V H
+      </sql>
+      <sql id="scm.outprocess.outprocessinspregist.list.sql-where">
+             WHERE 1 = 1
+            <isNotEmpty property="ORGID" prepend="AND">
+              H.ORGID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              H.COMPANYID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+              H.INSPECTIONPLANNO = #INSPECTIONPLANNO#
+            </isNotEmpty>
+            <isNotEmpty property="INSPTO">
+              <isNotEmpty property="INSPFROM" prepend="AND">
+                H.INSPECTIONDATE BETWEEN TO_DATE(#INSPFROM#, 'YYYY-MM-DD')
+                AND TO_DATE(#INSPTO#, 'YYYY-MM-DD')
+              </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              H.CUSTOMERCODE = #CUSTOMERCODE#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              H.ITEMCODE = #ITEMCODE#
+            </isNotEmpty>
+		        <isNotEmpty property="ITEMNAME" prepend="AND">
+		          H.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+		        </isNotEmpty>
+		        <isNotEmpty property="ORDERNAME" prepend="AND">
+		          H.ORDERNAME LIKE '%'||#ORDERNAME#||'%'
+		        </isNotEmpty>
+              ORDER BY H.ORGID, H.COMPANYID, H.INSPECTIONPLANNO DESC
+      </sql>
+      
+      <select id="scm.outprocess.outprocessinspregist.list.select" parameterClass="java.util.Map"
+          resultClass="java.util.HashMap">
+          <include refid="scm.outprocess.outprocessinspregist.list.sql-select" />
+          <include refid="scm.outprocess.outprocessinspregist.list.sql-where" />
+      </select>
+  
+      <select id="scm.outprocess.outprocessinspregist.list.count" parameterClass="java.util.Map"
+          resultClass="java.lang.Integer">
+          SELECT COUNT(*) FROM (
+              <include refid="scm.outprocess.outprocessinspregist.list.sql-select" />
+              <include refid="scm.outprocess.outprocessinspregist.list.sql-where" />
+          ) TOT
+      </select>
+   <!-- SCM 외주공정검사관리 Header 조회 끝 -->
+   
+   <select id="scm.outprocess.outprocessinspregist.firstmaster.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT INSPECTIONPLANNO AS INSPECTIONPLANNO FROM (
+            <include refid="scm.outprocess.outprocessinspregist.list.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.list.sql-where" />
+      )
+      WHERE 1=1
+        AND ROWNUM = 1
+  </select>
+  
+  <!-- SCM 외주공정검사관리 Detail 조회 -->
+  <sql id="scm.outprocess.outprocessinspregist.detail.sql-select">
+      SELECT RANK() OVER(ORDER BY DV.ORGID, DV.COMPANYID, DV.INSPECTIONPLANNO, DV.INSPECTIONSEQ) AS RN
+            ,DV.ORGID AS ORGID
+            ,DV.COMPANYID AS COMPANYID
+            ,DV.INSPECTIONPLANNO AS INSPECTIONPLANNO
+            ,DV.INSPECTIONSEQ AS INSPECTIONSEQ
+            ,DV.CHECKSEQ AS CHECKSEQ
+            ,DV.ITEMCODE AS ITEMCODE
+            ,DV.ITEMNAME AS ITEMNAME
+            ,DV.ORDERNAME AS ORDERNAME
+            ,DV.CHECKBIG AS CHECKBIG
+            ,DV.CHECKBIGNAME AS CHECKBIGNAME
+            ,DV.CHECKMIDDLE AS CHECKMIDDLE
+            ,DV.CHECKMIDDLENAME AS CHECKMIDDLENAME
+            ,DV.CHECKSMALL AS CHECKSMALL
+            ,DV.CHECKSMALLNAME AS CHECKSMALLNAME
+            ,DV.CHECKUOM AS CHECKUOM
+            ,DV.UOMNAME AS UOMNAME
+            ,DV.UOM AS UOM
+            ,DV.CHECKSTANDARD AS CHECKSTANDARD
+            ,DV.STANDARDVALUE AS STANDARDVALUE
+            ,DV.MAXVALUE AS MAXVALUE
+            ,DV.MINVALUE AS MINVALUE
+            ,DV.CHECKQTY AS CHECKQTY
+            ,DV.CHECKRESULT1 AS CHECKRESULT1
+            ,DV.CHECKRESULT2 AS CHECKRESULT2
+            ,DV.CHECKRESULT3 AS CHECKRESULT3
+            ,DV.CHECKRESULT4 AS CHECKRESULT4
+            ,DV.CHECKRESULT5 AS CHECKRESULT5
+            ,DV.CHECKYN AS CHECKYN
+            ,DV.CHECKYNNAME AS CHECKYNNAME
+            ,DV.REMARKS AS REMARKS
+        FROM CB_SCM_INSPECTION_D_V DV
+    </sql>
+
+    <sql id="scm.outprocess.outprocessinspregist.detail.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            DV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            DV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+            DV.INSPECTIONPLANNO = #INSPECTIONPLANNO#
+         </isNotEmpty>
+      ORDER BY DV.ORGID, DV.COMPANYID, DV.INSPECTIONPLANNO, DV.INSPECTIONSEQ
+    </sql>
+
+    <select id="scm.outprocess.outprocessinspregist.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.outprocessinspregist.detail.sql-select" />
+        <include refid="scm.outprocess.outprocessinspregist.detail.sql-where" />
+    </select>
+
+    <select id="scm.outprocess.outprocessinspregist.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outprocessinspregist.detail.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.detail.sql-where" />
+        ) TOT
+    </select>
+    <!-- SCM 외주공정검사관리 Detail 조회 끝 -->
+    
+    <!-- 외주공정검사 대기리스트 화면 조회 -->
+    <sql id="scm.outprocess.outprocessinspregist.pop.sql-select">
+        SELECT  A.ORG_ID AS ORG_ID
+		               ,A.COMPANY_ID  AS COMPANY_ID
+		               ,TO_CHAR(A.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE                            
+		               ,A.OUT_PO_NO AS OUTPONO                                 
+		               ,B.OUT_PO_SEQ AS OUTPOSEQ
+		               ,B.WORK_ORDER_ID AS WORKORDERID
+		               ,B.WORK_ORDER_SEQ AS WORKORDERSEQ                               
+		               ,IM.ORDER_NAME AS ORDERNAME
+		               ,B.ITEM_CODE AS ITEMCODE                    
+		               ,IM.ITEM_NAME AS ITEMNAME
+		               ,IM.UOM AS UOM
+		               ,(SELECT SC.SMALL_NAME
+		                   FROM CB_SMALL_CODE SC
+		                  WHERE 1 = 1
+		                    AND SC.ORG_ID = IM.ORG_ID
+		                    AND SC.COMPANY_ID = IM.COMPANY_ID
+		                    AND SC.BIG_CODE = 'CMM'
+		                    AND SC.MIDDLE_CODE = 'UOM'
+		                   AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+		               ,IM.CAR_TYPE AS MODEL
+		               ,(SELECT SC.SMALL_NAME
+		                   FROM CB_SMALL_CODE SC
+		                  WHERE 1 = 1
+		                    AND SC.ORG_ID = IM.ORG_ID
+		                    AND SC.COMPANY_ID = IM.COMPANY_ID
+		                    AND SC.BIG_CODE = 'CMM'
+		                    AND SC.MIDDLE_CODE = 'MODEL'
+		                    AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+		               ,V.ROUTING_CODE AS ROUTINGCODE
+		               ,(SELECT (SELECT SC.SMALL_NAME
+		                           FROM CB_SMALL_CODE SC
+		                          WHERE 1=1
+		                            AND SC.ORG_ID = CRC.ORG_ID
+		                            AND SC.COMPANY_ID = CRC.COMPANY_ID
+		                            AND SC.BIG_CODE = 'MFG'
+		                            AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+		                            AND SC.SMALL_CODE = CRC.ROUTING_NO)
+		                   FROM CB_ROUTING_CONTROL CRC
+		                  WHERE 1 = 1
+		                    AND CRC.ORG_ID = V.ORG_ID
+		                    AND CRC.COMPANY_ID = V.COMPANY_ID
+		                    AND CRC.ROUTING_ID = V.ROUTING_CODE) AS ROUTINGNAME
+		               ,B.ORDER_QTY AS ORDERQTY   
+		               ,(SELECT NVL(SUM(SIV.CHECKQTY), 0)
+		                   FROM CB_SCM_INSPECTION_H_V SIV
+		                  WHERE 1=1
+		                     AND SIV.ORGID = B.ORG_ID
+		                     AND SIV.COMPANYID = B.COMPANY_ID
+		                     AND SIV.OUTPONO = B.OUT_PO_NO
+		                    AND SIV.OUTPOSEQ = B.OUT_PO_SEQ) AS CHQTY                           
+		               ,NVL((SELECT NVL(SUM(TRANS_QTY), 0)
+		                       FROM CB_OUT_TRANS_D T
+		                      WHERE 1=1
+		                         AND T.ORG_ID = B.ORG_ID
+		                         AND T.COMPANY_ID = B.COMPANY_ID
+		                         AND T.OUT_PO_NO  = B.OUT_PO_NO
+		                         AND T.OUT_PO_SEQ = B.OUT_PO_SEQ), 0) AS TRANSQTY
+	                  ,NVL((SELECT SUM((NVL(TD.CON1, 0) + NVL(TD.CON2, 0) + NVL(TD.CON3, 0) + NVL(TD.CON4, 0) + NVL(TD.CON5, 0) +
+	                                    NVL(TD.CON6, 0) + NVL(TD.CON7, 0) + NVL(TD.CON8, 0) + NVL(TD.CON9, 0) + NVL(TD.CON10, 0) +
+	                                    NVL(TD.CON11, 0) + NVL(TD.CON12, 0) + NVL(TD.CON13, 0) + NVL(TD.CON14, 0) + NVL(TD.CON15, 0) +
+	                                    NVL(TD.CON16, 0) + NVL(TD.CON17, 0) + NVL(TD.CON18, 0) + NVL(TD.CON19, 0) + NVL(TD.CON20, 0) +
+	                                    NVL(TD.CON21, 0) + NVL(TD.CON22, 0) + NVL(TD.CON23, 0) + NVL(TD.CON24, 0) + NVL(TD.CON25, 0) +
+	                                    NVL(TD.CON26, 0) + NVL(TD.CON27, 0) + NVL(TD.CON28, 0) + NVL(TD.CON29, 0) + NVL(TD.CON30, 0) +
+	                                    NVL(TD.CON31, 0) + NVL(TD.CON32, 0) + NVL(TD.CON33, 0) + NVL(TD.CON34, 0) + NVL(TD.CON35, 0) +
+	                                    NVL(TD.CON36, 0) + NVL(TD.CON37, 0) + NVL(TD.CON38, 0) + NVL(TD.CON39, 0) + NVL(TD.CON40, 0)))
+	                          FROM CB_OUT_TRANS_D TD
+	                         WHERE TD.ORG_ID = B.ORG_ID
+	                            AND TD.COMPANY_ID = B.COMPANY_ID
+	                            AND TD.OUT_PO_NO = B.OUT_PO_NO
+	                            AND TD.OUT_PO_SEQ = B.OUT_PO_SEQ), 0) AS FAULTQTY
+                    ,(B.ORDER_QTY - (NVL((SELECT SUM(IH.PASS_QTY)
+								                                    FROM CB_SCM_INSPECTION_H IH
+								                                   WHERE 1 = 1
+								                                     AND IH.ORG_ID = B.ORG_ID
+								                                     AND IH.COMPANY_ID = B.COMPANY_ID
+								                                     AND IH.ORDER_NO = B.OUT_PO_NO
+								                                     AND IH.ORDER_SEQ = B.OUT_PO_SEQ), 0)
+									                               + NVL((SELECT SUM(CTD.TRANS_QTY)
+											                                       FROM CB_OUT_TRANS_D CTD
+											                                      WHERE 1=1
+											                                        AND CTD.ORG_ID = B.ORG_ID
+											                                        AND CTD.COMPANY_ID = B.COMPANY_ID
+											                                        AND CTD.OUT_PO_NO = B.OUT_PO_NO
+											                                        AND CTD.OUT_PO_SEQ = B.OUT_PO_SEQ
+										                                          AND CTD.INSPECTION_PLAN_NO IS NULL), 0))) AS EXTRANSQTY
+		               ,B.UNIT_PRICE AS UNITPRICE
+		               ,NVL(B.UNIT_PRICE, 0) * NVL((SELECT NVL(SUM(TRANS_QTY), 0)
+		                                              FROM CB_OUT_TRANS_D T
+		                                             WHERE 1=1
+		                                                AND T.ORG_ID = B.ORG_ID
+		                                                AND T.COMPANY_ID = B.COMPANY_ID
+		                                                AND T.OUT_PO_NO  = B.OUT_PO_NO
+		                                                AND T.OUT_PO_SEQ = B.OUT_PO_SEQ), 0) AS SUPPLYPRICE
+		               ,(NVL(B.UNIT_PRICE, 0) * NVL((SELECT NVL(SUM(TRANS_QTY), 0)
+		                                               FROM CB_OUT_TRANS_D T
+		                                              WHERE 1=1
+		                                                 AND T.ORG_ID = B.ORG_ID
+		                                                 AND T.COMPANY_ID = B.COMPANY_ID
+		                                                 AND T.OUT_PO_NO  = B.OUT_PO_NO
+		                                                 AND T.OUT_PO_SEQ = B.OUT_PO_SEQ), 0)) / 10 AS ADDITIONALTAX
+		               ,(NVL(B.UNIT_PRICE, 0) * NVL((SELECT NVL(SUM(TRANS_QTY), 0)
+		                                               FROM CB_OUT_TRANS_D T
+		                                              WHERE 1=1
+		                                                 AND T.ORG_ID = B.ORG_ID
+		                                                 AND T.COMPANY_ID = B.COMPANY_ID
+		                                                 AND T.OUT_PO_NO  = B.OUT_PO_NO
+		                                                 AND T.OUT_PO_SEQ = B.OUT_PO_SEQ), 0)) + ((NVL(B.UNIT_PRICE, 0) * NVL((SELECT NVL(SUM(TRANS_QTY), 0)
+		                                                                                                                         FROM CB_OUT_TRANS_D T
+		                                                                                                                        WHERE 1=1
+		                                                                                                                           AND T.ORG_ID = B.ORG_ID
+		                                                                                                                           AND T.COMPANY_ID = B.COMPANY_ID
+		                                                                                                                           AND T.OUT_PO_NO  = B.OUT_PO_NO
+		                                                                                                                           AND T.OUT_PO_SEQ = B.OUT_PO_SEQ), 0)) / 10) AS TOTAL
+		               ,(NVL(B.ORDER_QTY, 0) - (SELECT NVL(SUM( NVL(CIH.PASS_QTY, 0) + NVL(CIH.FAIL_QTY, 0)), 0)
+		                                                FROM CB_SCM_INSPECTION_H CIH
+		                                               WHERE CIH.ORG_ID = B.ORG_ID
+		                                                 AND CIH.COMPANY_ID = B.COMPANY_ID
+		                                                 AND CIH.ORDER_NO = B.OUT_PO_NO
+		                                                 AND CIH.ORDER_SEQ = B.OUT_PO_SEQ)) AS CHECKQTY
+		                  ,A.CUSTOMER_CODE AS CUSTOMERCODEOUT
+		                  ,(SELECT CC.CUSTOMER_NAME
+		                      FROM CB_CUSTOMER CC
+		                     WHERE 1=1
+		                       AND CC.ORG_ID = A.ORG_ID
+		                       AND CC.COMPANY_ID = A.COMPANY_ID
+		                       AND CC.CUSTOMER_CODE = A.CUSTOMER_CODE) AS CUSTOMERNAMEOUT
+		                  ,A.OUT_PO_STATUS AS POSTATUS
+		                  ,V.WORK_STATUS AS WORKSTATUS
+		                  ,DECODE(NVL((SELECT COUNT(*)
+		                            FROM CB_CHECK_MASTER CM
+		                           WHERE 1 = 1
+		                             AND CM.ORG_ID = B.ORG_ID
+		                             AND CM.COMPANY_ID = B.COMPANY_ID
+		                             AND CM.ITEM_CODE = B.ITEM_CODE
+		                             AND CM.CHECK_BIG = 'L'
+		                             AND CM.ROUTING_ID = V.ROUTING_CODE
+		                             AND A.OUT_PO_DATE BETWEEN CM.EFFECTIVE_START_DATE AND
+		                                 CM.EFFECTIVE_END_DATE), 0), 0, 'N', 'Y') AS OUTCHECK
+                      ,B.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+		          FROM CB_OUT_ORDER_H A
+		              ,CB_OUT_ORDER_D B
+		              ,CB_WORK_ORDER V
+		              ,CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="scm.outprocess.outprocessinspregist.pop.sql-where">
+         WHERE 1 = 1
+           AND A.ORG_ID = B.ORG_ID
+           AND A.COMPANY_ID = B.COMPANY_ID
+           AND A.OUT_PO_NO = B.OUT_PO_NO
+           AND B.ORG_ID = V.ORG_ID
+           AND B.COMPANY_ID = V.COMPANY_ID
+           AND B.WORK_ORDER_ID = V.WORK_ORDER_ID
+           AND B.WORK_ORDER_SEQ = V.WORK_ORDER_SEQ
+           AND V.ORG_ID = IM.ORG_ID
+           AND V.COMPANY_ID = IM.COMPANY_ID
+           AND V.ITEM_CODE = IM.ITEM_CODE
+           AND (B.ORG_ID, B.COMPANY_ID, B.OUT_PO_NO, B.OUT_PO_SEQ) NOT IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.OUT_PO_NO, TD.OUT_PO_SEQ
+																                                                                         FROM CB_OUT_TRANS_D TD
+																                                                                        WHERE 1=1
+																                                                                          AND TD.ORG_ID = B.ORG_ID
+																                                                                          AND TD.COMPANY_ID = B.COMPANY_ID
+																                                                                          AND TD.FINISH_YN = 'Y')
+<!--            AND V.OUTSIDEORDERGUBUN = 'Y' -->
+        <isNotEmpty property="OUTPONO" prepend="AND">
+          A.OUT_PO_NO LIKE #OUTPONO# || '%'
+        </isNotEmpty>
+       <isNotEmpty property="ORGID" prepend="AND">
+          A.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          A.COMPANY_ID  = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="POTO">
+             <isNotEmpty property="POFROM" prepend="AND">
+                B.DUE_DATE BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD')  AND TO_DATE(#POTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="POTO" prepend="AND">
+                B.DUE_DATE = TO_DATE(#POTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEM_CODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            A.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+    </sql>
+
+    <select id="scm.outprocess.outprocessinspregist.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">        
+        SELECT  RANK() OVER(ORDER BY R.OUTPONO, R.OUTPOSEQ) AS RN
+                  ,R.ORG_ID AS ORGID
+                  ,R.COMPANY_ID AS COMPANYID
+                  ,R.OUTPODATE
+                  ,R.OUTPONO
+                  ,R.OUTPOSEQ
+                  ,R.WORKORDERID
+                  ,R.WORKORDERSEQ
+                  ,R.ORDERNAME
+                  ,R.ITEMCODE
+                  ,R.ITEMNAME
+                  ,R.MODEL
+                  ,R.MODELNAME
+                  ,R.UOM
+                  ,R.UOMNAME
+                  ,R.ROUTINGCODE
+                  ,R.ROUTINGNAME
+                  ,R.ORDERQTY
+                  ,R.CHQTY
+                  ,R.CHECKQTY
+                  ,R.TRANSQTY
+                  ,R.FAULTQTY
+                  ,R.EXTRANSQTY - R.FAULTQTY AS EXTRANSQTY
+                  ,R.UNITPRICE
+                  ,R.SUPPLYPRICE
+                  ,R.ADDITIONALTAX
+                  ,R.TOTAL
+                  ,R.CUSTOMERCODEOUT
+                  ,R.CUSTOMERNAMEOUT
+                  ,R.POSTATUS
+                  ,R.WORKSTATUS
+                  ,R.CHECKQTY
+         FROM (
+                  <include refid="scm.outprocess.outprocessinspregist.pop.sql-select" />
+                  <include refid="scm.outprocess.outprocessinspregist.pop.sql-where" />
+                 ) R
+        WHERE (R.EXTRANSQTY - R.FAULTQTY) > 0
+           AND R.SCMINSPECTIONYN = 'Y'
+<!--            AND R.ORDERQTY > R.CHQTY -->
+<!--            AND R.OUTCHECK = 'Y' -->
+        ORDER BY R.OUTPONO, R.OUTPOSEQ
+    </select>
+
+    <select id="scm.outprocess.outprocessinspregist.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+		        SELECT  RANK() OVER(ORDER BY R.OUTPONO, R.OUTPOSEQ) AS RN
+		                  ,R.ORG_ID AS ORGID
+		                  ,R.COMPANY_ID AS COMPANYID
+		                  ,R.OUTPODATE
+		                  ,R.OUTPONO
+		                  ,R.OUTPOSEQ
+		                  ,R.WORKORDERID
+		                  ,R.WORKORDERSEQ
+		                  ,R.ORDERNAME
+		                  ,R.ITEMCODE
+		                  ,R.ITEMNAME
+		                  ,R.MODEL
+		                  ,R.MODELNAME
+		                  ,R.UOM
+		                  ,R.UOMNAME
+		                  ,R.ROUTINGCODE
+		                  ,R.ROUTINGNAME
+		                  ,R.ORDERQTY
+		                  ,R.CHQTY
+		                  ,R.CHECKQTY
+		                  ,R.TRANSQTY
+		                  ,R.FAULTQTY
+		                  ,R.EXTRANSQTY - R.FAULTQTY AS EXTRANSQTY
+		                  ,R.UNITPRICE
+		                  ,R.SUPPLYPRICE
+		                  ,R.ADDITIONALTAX
+		                  ,R.TOTAL
+		                  ,R.CUSTOMERCODEOUT
+		                  ,R.CUSTOMERNAMEOUT
+		                  ,R.POSTATUS
+		                  ,R.WORKSTATUS
+		                  ,R.CHECKQTY
+		         FROM (
+		                  <include refid="scm.outprocess.outprocessinspregist.pop.sql-select" />
+		                  <include refid="scm.outprocess.outprocessinspregist.pop.sql-where" />
+		                 ) R
+		        WHERE R.EXTRANSQTY != 0
+		           AND R.ORDERQTY != R.CHQTY
+               AND R.SCMINSPECTIONYN = 'Y'
+<!-- 		           AND R.OUTCHECK = 'Y' -->
+		        ORDER BY R.OUTPONO, R.OUTPOSEQ
+        ) TOT
+    </select>
+    <!-- 외주공정검사 대기리스트 화면 조회 끝 -->
+    
+    <!-- SCM 외주공정검사 입고대기리스트 복사 Data 조회 -->
+    <sql id="scm.outprocess.outprocessinspregist.popcheck.sql-select">
+         SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, (SELECT RC.ROUTING_OP
+                                                                                FROM CB_ROUTING_CONTROL RC
+                                                                               WHERE RC.ORG_ID = CRC.ORG_ID
+                                                                                 AND RC.COMPANY_ID = CRC.COMPANY_ID
+                                                                                 AND RC.ROUTING_ID = CRC.ROUTING_ID), CRC.ORDER_NO) AS RN
+                 ,CRC.CHECK_SEQ AS CHECKSEQ
+                 ,CRC.ITEM_CODE AS ITEMCODE
+                 ,CRC.CHECK_BIG
+                 ,CRC.CHECK_BIG AS CHECKBIG
+                 ,(SELECT BIG_NAME
+                   FROM CB_CHECK_BIG_CODE CCB
+                  WHERE 1 = 1
+                    AND CCB.ORG_ID = CRC.ORG_ID
+                    AND CCB.COMPANY_ID = CRC.COMPANY_ID
+                    AND CCB.BIG_CODE = CRC.CHECK_BIG
+                 ) AS CHECKBIGNAME
+                 ,CRC.CHECK_MIDDLE AS CHECKMIDDLE
+                 ,(SELECT MIDDLE_NAME
+                   FROM CB_CHECK_MIDDLE_CODE CRC
+                  WHERE 1 = 1
+                    AND CRC.ORG_ID = CRC.ORG_ID
+                    AND CRC.COMPANY_ID = CRC.COMPANY_ID
+                    AND CRC.BIG_CODE = CRC.CHECK_BIG
+                    AND CRC.MIDDLE_CODE = CRC.CHECK_MIDDLE
+                 ) AS CHECKMIDDLENAME
+                 ,CRC.CHECK_SMALL AS CHECKSMALL
+                 ,(SELECT SMALL_NAME
+                   FROM CB_CHECK_SMALL_CODE CCS
+                  WHERE 1 = 1
+                    AND CCS.ORG_ID = CRC.ORG_ID
+                    AND CCS.COMPANY_ID = CRC.COMPANY_ID
+                    AND CCS.BIG_CODE = CRC.CHECK_BIG
+                    AND CCS.MIDDLE_CODE = CRC.CHECK_MIDDLE
+                    AND CCS.SMALL_CODE = CRC.CHECK_SMALL
+                 ) AS CHECKSMALLNAME
+                 ,CRC.CHECK_UOM AS CHECKUOM
+                 ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1 = 1
+                     AND SC.ORG_ID = CRC.ORG_ID
+                     AND SC.COMPANY_ID = CRC.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE =CRC.CHECK_UOM
+                     ) AS CHECKUOMNAME
+                 ,CRC.STANDARD_VALUE AS STANDARDVALUE
+                 ,CRC.MAX_VALUE AS MAXVALUE
+                 ,CRC.MIN_VALUE AS MINVALUE
+                 ,CRC.CHECK_QTY AS CHECKQTY
+                 ,CRC.CHECK_STANDARD AS CHECKSTANDARD
+                 ,TO_CHAR(CRC.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+                 ,TO_CHAR(CRC.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+          FROM CB_CHECK_MASTER CRC
+    </sql>
+    
+    <sql id="scm.outprocess.outprocessinspregist.popcheck.sql-where">
+         WHERE 1 = 1
+            AND CHECK_BIG = 'L'
+            AND TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN NVL(CRC.EFFECTIVE_START_DATE,TO_DATE('2016-01-01','YYYY-MM-DD')) AND NVL(CRC.EFFECTIVE_END_DATE,TO_DATE('4999-12-31','YYYY-MM-DD'))
+        <isNotEmpty property="ORGID" prepend="AND">
+            CRC.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            CRC.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            CRC.ITEM_CODE =   #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ROUTINGID" prepend="AND">
+            CRC.ROUTING_ID =   #ROUTINGID#
+        </isNotEmpty>
+        ORDER BY ORG_ID, COMPANY_ID, (SELECT RC.ROUTING_OP
+                                                     FROM CB_ROUTING_CONTROL RC
+                                                    WHERE RC.ORG_ID = CRC.ORG_ID
+                                                      AND RC.COMPANY_ID = CRC.COMPANY_ID
+                                                      AND RC.ROUTING_ID = CRC.ROUTING_ID), CRC.ORDER_NO
+    </sql>
+
+    <select id="scm.outprocess.outprocessinspregist.popcheck.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="scm.outprocess.outprocessinspregist.popcheck.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.popcheck.sql-where" />
+    </select>
+    
+    <select id="scm.outprocess.outprocessinspregist.popcheck.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outprocessinspregist.popcheck.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.popcheck.sql-where" />
+        ) TOT
+    </select>
+    <!-- SCM 외주공정검사 입고대기리스트 복사 Data 조회 끝 -->
+    
+    <select id="scm.outprocess.outprocessinspregist.inspectionplanno.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'L' || TO_CHAR(TO_DATE(#InspDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS INSPECTIONPLANNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(INSPECTION_PLAN_NO), -3)), 0)  AS NUM 
+                  FROM CB_SCM_INSPECTION_H
+                 WHERE 1 = 1
+                   AND INSPECTION_PLAN_NO LIKE 'L' || TO_CHAR(TO_DATE(#InspDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <sql id="scm.outprocess.outprocessinspregist.detail.find-select">
+        SELECT COUNT(PD.INSPECTION_PLAN_NO) AS COUNT
+          FROM CB_SCM_INSPECTION_H PH, CB_SCM_INSPECTION_D PD
+    </sql>
+
+    <sql id="scm.outprocess.outprocessinspregist.detail.find-where">
+         WHERE 1 = 1
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+           AND PH.INSPECTION_PLAN_NO = PD.INSPECTION_PLAN_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+          PD.INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONSEQ" prepend="AND">
+          PD.INSPECTION_SEQ = #INSPECTIONSEQ#
+        </isNotEmpty>
+    </sql>
+    
+    <select id="scm.outprocess.outprocessinspregist.detail.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.outprocessinspregist.detail.find-select" />
+        <include refid="scm.outprocess.outprocessinspregist.detail.find-where" />
+    </select>
+    
+    <!-- 외주공정검사 등록 화면에서 Header 정보 insert  -->
+    <insert id="scm.outprocess.outprocessinspregist.master.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_SCM_INSPECTION_H
+              (ORG_ID
+               ,COMPANY_ID
+               ,CHECK_TYPE
+               ,INSPECTION_PLAN_NO
+               ,INSPECTION_DATE
+               ,CUSTOMER_CODE
+               ,ORDER_NO
+               ,ORDER_SEQ
+               ,WORK_ORDER_ID
+               ,WORK_ORDER_SEQ
+               ,CHECK_QTY
+               ,PASS_QTY
+               ,FAIL_QTY
+               ,CHECK_YN
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+               ,#searchCompanyId#
+               ,'L'
+               ,#INSPECTIONPLANNO#
+               ,TO_DATE(#InspDate#, 'YYYY-MM-DD')
+               ,#CustomerCode#
+               ,#OrderNo#
+               ,#OrderSeq#
+               ,#WorkOrderId#
+               ,#WorkOrderSeq#
+               ,#CheckQty#
+               ,#PassQty#
+               ,#FailQty#
+               ,#CheckYn#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 외주공정검사 등록 화면에서 Header 정보 insert 끝 -->
+
+     <!-- 외주공정검사등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="scm.outprocess.outprocessinspregist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SCM_INSPECTION_D
+              (ORG_ID
+               ,COMPANY_ID
+               ,INSPECTION_PLAN_NO
+               ,INSPECTION_SEQ
+               ,CHECK_SEQ
+               ,ITEM_CODE
+               ,CHECK_RESULT1
+               ,CHECK_RESULT2
+               ,CHECK_RESULT3
+               ,CHECK_RESULT4
+               ,CHECK_RESULT5
+               ,CHECK_YN
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+               ,#COMPANYID#
+               ,#INSPECTIONPLANNO#
+               ,$INSPECTIONSEQ$
+               ,#CHECKSEQ#
+               ,#ITEMCODE#
+               ,#CHECKRESULT1#
+               ,#CHECKRESULT2#
+               ,#CHECKRESULT3#
+               ,#CHECKRESULT4#
+               ,#CHECKRESULT5#
+               ,#CHECKYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 insert 끝 -->
+    
+    <!-- 외주공정검사등록 상세 화면에서 Header 정보 update -->
+    <update id="scm.outprocess.outprocessinspregist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SCM_INSPECTION_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , CUSTOMER_CODE = #CustomerCode#
+               , INSPECTION_DATE = TO_DATE(#InspDate#, 'YYYY-MM-DD')
+               , CHECK_QTY = #CheckQty#
+               , PASS_QTY = #PassQty#
+               , FAIL_QTY = #FailQty#
+               , CHECK_YN = #CheckYn#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #InspNo#
+        ]]>
+    </update>
+    <!-- 외주공정검사등록 상세 화면에서 Header 정보 update 끝 -->
+
+   <!-- 외주공정검사등록 상세 화면에서 그리드 정보 update -->
+   <update id="scm.outprocess.outprocessinspregist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SCM_INSPECTION_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , CHECK_SEQ = #CHECKSEQ#
+               , ITEM_CODE = #ITEMCODE#
+               , CHECK_RESULT1 = #CHECKRESULT1#
+               , CHECK_RESULT2 = #CHECKRESULT2#
+               , CHECK_RESULT3 = #CHECKRESULT3#
+               , CHECK_RESULT4 = #CHECKRESULT4#
+               , CHECK_RESULT5 = #CHECKRESULT5#
+               , CHECK_YN = #CHECKYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+          AND INSPECTION_SEQ = $INSPECTIONSEQ$
+        ]]>
+    </update>
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 update 끝 -->
+    
+    <!-- 외주공정검사등록 상세 화면에서 Header 정보 delete -->
+    <delete id="scm.outprocess.outprocessinspregist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SCM_INSPECTION_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #InspNo#
+    </delete>
+    <!-- 외주공정검사등록 상세 화면에서 Header 정보 delete 끝 -->
+    
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 delete -->
+    <delete id="scm.outprocess.outprocessinspregist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SCM_INSPECTION_D
+         WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+          AND INSPECTION_SEQ = $INSPECTIONSEQ$
+    </delete>
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 delete 끝 -->
+    
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 전체 delete -->
+    <delete id="scm.outprocess.outprocessinspregist.all.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SCM_INSPECTION_D
+         WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+    </delete>
+    <!-- 외주공정검사등록 상세 화면에서 그리드 정보 전체 delete 끝 -->
+    
+    <!-- 검사번호 Lov List 시작 -->
+    <sql id="scm.outprocess.outprocessinspregist.lov.sql-select">
+      SELECT CIH.INSPECTIONPLANNO AS INSPECTIONPLANNO
+            ,TO_CHAR(CIH.INSPECTIONDATE, 'YYYY-MM-DD') AS INSPECTIONDATE
+            ,CIH.CHECKYN AS CHECKYN
+            ,(SELECT SC.SMALL_NAME
+                FROM CB_SMALL_CODE SC
+               WHERE 1 = 1
+                 AND SC.ORG_ID = CIH.ORGID
+                 AND SC.COMPANY_ID = CIH.COMPANYID
+                 AND SC.BIG_CODE = 'QM'
+                 AND SC.MIDDLE_CODE = 'CHECK_YN'
+                 AND SC.SMALL_CODE =CIH.CHECKYN
+                 ) AS CHECKYNNAME
+        FROM CB_SCM_INSPECTION_H_V CIH
+    </sql>
+
+    <sql id="scm.outprocess.outprocessinspregist.lov.sql-where">
+         WHERE 1 = 1
+             <isNotEmpty property="ORGID" prepend="AND">
+                    CIH.ORGID = #ORGID#
+             </isNotEmpty>
+             <isNotEmpty property="COMPANYID" prepend="AND">
+                    CIH.COMPANYID = #COMPANYID#
+             </isNotEmpty>
+             <isNotEmpty property="INSPTO">
+             <isNotEmpty property="INSPFROM" prepend="AND">
+                CIH.INSPECTIONDATE BETWEEN TO_DATE(#INSPFROM#,'YYYY-MM-DD') AND TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="INSPFROM" prepend="AND">
+                CIH.INSPECTIONDATE = TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="keyword" prepend="AND">
+            <isNotEqual property="keyword" compareValue="%">
+                CIH.INSPECTIONPLANNO LIKE  #keyword# || '%'
+            </isNotEqual>
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+               CIH.CUSTOMERCODE = #CUSTOMERCODE#
+        </isNotEmpty>
+            ORDER BY  CIH.ORGID, CIH.COMPANYID, CIH.INSPECTIONPLANNO, CIH.INSPECTIONDATE
+    </sql>
+
+    <select id="scm.outprocess.outprocessinspregist.lov.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+            <include refid="scm.outprocess.outprocessinspregist.lov.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.lov.sql-where" />
+    </select>
+
+    <select id="scm.outprocess.outprocessinspregist.lov.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outprocessinspregist.lov.sql-select" />
+            <include refid="scm.outprocess.outprocessinspregist.lov.sql-where" />
+        ) TOT
+    </select>
+    <!-- 검사번호 Lov List 끝 -->
+   
+   <!-- SCM 외주공정검사관리 끝 -->
+   
+   <!-- SCM 외주공정 발주현황 조회 시작 -->
+<!--     <sql id="scm.outprocess.outprocessorderstatelist.sql-select"> -->
+<!--       SELECT   RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.OUT_TRANS_DATE DESC, TH.OUT_TRANS_NO DESC, TD.OUT_TRANS_SEQ DESC) AS RN -->
+<!-- 					       ,TH.OUT_TRANS_NO AS OUTTRANSNO -->
+<!-- 					       ,TD.OUT_TRANS_SEQ AS OUTTRANSSEQ -->
+<!-- 					       ,TO_CHAR(OH.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE -->
+<!-- 					       ,TO_CHAR(TH.OUT_TRANS_DATE, 'YYYY-MM-DD') AS OUTTRANSDATE -->
+<!-- 					       ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE -->
+<!-- 					       ,OD.WORK_ORDER_ID AS WORKORDERID -->
+<!-- 					       ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ -->
+<!-- 					       ,TH.CUSTOMER_CODE AS CUSTOMERCODE -->
+<!-- 					       ,CC.CUSTOMER_NAME AS CUSTOMERNAME -->
+<!-- 					       ,IM.ORDER_NAME AS ORDERNAME  -->
+<!-- 					       ,IM.ITEM_NAME AS ITEMNAME  -->
+<!-- 					       ,IM.UOM_NAME AS UOMNAME -->
+<!-- 					       ,TD.TRANS_QTY AS ORDERQTY -->
+<!-- 					       ,IHV.CHECK_QTY AS CHECKQTY -->
+<!-- 					       ,IHV.PASS_QTY AS PASSQTY -->
+<!-- 					       ,IHV.FAIL_QTY AS FAILQTY -->
+					                 
+<!-- 					       ,TD.TRANS_UNIT_PRICE AS UNITPRICE  -->
+<!-- 					       ,TD.SUPPLY_PRICE AS SUPPLYPRICE  -->
+<!-- 					       ,TD.ADDITIONAL_TAX AS ADDITIONALTAX  -->
+<!-- 					       ,(NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0)) AS TOTAL -->
+<!-- 					       ,TD.REMARKS  -->
+					       
+<!--                  ,NVL((SELECT SUM(WOD.QTY) -->
+<!--                          FROM CB_WORK_ORDER_D WOD -->
+<!--                         WHERE 1=1 -->
+<!--                           AND WOD.ORG_ID = OD.ORG_ID -->
+<!--                           AND WOD.COMPANY_ID = OD.COMPANY_ID -->
+<!--                           AND (WOD.ORG_ID, WOD.COMPANY_ID, WOD.WORK_ORDER_ID, WOD.WORK_ORDER_SEQ) IN (SELECT WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ -->
+<!--                                                                                                         FROM CB_WORK_ORDER WO -->
+<!--                                                                                                        WHERE 1=1 -->
+<!--                                                                                                          AND WO.ORG_ID = OD.ORG_ID -->
+<!--                                                                                                          AND WO.COMPANY_ID = OD.COMPANY_ID -->
+<!--                                                                                                          AND WO.ITEM_CODE = OD.ITEM_CODE -->
+<!--                                                                                                          AND WO.ROUTING_CODE = CB_MFG_PKG.CB_ROUT_DATA_FIND(OD.ORG_ID -->
+<!--                                                                                                                                                            ,OD.COMPANY_ID -->
+<!--                                                                                                                                                            ,OD.ITEM_CODE -->
+<!--                                                                                                                                                            ,(SELECT RC.ROUTING_ID -->
+<!--                                                                                                                                                                FROM CB_ROUTING_CONTROL RC -->
+<!--                                                                                                                                                               WHERE 1=1 -->
+<!--                                                                                                                                                                 AND RC.ORG_ID = OD.ORG_ID -->
+<!--                                                                                                                                                                 AND RC.COMPANY_ID = OD.COMPANY_ID -->
+<!--                                                                                                                                                                 AND RC.ITEM_CODE = OD.ITEM_CODE -->
+<!--                                                                                                                                                                 AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ) -->
+<!--                                                                                                                                                            ,TO_DATE(#DATETO#, 'YYYY-MM-DD') -->
+<!--                                                                                                                                                            ,1 -->
+<!--                                                                                                                                                            ,'ROUTING_ID' -->
+<!--                                                                                                                                                            ) -->
+<!--                                                                                                       ) -->
+<!--                        ), 0) - -->
+<!--                    NVL((SELECT SUM(TD1.TRANS_QTY) -->
+<!--                           FROM CB_OUT_TRANS_D TD1 -->
+<!--                               ,CB_OUT_ORDER_D OD1 -->
+<!--                          WHERE 1=1 -->
+<!--                            AND TD1.ORG_ID = OD1.ORG_ID -->
+<!--                            AND TD1.COMPANY_ID = OD1.COMPANY_ID -->
+<!--                            AND TD1.ITEM_CODE = OD1.ITEM_CODE -->
+<!--                            AND TD1.OUT_PO_NO = OD1.OUT_PO_NO -->
+<!--                            AND TD1.OUT_PO_SEQ = OD1.OUT_PO_SEQ -->
+<!--                            AND OD1.ORG_ID = OD.ORG_ID -->
+<!--                            AND OD1.COMPANY_ID = OD.COMPANY_ID -->
+<!--                            AND OD1.ITEM_CODE = OD.ITEM_CODE -->
+<!--                            AND (OD1.ORG_ID, OD1.COMPANY_ID, OD1.WORK_ORDER_ID, OD1.WORK_ORDER_SEQ) IN (SELECT WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ -->
+<!--                                                                                                           FROM CB_WORK_ORDER WO -->
+<!--                                                                                                          WHERE 1=1 -->
+<!--                                                                                                            AND WO.ORG_ID = OD.ORG_ID -->
+<!--                                                                                                            AND WO.COMPANY_ID = OD.COMPANY_ID -->
+<!--                                                                                                            AND WO.ITEM_CODE = OD.ITEM_CODE -->
+<!--                                                                                                            AND WO.ROUTING_CODE = CB_MFG_PKG.CB_ROUT_DATA_FIND(OD.ORG_ID -->
+<!--                                                                                                                                                              ,OD.COMPANY_ID -->
+<!--                                                                                                                                                              ,OD.ITEM_CODE -->
+<!--                                                                                                                                                              ,(SELECT RC.ROUTING_ID -->
+<!--                                                                                                                                                                  FROM CB_ROUTING_CONTROL RC -->
+<!--                                                                                                                                                                 WHERE 1=1 -->
+<!--                                                                                                                                                                   AND RC.ORG_ID = OD.ORG_ID -->
+<!--                                                                                                                                                                   AND RC.COMPANY_ID = OD.COMPANY_ID -->
+<!--                                                                                                                                                                   AND RC.ITEM_CODE = OD.ITEM_CODE -->
+<!--                                                                                                                                                                   AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ) -->
+<!--                                                                                                                                                              ,TO_DATE(#DATETO#, 'YYYY-MM-DD') -->
+<!--                                                                                                                                                              ,1 -->
+<!--                                                                                                                                                              ,'ROUTING_ID' -->
+<!--                                                                                                                                                              ) -->
+<!--                                                                                                         )), 0) AS POSTQTY -->
+<!-- 					       ,(SELECT ROUTINGNAME -->
+<!-- 					           FROM CB_WORK_ORDER_LIST_V V -->
+<!-- 					          WHERE V.ORGID = IHV.ORG_ID -->
+<!-- 					            AND V.COMPANYID = IHV.COMPANY_ID -->
+<!-- 					            AND V.WORKORDERID = IHV.WORK_ORDER_ID -->
+<!-- 					            AND V.WORKORDERSEQ = IHV.WORK_ORDER_SEQ) AS ROUTINGNAME  -->
+<!-- 					       ,STD.TRADE_NO AS TRADENO  -->
+<!-- 					       ,STD.TRADE_SEQ AS TRADESEQ -->
+<!-- 					  FROM CB_OUT_TRANS_H TH -->
+<!-- 					      ,CB_OUT_TRANS_D TD -->
+<!-- 					      ,CB_CUSTOMER CC -->
+<!-- 					      ,CB_ITEM_MASTER_V IM -->
+<!-- 					      ,CB_OUT_ORDER_D OD -->
+<!-- 					      ,CB_OUT_ORDER_H OH -->
+<!-- 					      ,CB_SCM_INSPECTION_H IHV -->
+<!-- 					      ,CB_SCM_TRADE_D STD -->
+<!--                 ,CB_SCM_TRADE_H STH -->
+<!--     </sql> -->
+    
+<!--     <sql id="scm.outprocess.outprocessorderstatelist.sql-where"> -->
+<!--        WHERE 1=1 -->
+<!--            AND TH.ORG_ID              = TD.ORG_ID -->
+<!-- 				   AND TH.COMPANY_ID       = TD.COMPANY_ID -->
+<!-- 				   AND TH.OUT_TRANS_NO   = TD.OUT_TRANS_NO -->
+<!-- 				   AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE -->
+<!-- 				   AND TD.COMPANY_ID       = IM.COMPANY_ID -->
+<!-- 				   AND TD.ITEM_CODE         = IM.ITEM_CODE -->
+<!-- 				   AND TD.ORG_ID              = OD.ORG_ID -->
+<!-- 				   AND TD.COMPANY_ID       = OD.COMPANY_ID -->
+<!-- 				   AND TD.OUT_PO_NO        = OD.OUT_PO_NO -->
+<!-- 				   AND TD.OUT_PO_SEQ       = OD.OUT_PO_SEQ -->
+<!-- 				   AND OD.ORG_ID              = OH.ORG_ID -->
+<!-- 				   AND OD.COMPANY_ID      = OH.COMPANY_ID -->
+<!-- 				   AND OD.OUT_PO_NO       = OH.OUT_PO_NO -->
+<!-- 				   AND TD.ORG_ID              = IHV.ORG_ID(+) -->
+<!-- 				   AND TD.COMPANY_ID      = IHV.COMPANY_ID(+) -->
+<!-- 				   AND TD.OUT_PO_NO        = IHV.ORDER_NO(+) -->
+<!-- 				   AND TD.OUT_PO_SEQ       = IHV.ORDER_SEQ(+) -->
+<!-- 				   AND TD.OUT_TRANS_NO   = STD.OUT_TRANS_NO(+) -->
+<!-- 				   AND TD.OUT_TRANS_SEQ  = STD.OUT_TRANS_SEQ(+) -->
+<!-- 				   AND STD.TRADE_NO        = STH.TRADE_NO(+) -->
+<!--         <isNotEmpty property="ORGID" prepend="AND"> -->
+<!--             TH.ORG_ID = $ORGID$ -->
+<!--         </isNotEmpty> -->
+<!--         <isNotEmpty property="COMPANYID" prepend="AND"> -->
+<!--             TH.COMPANY_ID = $COMPANYID$ -->
+<!--         </isNotEmpty> -->
+<!--         <isNotEmpty property="DATETO"> -->
+<!--           <isNotEmpty property="DATEFROM" prepend="AND"> -->
+<!--               OH.OUT_PO_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') -->
+<!--               AND TO_DATE(#DATETO#, 'YYYY-MM-DD') -->
+<!--           </isNotEmpty> -->
+<!--         </isNotEmpty> -->
+<!--         <isNotEmpty property="TRADETO"> -->
+<!--           <isNotEmpty property="TRADEFROM" prepend="AND"> -->
+<!--               STH.TRADE_DATE BETWEEN TO_DATE(#TRADEFROM#, 'YYYY-MM-DD') -->
+<!--               AND TO_DATE(#TRADETO#, 'YYYY-MM-DD') -->
+<!--           </isNotEmpty> -->
+<!--         </isNotEmpty> -->
+<!--         <isNotEmpty property="CUSTOMERCODE" prepend="AND"> -->
+<!--             TH.CUSTOMER_CODE = #CUSTOMERCODE# -->
+<!--         </isNotEmpty> -->
+<!--        ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.OUT_TRANS_DATE DESC, TH.OUT_TRANS_NO DESC, TD.OUT_TRANS_SEQ DESC -->
+<!--     </sql> -->
+    
+<!--     <select id="scm.outprocess.outprocessorderstatelist.select" parameterClass="java.util.Map" resultClass="java.util.HashMap"> -->
+<!--             <include refid="scm.outprocess.outprocessorderstatelist.sql-select" /> -->
+<!--             <include refid="scm.outprocess.outprocessorderstatelist.sql-where" /> -->
+<!--     </select>  -->
+    
+<!--     <select id="scm.outprocess.outprocessorderstatelist.count" parameterClass="java.util.Map" -->
+<!--         resultClass="java.lang.Integer"> -->
+<!--         SELECT COUNT(*) FROM ( -->
+<!--             <include refid="scm.outprocess.outprocessorderstatelist.sql-select" /> -->
+<!--             <include refid="scm.outprocess.outprocessorderstatelist.sql-where" /> -->
+<!--         ) -->
+<!--     </select>  -->
+
+    <sql id="scm.outprocess.outprocessorderstatelist.sql-select">
+			SELECT ROW_NUMBER() OVER(ORDER BY AL.ORGID, AL.COMPANYID, AL.OUTPODATE DESC, AL.OUTPONO DESC, AL.OUTPOSEQ DESC) AS RN
+			      ,AL.ORGID
+			      ,AL.COMPANYID
+			      ,AL.OUTPONO
+			      ,AL.OUTPOSEQ AS OUTPOSEQ
+			      ,AL.OUTPODATE AS OUTPODATE
+			      ,AL.DUEDATE AS DUEDATE
+			      ,AL.OUTTRANSNO AS OUTTRANSNO
+			      ,AL.OUTTRANSSEQ AS OUTTRANSSEQ
+			      ,AL.OUTTRANSDATE AS OUTTRANSDATE
+			      ,AL.WORKORDERID AS WORKORDERID
+			      ,AL.WORKORDERSEQ AS WORKORDERSEQ
+			      ,AL.CUSTOMERCODE AS CUSTOMERCODE
+			      ,AL.CUSTOMERNAME AS CUSTOMERNAME
+			      ,AL.ITEMCODE
+			      ,AL.ORDERNAME AS ORDERNAME
+			      ,AL.DRAWINGNO AS DRAWINGNO
+			      ,AL.ITEMNAME AS ITEMNAME
+			      ,AL.CARTYPE AS CARTYPE
+			      ,AL.CARTYPENAME AS CARTYPENAME
+			      ,AL.ITEMSTANDARDDETAIL
+			      ,AL.UOMNAME AS UOMNAME
+			      ,AL.ORDERQTY AS ORDERQTY
+			      ,AL.TRANSQTY AS TRANSQTY
+			      ,AL.FAULTQTY AS FAULTQTY
+			      ,AL.TRANSACTIONQTY AS TRANSACTIONQTY
+			      ,SUM(AL.CHECKQTY) AS CHECKQTY
+			      ,SUM(AL.PASSQTY) AS PASSQTY
+			      ,SUM(AL.FAILQTY) AS FAILQTY
+			      ,((AL.ORDERQTY - AL.TRANSACTIONQTY) - AL.FAULTQTY) RESTQTY
+            ,AL.ORDERQTY - (AL.TRANSQTY + AL.FAULTQTY) AS BEFOREQTY
+			      ,AL.REMARKS AS REMARKS            
+			      ,AL.POSTQTY AS POSTQTY
+			      ,AL.ROUTINGNAME AS ROUTINGNAME
+			      ,AL.ROUTINGNO
+			      ,AL.TRADENO AS TRADENO
+			      ,AL.TRADESEQ AS TRADESEQ
+			      ,AL.TRADEDATE AS TRADEDATE
+			      ,AL.UNITPRICE AS UNITPRICE
+			      ,AL.SUPPLYPRICE AS SUPPLYPRICE
+			      ,AL.ADDITIONALTAX AS ADDITIONALTAX
+			      ,AL.TOTAL AS TOTAL
+			      ,AL.SCMINSPECTIONYN AS SCMINSPECTIONYN
+			      ,AL.FINISHYN AS FINISHYN
+			      ,AL.STANDUNITPRICE AS STANDUNITPRICE
+			      ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS STANDDATE
+			  FROM (SELECT AA.ORGID AS ORGID
+			              ,AA.COMPANYID AS COMPANYID
+			              ,AA.OUTPONO AS OUTPONO
+			              ,AA.OUTPOSEQ AS OUTPOSEQ
+			              ,AA.OUTPODATE AS OUTPODATE
+			              ,AA.DUEDATE AS DUEDATE
+			              ,MAX(AA.OUTTRANSNO) AS OUTTRANSNO
+			              ,MAX(AA.OUTTRANSSEQ) KEEP(DENSE_RANK LAST ORDER BY OUTTRANSNO) AS OUTTRANSSEQ
+			              ,MAX(AA.OUTTRANSDATE) KEEP(DENSE_RANK LAST ORDER BY OUTTRANSNO, OUTTRANSSEQ) AS OUTTRANSDATE
+			              ,AA.WORKORDERID AS WORKORDERID
+			              ,AA.WORKORDERSEQ AS WORKORDERSEQ
+			              ,AA.CUSTOMERCODE AS CUSTOMERCODE
+			              ,AA.CUSTOMERNAME AS CUSTOMERNAME
+			              ,AA.ITEMCODE
+			              ,AA.ORDERNAME AS ORDERNAME
+			              ,AA.ITEMNAME AS ITEMNAME
+			              ,AA.DRAWINGNO AS DRAWINGNO
+			              ,AA.CARTYPE AS CARTYPE
+			              ,AA.CARTYPENAME AS CARTYPENAME
+			              ,AA.ITEMSTANDARDDETAIL
+			              ,AA.UOMNAME AS UOMNAME
+			              ,AA.ORDERQTY AS ORDERQTY
+			              ,SUM(AA.TRANSQTY) AS TRANSQTY
+			              ,NVL((SELECT SUM((NVL(TD.CON1, 0) + NVL(TD.CON2, 0) + NVL(TD.CON3, 0) + NVL(TD.CON4, 0) + NVL(TD.CON5, 0) +
+			                           NVL(TD.CON6, 0) + NVL(TD.CON7, 0) + NVL(TD.CON8, 0) + NVL(TD.CON9, 0) + NVL(TD.CON10, 0) +
+			                           NVL(TD.CON11, 0) + NVL(TD.CON12, 0) + NVL(TD.CON13, 0) + NVL(TD.CON14, 0) + NVL(TD.CON15, 0) +
+			                           NVL(TD.CON16, 0) + NVL(TD.CON17, 0) + NVL(TD.CON18, 0) + NVL(TD.CON19, 0) + NVL(TD.CON20, 0) +
+			                           NVL(TD.CON21, 0) + NVL(TD.CON22, 0) + NVL(TD.CON23, 0) + NVL(TD.CON24, 0) + NVL(TD.CON25, 0) +
+			                           NVL(TD.CON26, 0) + NVL(TD.CON27, 0) + NVL(TD.CON28, 0) + NVL(TD.CON29, 0) + NVL(TD.CON30, 0) +
+			                           NVL(TD.CON31, 0) + NVL(TD.CON32, 0) + NVL(TD.CON33, 0) + NVL(TD.CON34, 0) + NVL(TD.CON35, 0) +
+			                           NVL(TD.CON36, 0) + NVL(TD.CON37, 0) + NVL(TD.CON38, 0) + NVL(TD.CON39, 0) + NVL(TD.CON40, 0)))
+			                     FROM CB_OUT_TRANS_D TD
+			                    WHERE TD.ORG_ID = AA.ORGID
+			                      AND TD.COMPANY_ID = AA.COMPANYID
+			                      AND TD.OUT_PO_NO = AA.OUTPONO
+			                      AND TD.OUT_PO_SEQ = AA.OUTPOSEQ), 0) AS FAULTQTY
+			              ,SUM(AA.TRANSACTIONQTY) AS TRANSACTIONQTY
+			              ,AA.CHECKQTY AS CHECKQTY
+			              ,AA.PASSQTY AS PASSQTY
+			              ,AA.FAILQTY AS FAILQTY
+			              ,AA.REMARKS AS REMARKS            
+			              ,MAX(AA.POSTQTY) AS POSTQTY
+			              ,AA.ROUTINGNAME AS ROUTINGNAME
+			              ,AA.ROUTINGNO
+			              ,MAX(AA.TRADENO) KEEP(DENSE_RANK LAST ORDER BY OUTTRANSNO, OUTTRANSSEQ) AS TRADENO
+			              ,MAX(AA.TRADESEQ) KEEP(DENSE_RANK LAST ORDER BY OUTTRANSNO, OUTTRANSSEQ, TRADENO) AS TRADESEQ
+			              ,MAX(AA.TRADEDATE) KEEP(DENSE_RANK LAST ORDER BY OUTTRANSNO, OUTTRANSSEQ, TRADENO, TRADESEQ) AS TRADEDATE
+			              ,MAX(AA.UNITPRICE) AS UNITPRICE
+			              ,SUM(AA.SUPPLYPRICE) AS SUPPLYPRICE
+			              ,SUM(AA.ADDITIONALTAX) AS ADDITIONALTAX
+			              ,SUM(AA.TOTAL) AS TOTAL
+			              ,AA.SCMINSPECTIONYN AS SCMINSPECTIONYN
+			              ,MAX(AA.FINISHYN) AS FINISHYN
+			              ,MAX(AA.STANDUNITPRICE) AS STANDUNITPRICE
+			          FROM (SELECT OH.ORG_ID AS ORGID
+			                      ,OH.COMPANY_ID AS COMPANYID
+			                      ,OH.OUT_PO_NO AS OUTPONO
+			                      ,OD.OUT_PO_SEQ AS OUTPOSEQ
+			                      ,TO_CHAR(OH.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE
+			                      ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+			                      ,TH.OUT_TRANS_NO AS OUTTRANSNO
+			                      ,TD.OUT_TRANS_SEQ AS OUTTRANSSEQ
+			                      ,TO_CHAR(TH.OUT_TRANS_DATE, 'YYYY-MM-DD') AS OUTTRANSDATE
+			                      ,OD.WORK_ORDER_ID AS WORKORDERID
+			                      ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ
+			                      ,DECODE(TH.OUT_TRANS_NO, '', OH.CUSTOMER_CODE, TH.CUSTOMER_CODE) AS CUSTOMERCODE
+			                      ,DECODE(TH.OUT_TRANS_NO, '', CC.CUSTOMER_NAME, (SELECT CC1.CUSTOMER_NAME
+			                                                                        FROM CB_CUSTOMER CC1
+			                                                                       WHERE 1=1
+			                                                                         AND CC1.ORG_ID = TH.ORG_ID
+			                                                                         AND CC1.COMPANY_ID = TH.COMPANY_ID
+			                                                                         AND CC1.CUSTOMER_CODE = TH.CUSTOMER_CODE)) AS CUSTOMERNAME
+			                      ,IM.ITEM_CODE AS ITEMCODE
+			                      ,IM.ORDER_NAME AS ORDERNAME 
+                            ,IM.DRAWING_NO AS DRAWINGNO
+			                      ,IM.ITEM_NAME AS ITEMNAME 
+			                      ,IM.UOM_NAME AS UOMNAME
+			                      ,IM.CAR_TYPE AS CARTYPE
+			                      ,IM.CAR_TYPE_NAME AS CARTYPENAME
+                            ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+			                      ,OD.ORDER_QTY AS ORDERQTY
+			                      ,NVL(TD.TRANS_QTY, 0) AS TRANSQTY
+			                      ,NVL(STD.TRANSACTION_QTY, 0) AS TRANSACTIONQTY
+			                      ,IHV.CHECK_QTY AS CHECKQTY
+			                      ,IHV.PASS_QTY AS PASSQTY
+			                      ,IHV.FAIL_QTY AS FAILQTY
+<!--                             ,NVL(TD.TRANS_UNIT_PRICE, 0) AS UNITPRICE -->
+<!--                             ,NVL(TD.SUPPLY_PRICE, 0) AS SUPPLYPRICE -->
+<!--                             ,NVL(TD.ADDITIONAL_TAX, 0) AS ADDITIONALTAX -->
+<!--                             ,NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0) AS TOTAL -->                            
+                            ,DECODE(TD.OUT_TRANS_NO, NULL, NVL(OD.UNIT_PRICE, 0), NVL(TD.TRANS_UNIT_PRICE, 0)) AS UNITPRICE
+                            ,DECODE(TD.OUT_TRANS_NO, NULL, NVL(OD.SUPPLY_PRICE, 0), NVL(TD.SUPPLY_PRICE, 0)) AS SUPPLYPRICE
+                            ,DECODE(TD.OUT_TRANS_NO, NULL, NVL(OD.ADDITIONAL_TAX, 0), NVL(TD.ADDITIONAL_TAX, 0)) AS ADDITIONALTAX
+                            ,DECODE(TD.OUT_TRANS_NO, NULL, NVL(OD.SUPPLY_PRICE, 0) + NVL(OD.ADDITIONAL_TAX, 0), NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0)) AS TOTAL                            
+			                      ,OD.REMARKS                
+			                      ,NVL((SELECT SUM(WOD.QTY)
+			                              FROM CB_WORK_ORDER_D WOD
+			                             WHERE 1=1
+			                               AND WOD.ORG_ID = OD.ORG_ID
+			                               AND WOD.COMPANY_ID = OD.COMPANY_ID
+			                               AND (WOD.ORG_ID, WOD.COMPANY_ID, WOD.WORK_ORDER_ID, WOD.WORK_ORDER_SEQ) IN (SELECT WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ
+			                                                                                                             FROM CB_WORK_ORDER WO
+			                                                                                                            WHERE 1=1
+			                                                                                                              AND WO.ORG_ID = OD.ORG_ID
+			                                                                                                              AND WO.COMPANY_ID = OD.COMPANY_ID
+			                                                                                                              AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+<!-- 			                                                                                                              AND WO.ITEM_CODE = OD.ITEM_CODE -->
+			                                                                                                              AND WO.ROUTING_CODE = CB_MFG_PKG.CB_ROUT_DATA_FIND(OD.ORG_ID
+			                                                                                                                                                                ,OD.COMPANY_ID
+			                                                                                                                                                                ,OD.ITEM_CODE
+			                                                                                                                                                                ,(SELECT RC.ROUTING_ID
+			                                                                                                                                                                    FROM CB_ROUTING_CONTROL RC
+			                                                                                                                                                                   WHERE 1=1
+			                                                                                                                                                                     AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE
+			                                                                                                                                                                     AND RC.EFFECTIVE_END_DATE
+			                                                                                                                                                                     AND RC.ORG_ID = OD.ORG_ID
+			                                                                                                                                                                     AND RC.COMPANY_ID = OD.COMPANY_ID
+			                                                                                                                                                                     AND RC.ITEM_CODE = OD.ITEM_CODE
+			                                                                                                                                                                     AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ)
+			                                                                                                                                                                ,TO_DATE(#DATETO#, 'YYYY-MM-DD')
+			                                                                                                                                                                ,1
+			                                                                                                                                                                ,'ROUTING_ID'
+			                                                                                                                                                                )
+			                                                                                                           )
+			                            ), 0) -
+			                        NVL((SELECT SUM(TD1.TRANS_QTY)
+			                               FROM CB_OUT_TRANS_D TD1
+			                                   ,CB_OUT_ORDER_D OD1
+			                              WHERE 1=1
+			                                AND TD1.ORG_ID = OD1.ORG_ID
+			                                AND TD1.COMPANY_ID = OD1.COMPANY_ID
+			                                AND TD1.ITEM_CODE = OD1.ITEM_CODE
+			                                AND TD1.OUT_PO_NO = OD1.OUT_PO_NO
+			                                AND TD1.OUT_PO_SEQ = OD1.OUT_PO_SEQ
+			                                AND OD1.ORG_ID = OD.ORG_ID
+			                                AND OD1.COMPANY_ID = OD.COMPANY_ID
+			                                AND OD1.ITEM_CODE = OD.ITEM_CODE
+			                                AND (OD1.ORG_ID, OD1.COMPANY_ID, OD1.WORK_ORDER_ID, OD1.WORK_ORDER_SEQ) IN (SELECT WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ
+			                                                                                                               FROM CB_WORK_ORDER WO
+			                                                                                                              WHERE 1=1
+			                                                                                                                AND WO.ORG_ID = OD.ORG_ID
+			                                                                                                                AND WO.COMPANY_ID = OD.COMPANY_ID
+                                                                                                                      AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+<!-- 			                                                                                                                AND WO.ITEM_CODE = OD.ITEM_CODE -->
+			                                                                                                                AND WO.ROUTING_CODE = CB_MFG_PKG.CB_ROUT_DATA_FIND(OD.ORG_ID
+			                                                                                                                                                                  ,OD.COMPANY_ID
+			                                                                                                                                                                  ,OD.ITEM_CODE
+			                                                                                                                                                                  ,(SELECT RC.ROUTING_ID
+			                                                                                                                                                                      FROM CB_ROUTING_CONTROL RC
+			                                                                                                                                                                     WHERE 1=1
+	                                                                                                                                                                           AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE
+	                                                                                                                                                                           AND RC.EFFECTIVE_END_DATE
+			                                                                                                                                                                       AND RC.ORG_ID = OD.ORG_ID
+			                                                                                                                                                                       AND RC.COMPANY_ID = OD.COMPANY_ID
+			                                                                                                                                                                       AND RC.ITEM_CODE = OD.ITEM_CODE
+			                                                                                                                                                                       AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ)
+			                                                                                                                                                                  ,TO_DATE(#DATETO#, 'YYYY-MM-DD')
+			                                                                                                                                                                  ,1
+			                                                                                                                                                                  ,'ROUTING_ID'
+			                                                                                                                                                                  )
+			                                                                                                             )), 0) AS POSTQTY
+			                      ,DECODE(OD.WORK_ORDER_ID
+			                                ,NULL, (SELECT SC.SMALL_NAME
+			                                           FROM CB_SMALL_CODE SC
+			                                          WHERE 1=1
+			                                            AND SC.ORG_ID = OD.ORG_ID
+			                                            AND SC.COMPANY_ID = OD.COMPANY_ID
+			                                            AND SC.BIG_CODE = 'MFG'
+			                                            AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+			                                            AND SC.SMALL_CODE = OD.ROUTING_NO)
+			                                ,(SELECT ROUTINGNAME
+				                                FROM CB_WORK_ORDER_LIST_V V
+				                               WHERE V.ORGID = OD.ORG_ID
+				                                 AND V.COMPANYID = OD.COMPANY_ID
+				                                 AND V.WORKORDERID = OD.WORK_ORDER_ID
+				                                 AND V.WORKORDERSEQ = OD.WORK_ORDER_SEQ)) AS ROUTINGNAME 
+			                      ,STD.TRADE_NO AS TRADENO 
+			                      ,STD.TRADE_SEQ AS TRADESEQ
+			                      ,TO_CHAR(STH.TRADE_DATE, 'YYYY-MM-DD') AS TRADEDATE
+			                      ,OD.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+			                      ,NVL(TD.FINISH_YN, 'N') AS FINISHYN
+			                      ,(SELECT RC.ROUTING_ID 
+                               FROM CB_ROUTING_CONTROL RC
+                              WHERE 1=1
+                                AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE
+                                AND RC.ORG_ID = OD.ORG_ID
+                                AND RC.COMPANY_ID = OD.COMPANY_ID
+                                AND RC.ITEM_CODE = OD.ITEM_CODE
+                                AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ) AS ROUTINGNO
+			                      ,(SELECT SPR.UNIT_PRICE_A 
+															  FROM CB_SALES_PRICE_ROUTING SPR
+															      ,CB_ROUTING_CONTROL RC
+															 WHERE SPR.ORG_ID = RC.ORG_ID
+                                 AND SPR.COMPANY_ID = RC.COMPANY_ID
+                                 AND SPR.ITEM_CODE = RC.ITEM_CODE
+                                 AND SPR.ROUTING_ID = RC.ROUTING_ID
+                                 AND SPR.PRICE_SEQ = (SELECT MAX(SPR2.PRICE_SEQ) 
+															                          FROM CB_SALES_PRICE_ROUTING SPR2
+															                         WHERE SPR.ORG_ID = SPR2.ORG_ID
+															                           AND SPR.COMPANY_ID = SPR2.COMPANY_ID
+															                           AND SPR.ITEM_CODE = SPR2.ITEM_CODE
+															                           AND SPR.ROUTING_ID = SPR2.ROUTING_ID)
+                                 AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE  AND RC.EFFECTIVE_END_DATE
+                                 AND RC.ORG_ID = OD.ORG_ID
+                                 AND RC.COMPANY_ID = OD.COMPANY_ID
+                                 AND RC.ITEM_CODE = OD.ITEM_CODE
+                                 AND RC.SORT_ORDER = OD.WORK_ORDER_SEQ) AS STANDUNITPRICE           
+			                       FROM CB_OUT_ORDER_D OD
+			                           ,CB_OUT_ORDER_H OH
+			                           ,CB_CUSTOMER CC
+			                           ,CB_ITEM_MASTER_V IM
+			                           ,CB_OUT_TRANS_D TD
+			                           ,CB_OUT_TRANS_H TH
+			                           ,CB_SCM_INSPECTION_H IHV
+			                           ,CB_SCM_TRADE_D STD
+			                           ,CB_SCM_TRADE_H STH
+			                  WHERE 1=1
+			                      AND OD.ORG_ID = OH.ORG_ID
+			                      AND OD.COMPANY_ID = OH.COMPANY_ID
+			                      AND OD.OUT_PO_NO = OH.OUT_PO_NO
+			                      AND OH.ORG_ID = CC.ORG_ID
+			                      AND OH.COMPANY_ID = CC.COMPANY_ID
+			                      AND OH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+			                      AND OD.ORG_ID = IM.ORG_ID
+			                      AND OD.COMPANY_ID = IM.COMPANY_ID
+			                      AND OD.ITEM_CODE = IM.ITEM_CODE           
+			                      AND OD.ORG_ID = TD.ORG_ID(+)
+			                      AND OD.COMPANY_ID = TD.COMPANY_ID(+)
+			                      AND OD.OUT_PO_NO = TD.OUT_PO_NO(+)
+			                      AND OD.OUT_PO_SEQ = TD.OUT_PO_SEQ(+)
+			                      AND TD.ORG_ID = TH.ORG_ID(+)
+			                      AND TD.COMPANY_ID = TH.COMPANY_ID(+)
+			                      AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO(+)
+			                      AND TD.ORG_ID = IHV.ORG_ID(+)
+			                      AND TD.COMPANY_ID = IHV.COMPANY_ID(+)
+			                      AND TD.OUT_PO_NO = IHV.ORDER_NO(+)
+			                      AND TD.OUT_PO_SEQ = IHV.ORDER_SEQ(+)
+			                      AND TD.ORG_ID = STD.ORG_ID(+)
+			                      AND TD.COMPANY_ID = STD.COMPANY_ID(+)
+			                      AND TD.OUT_TRANS_NO = STD.OUT_TRANS_NO(+)
+			                      AND TD.OUT_TRANS_SEQ = STD.OUT_TRANS_SEQ(+)
+			                      AND STD.TRADE_NO = STH.TRADE_NO(+))AA
+			         WHERE 1=1			         
+			         GROUP BY AA.ORGID, AA.COMPANYID, AA.OUTPONO, AA.OUTPOSEQ, AA.OUTPODATE
+			                 ,AA.DUEDATE, AA.WORKORDERID, AA.WORKORDERSEQ, AA.CUSTOMERCODE
+			                 ,AA.CUSTOMERNAME, AA.ITEMCODE, AA.ORDERNAME, AA.DRAWINGNO, AA.ITEMNAME, AA.ORDERQTY
+			                 ,AA.CARTYPE, AA.CARTYPENAME, AA.ITEMSTANDARDDETAIL ,AA.UOMNAME, AA.CHECKQTY, AA.PASSQTY, AA.FAILQTY
+			                 ,AA.REMARKS, AA.ROUTINGNAME, AA.ROUTINGNO, AA.SCMINSPECTIONYN)AL
+    </sql>
+    
+    <sql id="scm.outprocess.outprocessorderstatelist.sql-where">
+       WHERE 1=1 
+        <isNotEmpty property="ORGID" prepend="AND">
+            AL.ORGID = $ORGID$
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            AL.COMPANYID = $COMPANYID$
+        </isNotEmpty>
+        <isNotEmpty property="DATETO">
+          <isNotEmpty property="DATEFROM" prepend="AND">
+              TO_DATE(AL.OUTPODATE, 'YYYY-MM-DD') BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD')
+              AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="TRANSTO">
+          <isNotEmpty property="TRANSFROM" prepend="AND">
+              TO_DATE(AL.OUTTRANSDATE, 'YYYY-MM-DD') BETWEEN TO_DATE(#TRANSFROM#, 'YYYY-MM-DD')
+              AND TO_DATE(#TRANSTO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="TRADETO">
+          <isNotEmpty property="TRADEFROM" prepend="AND">
+              TO_DATE(AL.TRADEDATE, 'YYYY-MM-DD') BETWEEN TO_DATE(#TRADEFROM#, 'YYYY-MM-DD')
+              AND TO_DATE(#TRADETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            AL.CUSTOMERCODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            AL.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGNO" prepend="AND">
+            AL.DRAWINGNO LIKE '%'||#DRAWINGNO#||'%'
+        </isNotEmpty> 
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            AL.ORDERNAME LIKE '%'||#ORDERNAME#||'%'
+        </isNotEmpty> 
+        <isNotEmpty property="CARTYPENAME" prepend="AND">
+            AL.CARTYPENAME LIKE '%'||#CARTYPENAME#||'%'
+        </isNotEmpty> 
+       GROUP BY AL.ORGID,AL.COMPANYID,AL.OUTPODATE,AL.OUTPONO, AL.OUTPOSEQ,AL.OUTPODATE
+               ,AL.DUEDATE,AL.OUTTRANSNO,AL.OUTTRANSSEQ,AL.OUTTRANSDATE,AL.WORKORDERID
+               ,AL.WORKORDERSEQ,AL.CUSTOMERCODE,AL.CUSTOMERNAME,AL.ITEMCODE, AL.ORDERNAME, AL.DRAWINGNO
+               ,AL.ITEMNAME, AL.CARTYPE, AL.CARTYPENAME, AL.ITEMSTANDARDDETAIL, AL.UOMNAME,AL.ORDERQTY,AL.TRANSQTY
+               ,AL.TRANSACTIONQTY,AL.REMARKS, AL.POSTQTY,AL.ROUTINGNAME,AL.ROUTINGNO,AL.TRADENO,AL.TRADESEQ
+               ,AL.TRADEDATE,AL.UNITPRICE, AL.SUPPLYPRICE,AL.ADDITIONALTAX,AL.TOTAL,AL.SCMINSPECTIONYN
+               ,AL.FAULTQTY,AL.FINISHYN, AL.STANDUNITPRICE
+        <isNotEmpty property="COMPLETEYN" prepend="HAVING">
+             (CASE
+               WHEN AL.FINISHYN = 'Y' THEN 'Y'
+               WHEN AL.FINISHYN = 'N' THEN (CASE
+                                                   WHEN (AL.ORDERQTY - (SUM(AL.TRANSACTIONQTY) + AL.FAULTQTY)) > 0 THEN 'N'
+                                                   ELSE 'Y'
+                                                 END)
+             END) = #COMPLETEYN#
+        </isNotEmpty> 
+       ORDER BY AL.ORGID, AL.COMPANYID, AL.OUTPODATE DESC, AL.OUTPONO DESC, AL.OUTPOSEQ DESC
+    </sql>
+    
+    <select id="scm.outprocess.outprocessorderstatelist.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+            <include refid="scm.outprocess.outprocessorderstatelist.sql-select" />
+            <include refid="scm.outprocess.outprocessorderstatelist.sql-where" />
+    </select> 
+    
+    <select id="scm.outprocess.outprocessorderstatelist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outprocess.outprocessorderstatelist.sql-select" />
+            <include refid="scm.outprocess.outprocessorderstatelist.sql-where" />
+        )
+    </select> 
+    <!-- SCM 외주공정 발주현황 조회 끝 -->
+
+    <update id="scm.outprocess.trans.detail.status.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_TRANS_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , TRANS_YN = #TRANSYN#
+        WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND OUT_TRANS_NO = #OUTTRANSNO#
+           AND OUT_TRANS_SEQ = $OUTTRANSSEQ$
+        ]]>
+    </update>
+
+    <select id="scm.outproc.tradecheck.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT COUNT(*) AS LOTCNT 
+           FROM CB_TRANS_LOT_D LD
+         WHERE 1=1
+           AND LD.ORG_ID = #ORGID#
+           AND LD.COMPANY_ID = #COMPANYID#
+           AND LD.OUT_TRANS_NO = #OUTTRANSNO#
+           AND LD.OUT_TRANS_SEQ = $OUTTRANSSEQ$
+    </select> 
+    
+    <select id="scm.outproc.transcheck.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+			SELECT COUNT(*) AS INSPCNT
+			  FROM CB_OUT_TRANS_D TD
+			 WHERE 1=1
+			   AND TD.ORG_ID = #searchOrgId#
+			   AND TD.COMPANY_ID = #searchCompanyId#
+			   AND TD.INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+    </select> 
+    
+    <insert id="prod.sales.price.routing.insert" parameterClass="java.util.Map">
+        <![CDATA[
+         INSERT INTO CB_SALES_PRICE_ROUTING
+               (ORG_ID
+						  ,COMPANY_ID
+							,PRICE_SEQ
+							,ITEM_CODE
+							,ROUTING_ID
+							,EFFECTIVE_START_DATE
+							,EFFECTIVE_END_DATE
+							,UNIT_PRICE_A
+        ]]>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+         VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,(SELECT NVL(MAX(PRICE_SEQ),0) + 1
+                  FROM CB_SALES_PRICE_ROUTING
+                 WHERE ORG_ID = #ORGID#
+                   AND COMPANY_ID = #COMPANYID#)
+              ,#ITEMCODE#
+              ,#ROUTINGNO#
+              ,TO_DATE(#STANDDATE#,'YYYY-MM-DD')
+              ,TO_DATE('4999-12-31','YYYY-MM-DD')
+              ,#UNITPRICE#
+        ]]>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    
+    <update id="prod.sales.price.routing.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_PRICE_ROUTING
+           SET LAST_UPDATED_BY  = #REGISTID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , EFFECTIVE_END_DATE = TO_DATE(#STANDDATE#,'YYYY-MM-DD')
+        WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND ITEM_CODE = #ITEMCODE#
+           AND ROUTING_ID = #ROUTINGNO#
+           AND PRICE_SEQ != (SELECT NVL(MAX(PRICE_SEQ),0)
+						                  FROM CB_SALES_PRICE_ROUTING
+						                 WHERE ORG_ID = #ORGID#
+						                   AND COMPANY_ID = #COMPANYID#
+										           AND ITEM_CODE = #ITEMCODE#
+										           AND ROUTING_ID = #ROUTINGNO#)
+					 AND EFFECTIVE_END_DATE = TO_DATE('4999-12-31','YYYY-MM-DD')					           
+        ]]>
+    </update>
+    
+<!--     월별 외주입고현황 -->
+<sql id="scm.outprocess.trans.model.detail.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, OUTTRANSDATE DESC ) AS RN
+                ,OTDV.ORGID AS ORGID
+               ,OTDV.COMPANYID AS COMPANYID
+               ,OTDV.CUSTOMERNAME AS CUSTOMERNAME
+               ,OTDV.ORDERNAME AS ORDERNAME
+               ,OTDV.ITEMNAME AS ITEMNAME
+               ,OTDV.CARTYPE AS CARTYPE
+               ,OTDV.CARTYPENAME AS CARTYPENAME 
+               ,OTDV.ITEMSTANDARDDETAIL AS ITEMSTANDARDDETAIL
+               ,OTDV.ROUTINGNAME AS ROUTINGNAME
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'MONTHLY'
+                                                    ,'OUT_QTY') AS TRANSQTY
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY01
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,2
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY02
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,3
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY03
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,4
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY04
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,5
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY05
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,6
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY06
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,7
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY07
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,8
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY08
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,9
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY09
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,10
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY10
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,11
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY11
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,12
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY12
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,13
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY13
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,14
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY14
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,15
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY15
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,16
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY16
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,17
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY17
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,18
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY18
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,19
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY19
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,20
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY20
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,21
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY21
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,22
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY22
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,23
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY23
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,24
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY24
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,25
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY25
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,26
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY26
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,27
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY27
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,28
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY28
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,29
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY29
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,30
+                                                    ,'DAY'
+                                                    ,'OUT_QTY') AS DAY30
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(OTDV.ORGID
+                                                    ,OTDV.COMPANYID
+                                                    ,OTDV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,31
+                                                    ,'DAY'
+                                           ,'OUT_QTY') AS DAY31
+        FROM Cb_Out_Trans_Detail_v OTDV
+                ,(SELECT #SEARCHMONTH# AS SEARCH_MONTH
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="scm.outprocess.trans.model.detail.list.sql-where">
+          WHERE 1=1
+             <isNotEmpty property="ORGID" prepend="AND">
+            OTDV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            OTDV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            OTDV.CUSTOMERNAME = #CUSTOMERNAME#  
+         </isNotEmpty>
+          <isNotEmpty property="ROUTINGNAME" prepend="AND">
+            OTDV.ROUTINGNAME LIKE '%' || #ROUTINGNAME# || '%'  
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            OTDV.ITEMNAME LIKE '%' || #ITEMNAME# || '%' 
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            OTDV.ORDERNAME LIKE '%' || #ITEMCODE# || '%' 
+         </isNotEmpty>
+         <isNotEmpty property="CARTYPE" prepend="AND">
+            OTDV.CARTYPENAME LIKE '%' || #CARTYPE# || '%'
+         </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+            OTDV.ITEMSTANDARDDETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHMONTH" prepend="AND">
+                OTDV.OUTTRANSDATE  BETWEEN TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM')  AND LAST_DAY(TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM'))
+        </isNotEmpty>
+    </sql>
+    
+    <sql id="scm.outprocess.trans.model.total.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CUSTOMERNAME, ITEMNAME, CARTYPENAME, ITEMSTANDARDDETAIL) AS RN
+                  ,ORGID
+                  ,COMPANYID
+                  ,CUSTOMERNAME
+                  ,ORDERNAME
+                  ,ITEMNAME
+                  ,CARTYPE
+                  ,CARTYPENAME
+                  ,ITEMSTANDARDDETAIL
+                  ,ROUTINGNAME
+                  ,SUM(TRANSQTY) AS TRANSQTY
+                  ,SUM(DAY01) AS DAY01
+                  ,SUM(DAY02) AS DAY02
+                  ,SUM(DAY03) AS DAY03
+                  ,SUM(DAY04) AS DAY04
+                  ,SUM(DAY05) AS DAY05
+                  ,SUM(DAY06) AS DAY06
+                  ,SUM(DAY07) AS DAY07
+                  ,SUM(DAY08) AS DAY08
+                  ,SUM(DAY09) AS DAY09
+                  ,SUM(DAY10) AS DAY10
+                  ,SUM(DAY11) AS DAY11
+                  ,SUM(DAY12) AS DAY12
+                  ,SUM(DAY13) AS DAY13
+                  ,SUM(DAY14) AS DAY14
+                  ,SUM(DAY15) AS DAY15
+                  ,SUM(DAY16) AS DAY16
+                  ,SUM(DAY17) AS DAY17
+                  ,SUM(DAY18) AS DAY18
+                  ,SUM(DAY19) AS DAY19
+                  ,SUM(DAY20) AS DAY20
+                  ,SUM(DAY21) AS DAY21
+                  ,SUM(DAY22) AS DAY22
+                  ,SUM(DAY23) AS DAY23
+                  ,SUM(DAY24) AS DAY24
+                  ,SUM(DAY25) AS DAY25
+                  ,SUM(DAY26) AS DAY26
+                  ,SUM(DAY27) AS DAY27
+                  ,SUM(DAY28) AS DAY28
+                  ,SUM(DAY29) AS DAY29
+                  ,SUM(DAY30) AS DAY30
+                  ,SUM(DAY31) AS DAY31
+          FROM (
+    ]]>
+    </sql>
+
+    <sql id="scm.outprocess.trans.model.total.list.sql-where">
+          )
+       WHERE 1=1
+       GROUP BY ORGID, COMPANYID, CUSTOMERNAME, ORDERNAME, ITEMNAME, CARTYPE, CARTYPENAME, ITEMSTANDARDDETAIL, ROUTINGNAME
+    </sql>
+
+    <select id="scm.outprocess.trans.model.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outprocess.trans.model.total.list.sql-select" />
+        <include refid="scm.outprocess.trans.model.detail.list.sql-select" />
+        <include refid="scm.outprocess.trans.model.detail.list.sql-where" />
+        <include refid="scm.outprocess.trans.model.total.list.sql-where" />
+    </select>
+
+    <select id="scm.outprocess.trans.model.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="scm.outprocess.trans.model.total.list.sql-select" />
+        <include refid="scm.outprocess.trans.model.detail.list.sql-select" />
+        <include refid="scm.outprocess.trans.model.detail.list.sql-where" />
+        <include refid="scm.outprocess.trans.model.total.list.sql-where" />
+        ) TOT
+    </select>
+</sqlMap>

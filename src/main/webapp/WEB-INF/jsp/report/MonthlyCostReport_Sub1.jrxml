@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MonthlyCostReport_Sub1" language="groovy" pageWidth="850" pageHeight="390" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="850" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9c5f995c-0390-4299-88a5-87f48c590b6b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHYEAR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT TMP.ORGID AS ORGID,
+       TMP.COMPANYID AS COMPANYID,
+       '월별 매출 실적(' || TMP.SEARCHYEAR || '년)' AS TITLE,
+       TMP.SEARCHNUM || '월' AS SEARCHYEAR,
+       NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,TMP.SEARCHNUM
+                                          ,'MONTHLY_TOTAL'), 0) AS TOTALMONTH
+  FROM (SELECT $P{ORGID} AS ORGID
+              ,$P{COMPANYID} AS COMPANYID
+              ,$P{SEARCHYEAR} AS SEARCHYEAR
+              ,LPAD(LEVEL, 2, '0') AS SEARCHNUM
+          FROM DUAL
+        CONNECT BY LEVEL <= 12) TMP
+ WHERE 1 = 1
+   AND NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL'), 0) > 0]]>
+	</queryString>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.lang.String"/>
+	<field name="TITLE" class="java.lang.String"/>
+	<field name="SEARCHYEAR" class="java.lang.String"/>
+	<field name="TOTALMONTH" class="java.math.BigDecimal"/>
+	<summary>
+		<band height="390" splitType="Stretch">
+			<lineChart>
+				<chart isShowLegend="false">
+					<reportElement x="0" y="0" width="850" height="390" uuid="a9002cd1-3260-41b7-bfa5-63c262547d65"/>
+					<box>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<chartTitle position="Top" color="#004CDD">
+						<font fontName="맑은 고딕" size="14" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+						<titleExpression><![CDATA[$F{TITLE}]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{TITLE}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{SEARCHYEAR}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{TOTALMONTH}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+		</band>
+	</summary>
+</jasperReport>

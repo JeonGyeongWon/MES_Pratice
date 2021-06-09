@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+    <sqlMap resource="egovframework/sqlmap/bps/Common_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/File_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Excel_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/SearchLOV_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Cmmclass_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Customer_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/HumanResource_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/WorkCenterMa_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Checkclass_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Item_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/WorkOrder_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/MaterialRelease_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/WorkProd_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Report_SQL.xml" />
+
+    <sqlMap resource="egovframework/sqlmap/bps/Org_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Company_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Master_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/CheckMaster_SQL.xml" />
+
+    <sqlMap resource="egovframework/sqlmap/bps/Purchase_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/DistMat_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/DistInsp_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/ShipOrder_SQL.xml" />
+
+    <sqlMap resource="egovframework/sqlmap/bps/Manage_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/Cost_SQL.xml" />
+
+    <sqlMap resource="egovframework/sqlmap/bps/InspProd_SQL.xml" />
+
+    <sqlMap resource="egovframework/sqlmap/bps/ProdManage_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/OrderManage_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/QualityShip_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/OrderTrans_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/System_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/OrderProd_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/OutOrder_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/ProdOuttrans_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/ScmMat_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/ScmOutprocess_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/ScmTrade_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/ProdTool_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Eis_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/Close_SQL.xml" />
+    
+    <sqlMap resource="egovframework/sqlmap/bps/Pda_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/EquipmentManage_SQL.xml" />
+    <sqlMap resource="egovframework/sqlmap/bps/OrderDeposit_SQL.xml" />
+</sqlMapConfig>

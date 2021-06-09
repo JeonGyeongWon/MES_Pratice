@@ -1,0 +1,1229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="purchase">
+
+    <parameterMap class="java.util.Map" id="procPurchasePriceParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="PRICE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+
+    <parameterMap class="java.util.Map" id="procPurchaseConfirmParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRANSNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRANSSEQ" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="CONFIRMDATE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="PURCHASEGUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="CONFIRMQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="UNITPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="SUPPLYPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="ADDITIONALTAX" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+
+    <procedure id="PurchasePriceDefault.call.Procedure" parameterClass="java.util.Map"  parameterMap="procPurchasePriceParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_PURCHASE_PKG.CB_PURCHASE_PRICE_CHANGE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+    <procedure id="purchase.confirm.call.Procedure" parameterClass="java.util.Map"  parameterMap="procPurchaseConfirmParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_PURCHASE_PKG.CB_TRANS_CONFIRM_PROC( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+    <!-- Dummy Lov 시작 -->
+    <sql id="purchase.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="purchase.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="purchase.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.dummy.month.sql-select" />
+        <include refid="purchase.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+
+    <sql id="purchase.request.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, REQUESTDATE DESC, PORNO DESC) AS RN
+                  ,ORGID
+                  ,ORGNAME
+                  ,COMPANYID
+                  ,COMPANYNAME
+                  ,PORNO
+                  ,REQUESTDATE
+                  ,REQUESTPERSON
+                  ,REQUESTPERSONNAME
+                  ,CUSTOMERCODE
+                  ,CUSTOMERNAME
+                  ,REMARKS
+                  ,CONFIRMSTATUS
+                  ,CONFIRMSTATUSNAME
+                  ,ORDERFINISHYN
+          FROM CB_PURCHASE_LIST_V
+    </sql>
+
+    <sql id="purchase.request.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="REQTO">
+             <isNotEmpty property="REQFROM" prepend="AND">
+                REQUESTDATE BETWEEN #REQFROM# AND #REQTO#
+             </isNotEmpty>
+             <isEmpty property="REQFROM" prepend="AND">
+                REQUESTDATE = #REQTO#
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PORNO" prepend="AND">
+            PORNO = #PORNO#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="REQUESTPERSON" prepend="AND">
+            REQUESTPERSON = #REQUESTPERSON#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            PORNO IN (SELECT PD.POR_NO
+                             FROM CB_PURCHASE_D PD
+                            WHERE 1=1
+                       <isNotEmpty property="ORGID" prepend="AND">
+                          ORG_ID = #ORGID#
+                       </isNotEmpty>
+                       <isNotEmpty property="COMPANYID" prepend="AND">
+                          COMPANY_ID = #COMPANYID#
+                       </isNotEmpty>
+                              AND PD.ITEM_CODE = #ITEMCODE#
+                          )
+         </isNotEmpty>
+         ORDER BY ORGID, COMPANYID, REQUESTDATE DESC, PORNO DESC
+    </sql>
+
+    <select id="purchase.request.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.request.list.sql-select" />
+        <include refid="purchase.request.list.sql-where" />
+    </select>
+
+    <select id="purchase.request.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="purchase.request.list.sql-select" />
+            <include refid="purchase.request.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="purchase.new.porno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'P' || TO_CHAR(TO_DATE(#RequestDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS PORNO
+          FROM (SELECT COUNT(*) AS NUM
+                  FROM CB_PURCHASE_H
+                 WHERE 1 = 1
+					          AND ORG_ID =  #searchOrgId#
+					          AND COMPANY_ID  =  #searchCompanyId#
+                   AND POR_NO LIKE 'P' || TO_CHAR(TO_DATE(#RequestDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="purchase.header.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_PURCHASE_H
+              (POR_NO
+               ,REQUEST_DATE
+               ,REQUEST_PERSON
+               ,REQUEST_STATUS
+               ,CONFIRM_STATUS
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#PORNO#
+               ,TO_DATE(#RequestDate#, 'YYYY-MM-DD')
+               ,#RequestPerson#
+               ,#RequestStatus#
+               ,#STATUS#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+    
+    <update id="purchase.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_PURCHASE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , REQUEST_DATE = TO_DATE(#RequestDate#, 'YYYY-MM-DD')
+               , REQUEST_PERSON = #RequestPerson#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND POR_NO = #PorNo#
+        ]]>
+    </update>
+    
+    <delete id="purchase.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_PURCHASE_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND POR_NO = #PorNo#
+    </delete>
+    
+    <sql id="purchase.request.detaillist.sql-select">
+        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, PORNO, PORSEQ) AS RN
+                ,ORGID
+                ,COMPANYID
+                ,PORNO
+                ,PORSEQ
+                ,ITEMCODE
+                ,ITEMNAME
+                ,ORDERNAME
+                ,ITEMSTANDARD
+                ,MATERIALTYPE
+                ,UOM
+                ,UOMNAME
+                ,REQUESTQTY
+                ,ORDERFINISHYN
+                ,POQTY
+                ,REMARKS
+                ,UNITPRICE
+                ,SUPPLYPRICE
+                ,ADDITIONALTAX
+                ,TOTAL
+          FROM CB_PURCHASE_DETAILLIST_V
+    </sql>
+
+    <sql id="purchase.request.detaillist.sql-where">
+         WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="PORNO" prepend="AND">
+            PORNO = #PORNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="purchase.request.detaillist.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.request.detaillist.sql-select" />
+        <include refid="purchase.request.detaillist.sql-where" />
+    </select>
+
+    <select id="purchase.request.detaillist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="purchase.request.detaillist.sql-select" />
+            <include refid="purchase.request.detaillist.sql-where" />
+        ) TOT
+    </select>
+    
+    <insert id="purchase.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_PURCHASE_D
+              (POR_NO
+               ,POR_SEQ
+               ,ITEM_CODE
+               ,REQUEST_QTY
+               ,UNIT_PRICE
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,ORG_ID
+               ,COMPANY_ID
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#PORNO#
+               ,$PORSEQ$
+               ,#ITEMCODE#
+               ,$REQUESTQTY$
+               ,$UNITPRICE$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,#ORGID#
+               ,#COMPANYID#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <sql id="purchase.detail.find.sql-select">
+        SELECT COUNT(PD.POR_NO) AS COUNT
+          FROM CB_PURCHASE_H PH, CB_PURCHASE_D PD
+    </sql>
+
+    <sql id="purchase.detail.find.sql-where">
+         WHERE 1 = 1
+           AND PH.POR_NO = PD.POR_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="PORNO" prepend="AND">
+          PD.POR_NO = #PORNO#
+        </isNotEmpty>
+        <isNotEmpty property="PORSEQ" prepend="AND">
+          PD.POR_SEQ = #PORSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="purchase.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.detail.find.sql-select" />
+        <include refid="purchase.detail.find.sql-where" />
+    </select>
+    
+    <update id="purchase.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_PURCHASE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , REQUEST_QTY = $REQUESTQTY$
+               , UNIT_PRICE = $UNITPRICE$
+               , SUPPLY_PRICE = $SUPPLYPRICE$
+               , ADDITIONAL_TAX = $ADDITIONALTAX$
+               , ITEM_CODE = #ITEMCODE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND POR_NO = #PORNO#
+          AND POR_SEQ = $PORSEQ$
+        ]]>
+    </update>
+    
+    <delete id="purchase.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_PURCHASE_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND POR_NO = #PORNO#
+          AND POR_SEQ = $PORSEQ$
+    </delete>
+    
+    <update id="purchase.header.status.update" parameterClass="java.util.Map">
+        UPDATE CB_PURCHASE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , CONFIRM_STATUS = #CONFIRMSTATUS#
+        WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND POR_NO = #PORNO#
+    </update>
+    
+    
+    <!-- Dummy Lov 시작 -->
+    <sql id="purchase.order.dummy.month.sql-select">
+       SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM,
+                 TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+        FROM DUAL
+    </sql>
+
+    <sql id="purchase.order.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="purchase.order.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.order.dummy.month.sql-select" />
+        <include refid="purchase.order.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+    
+    
+    <sql id="purchase.order.master.list.sql-select">
+        SELECT RANK() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.PO_NO DESC ) AS RN
+                 ,OH.ORG_ID AS ORGID
+                 ,OH.COMPANY_ID AS COMPANYID
+                 ,OH.PO_NO AS PONO
+                 ,TO_CHAR(OH.PO_DATE, 'YYYY-MM-DD') AS PODATE
+                 ,OH.PO_STATUS AS POSTATUS
+                 ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE SC.ORG_ID = OH.ORG_ID
+                     AND SC.COMPANY_ID = OH.COMPANY_ID
+                     AND SC.BIG_CODE = 'MAT'
+                     AND SC.MIDDLE_CODE = 'STATUS_CODE'
+                     AND SC.SMALL_CODE = OH.PO_STATUS) AS POSTATUSNAME
+                 ,OH.CUSTOMER_CODE AS CUSTOMERCODE
+                 ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE CC.ORG_ID = OH.ORG_ID
+                     AND CC.COMPANY_ID = OH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = OH.CUSTOMER_CODE) AS CUSTOMERNAME
+                 ,OH.CUSTOMER_PERSON AS CUSTOMERPERSON
+                 ,(SELECT CM.MEMBER_NAME
+                    FROM CB_CUSTOMER_MEMBER CM
+                   WHERE CM.ORG_ID = OH.ORG_ID
+                      AND CM.COMPANY_ID = OH.COMPANY_ID
+                      AND CM.CUSTOMER_CODE = OH.CUSTOMER_CODE
+                      AND CM.MEMBER_ID = OH.CUSTOMER_PERSON) AS CUSTOMERPERSONNAME
+                 ,OH.PO_PERSON AS POPERSON
+                 ,(SELECT HM.KR_NAME
+                    FROM CB_HUMANRESOURCE_MANAGER HM
+                  WHERE HM.EMPLOYEE_NUMBER = OH.PO_PERSON) AS POPERSONNAME
+                 ,OH.USE_DIV AS USEDIV
+                 ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = OH.ORG_ID
+                     AND SC.COMPANY_ID = OH.COMPANY_ID
+                     AND SC.BIG_CODE = 'MAT'
+                     AND SC.MIDDLE_CODE = 'ORDER_DIV'
+                     AND SC.SMALL_CODE = OH.USE_DIV) AS USEDIVNAME
+                 ,OH.TAX_DIV AS TAXDIV
+                 ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = OH.ORG_ID
+                     AND SC.COMPANY_ID = OH.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'TAX_DIV'
+                     AND SC.SMALL_CODE = OH.TAX_DIV) AS TAXDIVNAME
+                 ,OH.DELIVERY_LOCATION AS DELIVERYLOCATION
+                 ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = OH.ORG_ID
+                     AND SC.COMPANY_ID = OH.COMPANY_ID
+                     AND SC.BIG_CODE = 'MAT'
+                     AND SC.MIDDLE_CODE = 'DELIVERY_LOCATION'
+                     AND SC.SMALL_CODE = OH.DELIVERY_LOCATION) AS DELIVERYLOCATIONNAME
+                 ,(SELECT SUM(NVL(OD.SUPPLY_PRICE, 0) + NVL(OD.ADDITIONAL_TAX, 0)) AS TOTAL
+                     FROM CB_ORDER_D OD
+                    WHERE OD.ORG_ID = OH.ORG_ID
+                       AND OD.COMPANY_ID = OH.COMPANY_ID
+                       AND OD.PO_NO = OH.PO_NO) AS TOTAL
+                 ,OH.REMARKS AS REMARKS
+        FROM CB_ORDER_H OH
+    </sql>
+   
+    <sql id="purchase.order.master.list.sql-where">
+         WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            OH.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            OH.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="POTO">
+             <isNotEmpty property="POFROM" prepend="AND">
+                OH.PO_DATE BETWEEN TO_DATE(#POFROM#, 'YYYY-MM-DD') AND TO_DATE(#POTO#, 'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="POFROM" prepend="AND">
+                OH.PO_DATE = TO_DATE(#POTO#, 'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PONO" prepend="AND">
+            OH.PO_NO = #PONO#
+         </isNotEmpty>
+         <isNotEmpty property="ORDERDIV" prepend="AND">
+            OH.USE_DIV = #ORDERDIV#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            OH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="POSTATUS" prepend="AND">
+            OH.PO_STATUS = #POSTATUS#
+         </isNotEmpty>
+         <isNotEmpty property="TAXDIV" prepend="AND">
+            OH.TAX_DIV = #TAXDIV#
+         </isNotEmpty>
+         <isNotEmpty property="USEDIV" prepend="AND">
+            OH.USE_DIV = #USEDIV#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+             OH.PO_NO IN (SELECT OD.PO_NO
+                                 FROM CB_ORDER_D OD
+                                        ,CB_ITEM_MASTER IM
+                                WHERE OD.ORG_ID = IM.ORG_ID
+                                   AND OD.COMPANY_ID = IM.COMPANY_ID
+                                   AND OD.ITEM_CODE = IM.ITEM_CODE
+                                   AND OD.ITEM_CODE LIKE '%' || #ITEMCODE# || '%'
+                                )
+          </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+             OH.PO_NO IN (SELECT OD.PO_NO
+                                 FROM CB_ORDER_D OD
+                                        ,CB_ITEM_MASTER IM
+                                WHERE OD.ORG_ID = IM.ORG_ID
+                                   AND OD.COMPANY_ID = IM.COMPANY_ID
+                                   AND OD.ITEM_CODE = IM.ITEM_CODE
+                                  IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+                                <isNotEmpty property="ORDERNAME" prepend="AND">
+                                  IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+                                </isNotEmpty>
+                                )
+          </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+             OH.PO_NO IN (SELECT OD.PO_NO
+                                 FROM CB_ORDER_D OD
+                                        ,CB_ITEM_MASTER IM
+                                WHERE OD.ORG_ID = IM.ORG_ID
+                                   AND OD.COMPANY_ID = IM.COMPANY_ID
+                                   AND OD.ITEM_CODE = IM.ITEM_CODE
+                                  IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+                                )
+          </isNotEmpty>
+        <isNotEmpty property="CUSTOMERGUBUN" prepend="AND">
+             OH.PO_NO IN (SELECT OD.PO_NO
+                                 FROM CB_ORDER_D OD
+                                        ,CB_ITEM_MASTER IM
+                                WHERE OD.ORG_ID = IM.ORG_ID
+                                   AND OD.COMPANY_ID = IM.COMPANY_ID
+                                   AND OD.ITEM_CODE = IM.ITEM_CODE
+                                   AND IM.CUSTOMER_GUBUN  = #CUSTOMERGUBUN# 
+                                )
+          </isNotEmpty>
+          <isNotEmpty property="MODEL" prepend="AND">
+             OH.PO_NO IN (SELECT OD.PO_NO
+                                 FROM CB_ORDER_D OD
+                                        ,CB_ITEM_MASTER IM
+                                WHERE OD.ORG_ID = IM.ORG_ID
+                                   AND OD.COMPANY_ID = IM.COMPANY_ID
+                                   AND OD.ITEM_CODE = IM.ITEM_CODE
+                                   AND IM.MODEL = #MODEL# 
+                                )
+          </isNotEmpty>
+            ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.PO_NO DESC
+    </sql>
+
+    <select id="purchase.order.master.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.order.master.list.sql-select" />
+        <include refid="purchase.order.master.list.sql-where" />
+    </select>
+
+    <select id="purchase.order.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="purchase.order.master.list.sql-select" />
+            <include refid="purchase.order.master.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="purchase.order.detail.list.sql-select">
+        SELECT OD.ORG_ID AS ORGID
+                ,OD.COMPANY_ID AS COMPANYID
+                ,OD.PO_NO AS PONO
+                ,OD.PO_SEQ AS POSEQ
+                ,OD.ITEM_CODE AS ITEMCODE
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.ITEM_STANDARD AS ITEMSTANDARD
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,IM.UOM AS UOM
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE SC.ORG_ID = OD.ORG_ID
+                     AND SC.COMPANY_ID = OD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+                ,IM.MODEL AS MODEL 
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'MODEL'
+					           AND SC.SMALL_CODE = IM.MODEL
+					           AND SC.ORG_ID = IM.ORG_ID
+					           AND SC.COMPANY_ID = IM.COMPANY_ID
+					        ) AS MODELNAME 
+					      ,IM.CUSTOMER_GUBUN AS CUSTOMERGUBUN
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'CUSTOMER_GUBUN'
+					           AND SC.SMALL_CODE = IM.CUSTOMER_GUBUN
+					           AND SC.ORG_ID = IM.ORG_ID
+					           AND SC.COMPANY_ID = IM.COMPANY_ID
+					        ) AS CUSTOMERGUBUNNAME 
+                ,OD.POR_NO AS PORNO
+                ,OD.POR_SEQ AS PORSEQ
+                ,OD.ORDER_QTY AS ORDERQTY
+                ,OD.UNIT_PRICE AS UNITPRICE
+                ,OD.SUPPLY_PRICE AS SUPPLYPRICE
+                ,OD.ADDITIONAL_TAX AS ADDITIONALTAX
+                ,NVL(OD.SUPPLY_PRICE, 0) + NVL(OD.ADDITIONAL_TAX, 0) AS TOTAL
+                ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+                ,OD.ORDER_FINISH_YN AS ORDERFINISHYN
+                ,OD.REMARKS AS REMARKS
+                ,TO_CHAR(OD.SCM_DUE_DATE, 'YYYY-MM-DD') AS SCMDUEDATE
+                ,OD.ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+                ,OD.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+        FROM CB_ORDER_D OD
+            ,CB_ITEM_MASTER IM
+    </sql>
+   
+    <sql id="purchase.order.detail.list.sql-where">
+         WHERE OD.ORG_ID = IM.ORG_ID
+            AND OD.COMPANY_ID = IM.COMPANY_ID
+            AND OD.ITEM_CODE = IM.ITEM_CODE
+         <isNotEmpty property="ORGID" prepend="AND">
+            OD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            OD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="PONO" prepend="AND">
+            OD.PO_NO = #PONO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="purchase.order.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.order.detail.list.sql-select" />
+        <include refid="purchase.order.detail.list.sql-where" />
+    </select>
+
+    <select id="purchase.order.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="purchase.order.detail.list.sql-select" />
+            <include refid="purchase.order.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+     <select id="purchase.order.po.new.pono.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #USEDIV# || TO_CHAR(TO_DATE(#PoDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS PONO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(PO_NO), -3)), 0) AS NUM
+                  FROM CB_ORDER_H
+                 WHERE 1 = 1
+                   AND PO_NO LIKE #USEDIV# || TO_CHAR(TO_DATE(#PoDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="purchase.order.po.header.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_ORDER_H
+              (ORG_ID
+              ,COMPANY_ID
+              ,PO_NO
+              ,PO_DATE
+              ,CUSTOMER_CODE
+              ,CUSTOMER_PERSON
+              ,USE_DIV
+              ,PO_PERSON
+              ,PO_STATUS
+              ,TAX_DIV
+              ,PAYMENT_DIV
+              ,DELIVERY_LOCATION
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+              ,#searchCompanyId#
+              ,#PoNo#
+               ,TO_DATE(#PoDate#, 'YYYY-MM-DD')
+              ,#CustomerCode#
+              ,#CustomerPerson#
+              ,#OrderDiv#
+              ,#PoPerson#
+              ,NVL(#PoStatus#,'STAND_BY')
+              ,#TaxDiv#
+              ,#PaymentTerms#
+              ,#DeliveryLocation#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <insert id="purchase.order.po.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_ORDER_D
+              (ORG_ID
+              ,COMPANY_ID
+              ,PO_NO
+              ,PO_SEQ
+              ,ITEM_CODE
+              ,ORDER_QTY
+              ,UNIT_PRICE
+              ,SUPPLY_PRICE
+              ,ADDITIONAL_TAX
+              ,DUE_DATE
+              ,ORDER_FINISH_YN
+              ,ORDER_INSPECTION_YN
+              ,SCM_INSPECTION_YN
+        ]]>
+        <isNotEmpty property="PORNO" prepend=",">
+               POR_NO
+        </isNotEmpty>
+        <isNotEmpty property="PORSEQ" prepend=",">
+               POR_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#PONO#
+              ,$POSEQ$
+              ,#ITEMCODE#
+              ,$ORDERQTY$
+              ,$UNITPRICE$
+              ,$SUPPLYPRICE$
+              ,$ADDITIONALTAX$
+              ,TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+              ,#ORDERFINISHYN#
+              ,#ORDERINSPECTIONYN#
+              ,#SCMINSPECTIONYN#
+             ]]> 
+        <isNotEmpty property="PORNO" prepend=",">
+               #PORNO#
+        </isNotEmpty>
+        <isNotEmpty property="PORSEQ" prepend=",">
+              $PORSEQ$
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="purchase.order.po.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_ORDER_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , PO_DATE = TO_DATE(#PoDate#, 'YYYY-MM-DD')
+               , CUSTOMER_CODE = #CustomerCode#
+               , CUSTOMER_PERSON = #CustomerPerson#
+               , PO_PERSON = #PoPerson#
+        ]]>
+        <isNotEmpty property="OrderDiv" prepend=",">
+            USE_DIV = #OrderDiv#
+        </isNotEmpty>
+        <isNotEmpty property="PoStatus" prepend=",">
+            PO_STATUS = #PoStatus#
+        </isNotEmpty>
+        <isNotEmpty property="TaxDiv" prepend=",">
+            TAX_DIV = #TaxDiv#
+        </isNotEmpty>
+        <isNotEmpty property="PaymentTerms" prepend=",">
+            PAYMENT_DIV = #PaymentTerms#
+        </isNotEmpty>
+        <isNotEmpty property="DeliveryLocation" prepend=",">
+            DELIVERY_LOCATION = #DeliveryLocation#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND PO_NO = #PoNo#
+        ]]>
+    </update>
+    
+    <update id="purchase.order.header.status.update" parameterClass="java.util.Map">
+        UPDATE CB_ORDER_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , PO_STATUS = #CONFIRMSTATUS#
+        WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND PO_NO = #PONO#
+    </update>
+    
+    <delete id="purchase.order.po.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_ORDER_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND PO_NO = #PoNo#
+    </delete>
+    
+    <sql id="purchase.order.po.detail.find.sql-select">
+        SELECT COUNT(OD.PO_NO) AS COUNT
+          FROM CB_ORDER_H OH, CB_ORDER_D OD
+    </sql>
+
+    <sql id="purchase.order.po.detail.find.sql-where">
+         WHERE 1 = 1
+           AND OH.ORG_ID = OD.ORG_ID
+           AND OH.COMPANY_ID = OD.COMPANY_ID
+           AND OH.PO_NO = OD.PO_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          OD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          OD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="PONO" prepend="AND">
+          OD.PO_NO = #PONO#
+        </isNotEmpty>
+        <isNotEmpty property="POSEQ" prepend="AND">
+          OD.PO_SEQ = #POSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="purchase.order.po.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="purchase.order.po.detail.find.sql-select" />
+        <include refid="purchase.order.po.detail.find.sql-where" />
+    </select>
+    
+    <update id="purchase.order.po.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_ORDER_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , ORDER_QTY = $ORDERQTY$
+               , UNIT_PRICE = $UNITPRICE$
+               , SUPPLY_PRICE = $SUPPLYPRICE$
+               , ADDITIONAL_TAX = $ADDITIONALTAX$
+               , ITEM_CODE = #ITEMCODE#
+               , DUE_DATE = TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+               , ORDER_INSPECTION_YN = #ORDERINSPECTIONYN#
+               , SCM_INSPECTION_YN = #SCMINSPECTIONYN#
+        ]]>
+        <isNotEmpty property="PORNO" prepend=",">
+            POR_NO = #PORNO#
+        </isNotEmpty>
+        <isEmpty property="PORNO" prepend=",">
+            POR_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="PORSEQ" prepend=",">
+            POR_SEQ = $PORSEQ$
+        </isNotEmpty>
+        <isEmpty property="PORSEQ" prepend=",">
+            POR_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND PO_NO = #PONO#
+          AND PO_SEQ = $POSEQ$
+        ]]>
+    </update>
+    
+    <delete id="purchase.order.po.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_ORDER_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND PO_NO = #PONO#
+          AND PO_SEQ = $POSEQ$
+    </delete>
+    
+ <!-- 2017.02.23 구매발주 화면에서 요청서불러오기 // POPUP LIST  시작-->
+    <sql id="purchase.order.list.pop1.sql-select">
+			   SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, PORNO DESC, PORSEQ) AS RN
+                ,ORGID
+                ,COMPANYID
+                ,PORNO
+                ,PORSEQ
+                ,ITEMCODE
+                ,ITEMNAME
+                ,ORDERNAME
+                ,ITEMSTANDARD
+                ,MATERIALTYPE
+                ,UOM
+                ,UOMNAME
+                ,CUSTOMERCODE
+                ,CUSTOMERNAME
+                ,REQUESTQTY
+                ,ORDERFINISHYN
+                ,POQTY AS OLDQTY
+                ,(REQUESTQTY - POQTY) AS POQTY
+                ,REMARKS
+<!--                 ,UNITPRICE -->
+	               ,NVL((SELECT OD.UNIT_PRICE
+	                       FROM CB_ORDER_H OH
+	                           ,CB_ORDER_D OD
+	                      WHERE 1=1
+	                        AND OH.ORG_ID = 1
+	                        AND OH.COMPANY_ID = 1
+	                        AND OH.ORG_ID = OD.ORG_ID
+	                        AND OH.COMPANY_ID = OD.COMPANY_ID
+	                        AND OH.PO_NO = OD.PO_NO
+	                        AND (OH.PO_NO, OD.PO_SEQ) = (SELECT MAX(COD.PO_NO), MAX(COD.PO_SEQ)
+	                                                          FROM CB_ORDER_H COH
+	                                                              ,CB_ORDER_D COD
+	                                                        WHERE 1=1
+	                                                          AND COH.ORG_ID = COD.ORG_ID
+	                                                          AND COH.COMPANY_ID = COD.COMPANY_ID
+	                                                          AND COH.PO_NO = COD.PO_NO
+	                                                          AND COD.ORG_ID = OD.ORG_ID
+	                                                          AND COD.COMPANY_ID = OD.COMPANY_ID
+	                                                          AND COD.ITEM_CODE = IM.ITEMCODE
+	                                                          AND COH.CUSTOMER_CODE = IM.CUSTOMERCODE)), IM.UNITPRICE) AS UNITPRICE
+                ,SUPPLYPRICE
+                ,ADDITIONALTAX
+                ,TOTAL
+                ,ORDERINSPECTIONYN
+                ,SCMINSPECTIONYN
+          FROM CB_PURCHASE_DETAILLIST_V IM
+    </sql>
+    
+    <sql id="purchase.order.list.pop1.sql-where">
+         WHERE 1 = 1
+            AND (REQUESTQTY - POQTY) > 0
+            AND CONFIRMSTATUS = 'COMPLETE'
+        <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+             <isNotEmpty property="REQTO">
+             <isNotEmpty property="REQFROM" prepend="AND">
+                TO_DATE(REQUESTDATE,'YYYY-MM-DD') BETWEEN TO_DATE(#REQFROM#,'YYYY-MM-DD') AND TO_DATE(#REQTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="REQFROM" prepend="AND">
+                TO_DATE(REQUESTDATE,'YYYY-MM-DD') = TO_DATE(#REQTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEMCODE LIKE  '%' || #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+            IM.ITEMSTANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERGUBUNNAME" prepend="AND">
+            IM.CUSTOMERGUBUNNAME LIKE '%' || #CUSTOMERGUBUNNAME# || '%'
+        </isNotEmpty>
+            ORDER BY PORNO DESC, PORSEQ
+    </sql>
+
+    <select id="purchase.order.list.pop1.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="purchase.order.list.pop1.sql-select" />
+            <include refid="purchase.order.list.pop1.sql-where" />
+    </select>
+    
+    <select id="purchase.order.list.pop1.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="purchase.order.list.pop1.sql-select" />
+            <include refid="purchase.order.list.pop1.sql-where" />
+        ) TOT
+    </select>
+  <!-- 2017.02.23 구매발주 화면에서 요청서불러오기 // POPUP LIST  긑-->    
+  
+    <!-- 매입확정 조회 시작 -->
+    <sql id="purchase.confirm.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, TRANS_NO, TRANS_SEQ, SEQ) AS RN
+					      ,ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,TRANS_NO AS TRANSNO
+					      ,TRANS_SEQ AS TRANSSEQ
+					      ,TRANS_DATE AS TRANSDATE
+                ,TRANS_DATE1 AS TRANSDATE1
+					      ,CUSTOMER_CODE AS CUSTOMERCODE
+					      ,CUSTOMER_NAME AS CUSTOMERNAME
+					      ,PO_PERSON_NAME AS PERSONNAME
+					      ,ITEM_CODE AS ITEMCODE
+					      ,ITEM_NAME AS ITEMNAME
+					      ,ORDER_NAME AS ORDERNAME
+                ,ITEM_TYPE AS ITEMTYPE
+					      ,ITEM_STANDARD AS ITEMSTANDARD
+					      ,MATERIAL_TYPE AS MATERIALTYPE
+					      ,UOM AS UOM
+					      ,UOM_NAME AS UOMNAME
+					      ,TRANS_QTY AS TRANSQTY
+					      ,UNIT_PRICE AS UNITPRICE
+					      ,SUPPLY_PRICE AS SUPPLYPRICE
+					      ,ADDITIONAL_TAX AS ADDITIONALTAX
+					      ,TOTAL AS TOTAL
+					      ,PO_NO AS PONO
+					      ,PO_SEQ AS POSEQ
+					      ,PO_QTY AS POQTY
+					      ,CUSTOMER_LOT AS CUSTOMERLOT
+					      ,WAREHOUSING AS WAREHOUSING
+					      ,WAREHOUSING_NAME AS WAREHOUSINGNAME
+					      ,INSPECTION_DATE AS INSPECTIONDATE
+					      ,INSPECTION_QTY AS INSPECTIONQTY
+					      ,ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+					      ,DUE_QTY AS DUEQTY
+					      ,REMARKS AS REMARKS
+					      ,CONFIRM_YN AS CONFIRMYN
+					      ,CONFIRM_YN_NAME AS CONFIRMYNNAME
+					      ,CONFIRM_DATE AS CONFIRMDATE
+                ,CONFIRM_DATE1 AS CONFIRMDATE1
+					      ,CONFIRM_QTY AS CONFIRMQTY
+					      ,TOTAL_CONFIRM_QTY AS TOTALCONFIRMQTY
+					      ,SEQ AS SEQ
+                ,NVL(PURCHASE_GUBUN, '01') AS PURCHASEGUBUN
+                ,NVL(PURCHASE_GUBUN_NAME, (SELECT SC.SMALL_NAME
+                                                 FROM CB_SMALL_CODE SC
+                                                WHERE 1=1
+                                                  AND SC.ORG_ID = ORG_ID
+                                                  AND SC.COMPANY_ID = COMPANY_ID
+                                                  AND SC.BIG_CODE = 'MAT'
+                                                  AND SC.MIDDLE_CODE = 'PURCHASE_GUBUN'
+                                                  AND SC.SMALL_CODE = '01')) AS PURCHASEGUBUNNAME
+			  FROM CB_TRANS_CONFIRM_V
+    </sql>
+
+    <sql id="purchase.confirm.out.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, TRANS_NO, TRANS_SEQ, SEQ) AS RN
+                ,ORG_ID AS ORGID
+                ,COMPANY_ID AS COMPANYID
+                ,TRANS_NO AS TRANSNO
+                ,TRANS_SEQ AS TRANSSEQ
+                ,TRANS_DATE AS TRANSDATE
+                ,TRANS_DATE1 AS TRANSDATE1
+                ,CUSTOMER_CODE AS CUSTOMERCODE
+                ,CUSTOMER_NAME AS CUSTOMERNAME
+                ,OUT_PO_PERSON_NAME AS POPERSONNAME
+                ,ITEM_CODE AS ITEMCODE
+                ,ITEM_NAME AS ITEMNAME
+                ,ORDER_NAME AS ORDERNAME
+                ,ITEM_TYPE AS ITEMTYPE
+                ,ITEM_STANDARD AS ITEMSTANDARD
+                ,MATERIAL_TYPE AS MATERIALTYPE
+                ,UOM AS UOM
+                ,UOM_NAME AS UOMNAME
+                ,TRANS_QTY AS TRANSQTY
+                ,UNIT_PRICE AS UNITPRICE
+                ,SUPPLY_PRICE AS SUPPLYPRICE
+                ,ADDITIONAL_TAX AS ADDITIONALTAX
+                ,TOTAL AS TOTAL
+                ,PO_NO AS PONO
+                ,PO_SEQ AS POSEQ
+                ,PO_QTY AS POQTY
+                ,CUSTOMER_LOT AS CUSTOMERLOT
+                ,WAREHOUSING AS WAREHOUSING
+                ,WAREHOUSING_NAME AS WAREHOUSINGNAME
+                ,INSPECTION_DATE AS INSPECTIONDATE
+                ,INSPECTION_QTY AS INSPECTIONQTY
+                ,ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+                ,DUE_QTY AS DUEQTY
+                ,REMARKS AS REMARKS
+                ,CONFIRM_YN AS CONFIRMYN
+                ,CONFIRM_YN_NAME AS CONFIRMYNNAME
+                ,CONFIRM_DATE AS CONFIRMDATE
+                ,CONFIRM_DATE1 AS CONFIRMDATE1
+                ,CONFIRM_QTY AS CONFIRMQTY
+                ,TOTAL_CONFIRM_QTY AS TOTALCONFIRMQTY
+                ,SEQ AS SEQ
+                ,NVL(PURCHASE_GUBUN, '01') AS PURCHASEGUBUN
+                ,NVL(PURCHASE_GUBUN_NAME, (SELECT SC.SMALL_NAME
+                                                 FROM CB_SMALL_CODE SC
+                                                WHERE 1=1
+                                                  AND SC.ORG_ID = ORG_ID
+                                                  AND SC.COMPANY_ID = COMPANY_ID
+                                                  AND SC.BIG_CODE = 'MAT'
+                                                  AND SC.MIDDLE_CODE = 'PURCHASE_GUBUN'
+                                                  AND SC.SMALL_CODE = '01')) AS PURCHASEGUBUNNAME
+        FROM CB_OUT_TRANS_CONFIRM_V
+    </sql>
+
+    <sql id="purchase.confirm.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSTO">
+             <isNotEmpty property="TRANSFROM" prepend="AND">
+                TRANSDATE1 BETWEEN TO_DATE(#TRANSFROM#,'YYYY-MM-DD')  AND TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="TRANSFROM" prepend="AND">
+                TRANSDATE1 = TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="CONFIRMTO">
+             <isNotEmpty property="CONFIRMFROM" prepend="AND">
+                CONFIRMDATE1 BETWEEN TO_DATE(#CONFIRMFROM#,'YYYY-MM-DD')  AND TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="CONFIRMFROM" prepend="AND">
+                CONFIRMDATE1 = TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="CONFIRMYN" prepend="AND">
+            CONFIRMYN = #CONFIRMYN#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMTYPE" prepend="AND">
+            ITEMTYPE = #ITEMTYPE#
+         </isNotEmpty>
+         ORDER BY ORGID, COMPANYID, TRANSNO, TRANSSEQ, SEQ
+    </sql>
+    
+    <select id="purchase.confirm.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, TRANSNO, TRANSSEQ, SEQ) AS RN
+                 ,A.*
+           FROM (
+					        <include refid="purchase.confirm.list.sql-select" />
+					        UNION ALL
+					        <include refid="purchase.confirm.out.list.sql-select" />
+					        ) A
+        <include refid="purchase.confirm.list.sql-where" />
+    </select>
+
+    <select id="purchase.confirm.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+		        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, TRANSNO, TRANSSEQ, SEQ) AS RN
+		                 ,A.*
+		           FROM (
+		                  <include refid="purchase.confirm.list.sql-select" />
+		                  UNION ALL
+		                  <include refid="purchase.confirm.out.list.sql-select" />
+		                  ) A
+		        <include refid="purchase.confirm.list.sql-where" />
+        ) TOT
+    </select>
+    <!-- 매입확정 조회 끝 -->
+</sqlMap>

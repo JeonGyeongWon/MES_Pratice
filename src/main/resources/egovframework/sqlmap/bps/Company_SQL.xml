@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="company">
+
+    <!-- company select -->
+    <sql id="company.sql-select">
+        SELECT ROWNUM as RNUM
+            ,ORG_ID AS ORGID
+            ,(SELECT CO.ORG_NAME FROM CB_ORG CO WHERE ORG_ID = CC.ORG_ID ) AS ORGNAME
+            ,COMPANY_ID AS COMPANYID
+            ,COMPANY_NAME AS COMPANYNAME
+		        ,REMARKS AS REMARKS
+            ,TO_CHAR(EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+            ,TO_CHAR(EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+		        ,CREATED_BY AS CRBY
+		        ,TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CRDATE
+		        ,LAST_UPDATED_BY AS LUBY
+		        ,TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LUDATE
+	        FROM CB_COMPANY  CC
+    </sql>
+
+    <sql id="company.sql-where">
+        WHERE 1=1
+        ORDER BY ORG_ID , COMPANY_ID 
+    </sql>
+
+    <select id="company.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="company.sql-select" />
+        <include refid="company.sql-where" />
+    </select>
+
+    <select id="company.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="company.sql-select" />
+	        <include refid="company.sql-where" />
+        ) TOT
+    </select>
+
+   
+    <!-- company sql -->
+    <insert id="company.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_COMPANY
+        (
+          ORG_ID
+          ,COMPANY_ID
+          ,COMPANY_NAME
+          ,REMARKS
+          ,EFFECTIVE_START_DATE
+          ,EFFECTIVE_END_DATE
+	        ,CREATION_DATE
+	        ,CREATED_BY
+	        ,LAST_UPDATE_DATE
+	        ,LAST_UPDATED_BY
+        )
+        VALUES
+        (
+          #ORGID#
+          ,#COMPANYID#
+	        ,#COMPANYNAME#
+          ,#REMARKS#
+          ,TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+          ,TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,SYSDATE
+	        ,#REGISTID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="company.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_COMPANY
+            SET COMPANY_NAME = #COMPANYNAME#
+                ,EFFECTIVE_START_DATE = #EFFECTIVESTARTDATE#
+                ,EFFECTIVE_END_DATE = #EFFECTIVEENDDATE#
+                ,REMARKS = #REMARKS#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+          WHERE ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </update>
+    
+    <delete id="company.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_COMPANY
+         WHERE ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    </delete>
+    
+ 
+</sqlMap>

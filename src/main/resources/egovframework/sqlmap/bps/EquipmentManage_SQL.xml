@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="equipment.manage">
+
+
+
+ <sql id="equipment.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 0), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE, 'YYYY-MM') AS DATEMONTH
+                ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="equipment.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="equipment.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="equipment.dummy.month.sql-select" />
+        <include refid="equipment.dummy.month.sql-where" />
+    </select>
+    
+
+  <sql id="equipment.manage.repair.list.sql-select">
+  <![CDATA[
+  SELECT ROW_NUMBER() OVER(ORDER BY CR.REPAIR_DATE , CR.CREATION_DATE DESC, CR.SEQ_NO) AS RN
+           ,CR.ORG_ID AS ORGID
+           ,CR.COMPANY_ID AS COMPANYID
+           ,CR.SEQ_NO AS SEQNO
+           ,CR.WORK_CENTER_CODE AS WORKCENTERCODE
+           ,(SELECT WC.WORK_CENTER_NAME
+               FROM CB_WORK_CENTER WC
+              WHERE WC.ORG_ID = CR.ORG_ID
+                AND WC.COMPANY_ID = CR.COMPANY_ID
+                AND WC.WORK_CENTER_CODE = CR.WORK_CENTER_CODE) AS WORKCENTERNAME
+           ,TO_CHAR(CR.REPAIR_DATE,'YYYY-MM-DD') AS REPAIRDATE
+           ,(CASE WHEN NVL((SELECT COUNT(*)
+                              FROM CB_FILE CF
+                                  ,CB_ITEM_FILE CIF
+                             WHERE CF.FILEID = CIF.FILEID
+                               AND CIF.FILETYPE = 'REPAIR'
+                               AND CIF.GUBUN IN ('Image1','Image2') 
+                               AND CIF.ITEM_CODE = CR.SEQ_NO), 0) > 0 THEN
+                    'Y'
+                  ELSE
+                    'N'
+                  END) AS FILEYN
+           ,CR.REASON_GUBUN AS REASONGUBUN
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_TYPE'
+                                                       ,CR.REASON_GUBUN
+                                                       ,'LABEL') AS REASONGUBUNNAME
+           ,CR.REASON AS REASON
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_TYPE_DETAIL'
+                                                       ,CR.REASON
+                                                       ,'LABEL') AS REASONNAME
+           ,CR.DETAIL_REASON AS DETAILREASON
+           ,CR.ACTION_CONTEXT AS ACTIONCONTEXT
+           /*,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_ACTION'
+                                                       ,CR.ACTION_CONTEXT
+                                                       ,'LABEL') AS ACTIONCONTEXTNAME*/
+           ,CR.ACTION_CONTEXT AS ACTIONCONTEXTNAME
+           ,CR.ITEM_STANDARD AS ITEMSTANDARD
+           ,CR.REPAIR_CENTER_NAME AS REPAIRCENTERNAME
+           ,CR.MAT_COST AS MATCOST
+           ,CR.REPAIR_COST AS REPAIRCOST
+           ,NVL(CR.REPAIR_COST, 0) + NVL(CR.MAT_COST, 0) AS TOTAL
+           ,CR.ACTION_RESULT AS ACTIONRESULT
+           ,CR.FOLLOW_UP AS FOLLOWUP
+           ,TO_CHAR(CR.END_DATE,'YYYY-MM-DD') AS ENDDATE
+           ,CR.REMARKS AS REMARKS
+           ,CR.ACTION_TIME AS ACTIONTIME
+   FROM CB_WORK_CENTER_REPAIR CR
+  ]]>
+  </sql>
+
+  <sql id="equipment.manage.repair.list.sql-where">
+    WHERE 1=1
+    <isNotEmpty property="ORGID" prepend="AND">
+        CR.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CR.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        CR.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+    <isNotEmpty property="DATETO" prepend="AND">
+        CR.REPAIR_DATE BETWEEN TO_DATE(#DATEFROM#,'YYYY-MM-DD') AND TO_DATE(#DATETO#,'YYYY-MM-DD')
+    </isNotEmpty>
+    <isNotEmpty property="SEARCHFROM" prepend="AND">
+        CR.REPAIR_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM') AND LAST_DAY(TO_DATE(#SEARCHFROM#,'YYYY-MM'))
+    </isNotEmpty>
+  </sql>
+
+  <select id="equipment.manage.repair.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="equipment.manage.repair.list.sql-select" />
+    <include refid="equipment.manage.repair.list.sql-where" />
+  </select>
+
+  <select id="equipment.manage.repair.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+    <include refid="equipment.manage.repair.list.sql-select" />
+    <include refid="equipment.manage.repair.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <select id="equipment.manage.repair.new.seqno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      SELECT NVL(MAX(SEQ_NO), 0) + 1 AS SEQNO
+       FROM CB_WORK_CENTER_REPAIR
+  </select>
+  
+  <insert id="equipment.manage.repair.list.insert" parameterClass="java.util.Map">
+  <![CDATA[
+    INSERT INTO CB_WORK_CENTER_REPAIR (
+        ORG_ID
+       ,COMPANY_ID
+       ,SEQ_NO
+       ,WORK_CENTER_CODE
+       ,REPAIR_DATE
+       ,REASON_GUBUN
+       ,REASON
+       ,DETAIL_REASON
+       ,ACTION_CONTEXT
+       ,ITEM_STANDARD
+       ,REPAIR_CENTER_NAME
+       ,MAT_COST
+       ,REPAIR_COST
+       ,ACTION_RESULT
+       ,FOLLOW_UP
+       ,END_DATE
+       ,REMARKS
+       ,ACTION_TIME
+       ,CREATED_BY
+       ,CREATION_DATE
+       ,LAST_UPDATED_BY
+       ,LAST_UPDATE_DATE
+    )
+    VALUES (
+        #ORGID#
+       ,#COMPANYID#
+       ,#SEQNO#
+       ,#WORKCENTERCODE#
+       ,TO_DATE(#REPAIRDATE#, 'YYYY-MM-DD')
+       ,#REASONGUBUN#
+       ,#REASON#
+       ,#DETAILREASON#
+       ,#ACTIONCONTEXT#
+       ,#ITEMSTANDARD#
+       ,#REPAIRCENTERNAME#
+       ,#MATCOST#
+       ,#REPAIRCOST#
+       ,#ACTIONRESULT#
+       ,#FOLLOWUP#
+       ,TO_DATE(#ENDDATE#, 'YYYY-MM-DD')
+       ,#REMARKS#
+       ,#ACTIONTIME#
+       ,#REGISTID#
+       ,SYSDATE
+       ,#REGISTID#
+       ,SYSDATE
+    )
+  ]]>
+  </insert>
+  
+  <update id="equipment.manage.repair.list.update" parameterClass="java.util.Map">
+  <![CDATA[
+     UPDATE CB_WORK_CENTER_REPAIR
+       SET LAST_UPDATED_BY  = #UPDATEID#
+          , LAST_UPDATE_DATE = SYSDATE
+          
+          , REPAIR_DATE = TO_DATE(#REPAIRDATE#, 'YYYY-MM-DD')
+          , REASON_GUBUN = #REASONGUBUN#
+          , REASON = #REASON#
+          , DETAIL_REASON = #DETAILREASON#
+          , ACTION_CONTEXT = #ACTIONCONTEXTNAME#
+          , ITEM_STANDARD = #ITEMSTANDARD#
+          , REPAIR_CENTER_NAME = #REPAIRCENTERNAME#
+          , MAT_COST = #MATCOST#
+          , REPAIR_COST = #REPAIRCOST#
+          , ACTION_RESULT = #ACTIONRESULT#
+          , FOLLOW_UP = #FOLLOWUP#
+          , END_DATE = TO_DATE(#ENDDATE#, 'YYYY-MM-DD')
+          , REMARKS = #REMARKS#
+          , ACTION_TIME=#ACTIONTIME#
+     WHERE ORG_ID = $ORGID$
+        AND COMPANY_ID = $COMPANYID$
+        AND WORK_CENTER_CODE = #WORKCENTERCODE#
+        AND SEQ_NO = #SEQNO#
+  ]]>
+  </update>
+  
+  <delete id="equipment.manage.repair.list.delete" parameterClass="java.util.Map">
+     DELETE FROM CB_WORK_CENTER_REPAIR
+     WHERE ORG_ID = $ORGID$
+        AND COMPANY_ID = $COMPANYID$
+        AND WORK_CENTER_CODE = #WORKCENTERCODE#
+        AND SEQ_NO = #SEQNO#
+  </delete>
+  
+<!--   설비수리이력현황 -->
+  <sql id="equipment.manage.repair.master.list.sql-select">
+  <![CDATA[
+  SELECT RANK() OVER(ORDER BY CR.ORG_ID, WC.WORK_DEPT) AS RN
+           ,CR.ORG_ID AS ORGID
+           ,CR.COMPANY_ID AS COMPANYID
+           ,WC.WORK_DEPT AS WORKDEPT
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                      ,CR.COMPANY_ID
+                                                      ,'CMM'
+                                                      ,'WORK_DEPT'
+                                                      ,WC.WORK_DEPT
+                                                      ,'LABEL') AS WORKDEPTNAME
+           ,SUM(CR.MAT_COST) AS MATCOST
+           ,SUM(CR.REPAIR_COST) AS REPAIRCOST
+           ,NVL(SUM(CR.REPAIR_COST), 0) + NVL(SUM(CR.MAT_COST), 0) AS TOTAL
+   FROM CB_WORK_CENTER_REPAIR CR
+          ,CB_WORK_CENTER WC
+  ]]>
+  </sql>
+
+  <sql id="equipment.manage.repair.master.list.sql-where">
+    WHERE 1=1
+    AND CR.ORG_ID=WC.ORG_ID
+    AND CR.COMPANY_ID=WC.COMPANY_ID
+    AND CR.WORK_CENTER_CODE=WC.Work_Center_Code
+    <isNotEmpty property="ORGID" prepend="AND">
+        CR.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CR.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        CR.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+    <isNotEmpty property="SEARCHFROM" prepend="AND">
+        CR.REPAIR_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM') AND LAST_DAY(TO_DATE(#SEARCHFROM#,'YYYY-MM'))
+    </isNotEmpty>
+    GROUP BY CR.ORG_ID, CR.COMPANY_ID, WC.WORK_DEPT
+    ORDER BY WC.WORK_DEPT
+  </sql>
+
+  <select id="equipment.manage.repair.master.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="equipment.manage.repair.master.list.sql-select" />
+    <include refid="equipment.manage.repair.master.list.sql-where" />
+  </select>
+
+  <select id="equipment.manage.repair.master.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+    <include refid="equipment.manage.repair.master.list.sql-select" />
+    <include refid="equipment.manage.repair.master.list.sql-where" />
+    ) TOT
+  </select>
+  
+   <sql id="equipment.manage.repair.line.list.sql-select">
+  <![CDATA[
+  SELECT RANK() OVER(ORDER BY CR.ORG_ID, WC.WORK_DEPT, CR.WORK_CENTER_CODE) AS RN
+           ,CR.ORG_ID AS ORGID
+           ,CR.COMPANY_ID AS COMPANYID
+		       ,CR.WORK_CENTER_CODE AS WORKCENTERCODE
+		       ,WC.WORK_CENTER_NAME AS WORKCENTERNAME
+		       ,CR.REPAIR_CENTER_NAME AS REPAIRCENTERNAME
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                      ,CR.COMPANY_ID
+                                                      ,'CMM'
+                                                      ,'WORK_DEPT'
+                                                      ,WC.WORK_DEPT
+                                                      ,'LABEL') AS WORKDEPTNAME
+           ,SUM(CR.MAT_COST) AS MATCOST
+           ,SUM(CR.REPAIR_COST) AS REPAIRCOST
+           ,NVL(SUM(CR.REPAIR_COST), 0) + NVL(SUM(CR.MAT_COST), 0) AS TOTAL
+   FROM CB_WORK_CENTER_REPAIR CR
+          ,CB_WORK_CENTER WC
+  ]]>
+  </sql>
+
+  <sql id="equipment.manage.repair.line.list.sql-where">
+    WHERE 1=1
+    AND CR.ORG_ID=WC.ORG_ID
+    AND CR.COMPANY_ID=WC.COMPANY_ID
+    AND CR.WORK_CENTER_CODE=WC.WORK_CENTER_CODE
+    <isNotEmpty property="ORGID" prepend="AND">
+        CR.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CR.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        CR.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+    <isNotEmpty property="SEARCHFROM" prepend="AND">
+        CR.REPAIR_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM') AND LAST_DAY(TO_DATE(#SEARCHFROM#,'YYYY-MM'))
+    </isNotEmpty>
+    <isNotEmpty property="WORKDEPT" prepend="AND">
+        WC.WORK_DEPT = #WORKDEPT#
+    </isNotEmpty>
+ GROUP BY CR.ORG_ID, CR.COMPANY_ID, CR.WORK_CENTER_CODE, WC.WORK_CENTER_NAME,CR.REPAIR_CENTER_NAME,WC.WORK_DEPT
+ ORDER BY WC.WORK_DEPT, CR.WORK_CENTER_CODE
+  </sql>
+
+  <select id="equipment.manage.repair.line.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="equipment.manage.repair.line.list.sql-select" />
+    <include refid="equipment.manage.repair.line.list.sql-where" />
+  </select>
+
+  <select id="equipment.manage.repair.line.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+    <include refid="equipment.manage.repair.line.list.sql-select" />
+    <include refid="equipment.manage.repair.line.list.sql-where" />
+    ) TOT
+  </select>
+  
+  
+   <sql id="equipment.manage.repair.detail.list.sql-select">
+  <![CDATA[
+    SELECT ROW_NUMBER() OVER(ORDER BY CR.REPAIR_DATE DESC, CR.SEQ_NO) AS RN
+           ,CR.ORG_ID AS ORGID
+           ,CR.COMPANY_ID AS COMPANYID
+           ,CR.SEQ_NO AS SEQNO
+           ,CR.WORK_CENTER_CODE AS WORKCENTERCODE
+           ,(SELECT WC.WORK_CENTER_NAME
+               FROM CB_WORK_CENTER WC
+              WHERE WC.ORG_ID = CR.ORG_ID
+                AND WC.COMPANY_ID = CR.COMPANY_ID
+                AND WC.WORK_CENTER_CODE = CR.WORK_CENTER_CODE) AS WORKCENTERNAME
+           ,TO_CHAR(CR.REPAIR_DATE,'YYYY-MM-DD') AS REPAIRDATE
+           ,(CASE WHEN NVL((SELECT COUNT(*)
+                              FROM CB_FILE CF
+                                  ,CB_ITEM_FILE CIF
+                             WHERE CF.FILEID = CIF.FILEID
+                               AND CIF.FILETYPE = 'REPAIR'
+                               AND CIF.GUBUN IN ('Image1','Image2') 
+                               AND CIF.ITEM_CODE = CR.SEQ_NO), 0) > 0 THEN
+                    'Y'
+                  ELSE
+                    'N'
+                  END) AS FILEYN
+           ,CR.REASON_GUBUN AS REASONGUBUN
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_TYPE'
+                                                       ,CR.REASON_GUBUN
+                                                       ,'LABEL') AS REASONGUBUNNAME
+           ,CR.REASON AS REASON
+           ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_TYPE_DETAIL'
+                                                       ,CR.REASON
+                                                       ,'LABEL') AS REASONNAME
+           ,CR.DETAIL_REASON AS DETAILREASON
+           ,CR.ACTION_CONTEXT AS ACTIONCONTEXT
+          /* ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CR.ORG_ID
+                                                       ,CR.COMPANY_ID
+                                                       ,'EQ'
+                                                       ,'NONOPER_ACTION'
+                                                       ,CR.ACTION_CONTEXT
+                                                       ,'LABEL') AS ACTIONCONTEXTNAME*/
+           ,CR.ACTION_CONTEXT AS ACTIONCONTEXTNAME
+           ,CR.ITEM_STANDARD AS ITEMSTANDARD
+           ,CR.REPAIR_CENTER_NAME AS REPAIRCENTERNAME
+           ,CR.MAT_COST AS MATCOST
+           ,CR.REPAIR_COST AS REPAIRCOST
+           ,NVL(CR.REPAIR_COST, 0) + NVL(CR.MAT_COST, 0) AS TOTAL
+           ,CR.ACTION_RESULT AS ACTIONRESULT
+           ,CR.FOLLOW_UP AS FOLLOWUP
+           ,TO_CHAR(CR.END_DATE,'YYYY-MM-DD') AS ENDDATE
+           ,CR.REMARKS AS REMARKS
+   FROM CB_WORK_CENTER_REPAIR CR
+  ]]>
+  </sql>
+
+  <sql id="equipment.manage.repair.detail.list.sql-where">
+    WHERE 1=1
+    <isNotEmpty property="ORGID" prepend="AND">
+        CR.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CR.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        CR.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+    <isNotEmpty property="SEARCHFROM" prepend="AND">
+        CR.REPAIR_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM') AND LAST_DAY(TO_DATE(#SEARCHFROM#,'YYYY-MM'))
+    </isNotEmpty>
+ ORDER BY CR.REPAIR_DATE DESC
+  </sql>
+
+  <select id="equipment.manage.repair.detail.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="equipment.manage.repair.detail.list.sql-select" />
+    <include refid="equipment.manage.repair.detail.list.sql-where" />
+  </select>
+
+  <select id="equipment.manage.repair.detail.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+    <include refid="equipment.manage.repair.detail.list.sql-select" />
+    <include refid="equipment.manage.repair.detail.list.sql-where" />
+    ) TOT
+  </select>
+  
+<!--   비가동요약 -->
+  <sql id="equipment.manage.nonoperate.list.sql-select">
+  <![CDATA[
+  SELECT A.RN
+      ,A.ORGID
+      ,A.COMPANYID
+      ,A.STANDARDDATE
+      ,A.DAY
+      ,A.COUNT1
+      ,A.TIME1
+      ,A.COUNT2
+      ,A.TIME2
+      ,A.COUNT3
+      ,A.TIME3
+      ,A.COUNT4
+      ,A.TIME4
+      ,A.ABSENT
+      ,A.LATE
+      ,A.LEAVE
+      ,A.TIME5
+      ,A.STOPTIME
+      ,A.OVERTIME
+      ,(A.OVERTIME - A.STOPTIME) / A.OVERTIME*100 AS OPERRATE
+   FROM (SELECT RANK() OVER(ORDER BY CC.STANDARD_DATE) AS RN
+      ,CC.ORG_ID AS ORGID
+      ,CC.COMPANY_ID AS COMPANYID
+      ,TO_CHAR(CC.STANDARD_DATE,'MM/DD') AS STANDARDDATE
+      ,TO_CHAR(CC.STANDARD_DATE, 'DAY') AS DAY
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,1
+                                              ,NULL
+                                              ,'COUNT') AS COUNT1
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,1
+                                              ,NULL
+                                              ,'TOTAL_TIME') AS TIME1
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,2
+                                              ,NULL
+                                              ,'COUNT') AS COUNT2
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,2
+                                              ,NULL
+                                              ,'TOTAL_TIME') AS TIME2
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,3
+                                              ,NULL
+                                              ,'COUNT') AS COUNT3
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,3
+                                              ,NULL
+                                              ,'TOTAL_TIME') AS TIME3
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,4
+                                              ,NULL
+                                              ,'COUNT') AS COUNT4
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,4
+                                              ,NULL
+                                              ,'TOTAL_TIME') AS TIME4
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,5
+                                              ,1
+                                              ,'COUNT') AS ABSENT
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,5
+                                              ,2
+                                              ,'COUNT') AS LATE
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,5
+                                              ,3
+                                              ,'COUNT') AS LEAVE
+      ,CB_WORK_CENTER_PKG.CB_WORK_OPERATE_FIND(CC.ORG_ID
+                                              ,CC.COMPANY_ID
+                                              ,CC.STANDARD_DATE
+                                              ,5
+                                              ,NULL
+                                              ,'TOTAL_TIME') AS TIME5
+       ,(SELECT SUM(NVL(WOR.END_DATE - WOR.START_DATE , 0))*24              FROM CB_WORK_ORDER_OPERATE WOR
+          WHERE WOR.ORG_ID=CC.ORG_ID
+            AND WOR.COMPANY_ID=CC.COMPANY_ID
+            AND WOR.START_DATE BETWEEN CC.STANDARD_DATE AND CC.STANDARD_DATE + 0.99) AS STOPTIME
+        , ( SELECT COUNT(DISTINCT WOE.WORK_CENTER_CODE) *10
+               FROM CB_WORK_ORDER_EQUIPMENT WOE
+                     ,CB_WORK_ORDER_D WOD
+         WHERE WOE.ORG_ID=WOD.ORG_ID
+           AND WOE.COMPANY_ID=WOD.COMPANY_ID
+           AND WOE.WORK_ORDER_ID=WOD.WORK_ORDER_ID
+           AND WOE.WORK_ORDER_SEQ=WOD.WORK_ORDER_SEQ
+           AND WOE.SEQ_NO = WOD.SEQ_NO
+           AND TO_CHAR(WOE.START_TIME,'YYYY-MM-DD')=TO_CHAR(CC.STANDARD_DATE,'YYYY-MM-DD')) AS OVERTIME
+  FROM CB_CALENDAR CC
+      ,(
+        SELECT $ORGID$ AS ORG_ID
+              ,$COMPANYID$ AS COMPANY_ID
+              ,TO_DATE(#SEARCHFROM#, 'YYYY-MM') AS SEARCH_MONTH
+          FROM DUAL
+        ) TMP
+  ]]>
+  </sql>
+
+  <sql id="equipment.manage.nonoperate.list.sql-where">
+ WHERE CC.ORG_ID = TMP.ORG_ID
+   AND CC.COMPANY_ID = TMP.COMPANY_ID
+   AND CC.STANDARD_MONTH = TRUNC(TMP.SEARCH_MONTH, 'MM') ) A
+  </sql>
+
+  <select id="equipment.manage.nonoperate.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="equipment.manage.nonoperate.list.sql-select" />
+    <include refid="equipment.manage.nonoperate.list.sql-where" />
+  </select>
+
+  <select id="equipment.manage.nonoperate.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+    <include refid="equipment.manage.nonoperate.list.sql-select" />
+    <include refid="equipment.manage.nonoperate.list.sql-where" />
+    ) TOT
+  </select>
+</sqlMap>

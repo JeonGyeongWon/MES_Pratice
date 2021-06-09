@@ -1,0 +1,118 @@
+@charset "utf-8";
+
+.b {font-weight:bold;}
+
+.text_gray11:link {font-size:8pt;font-family:"dotum";text-decoration: none; color: #5A5A5A; }
+.text_gray11:visited {font-size:8pt;font-family:"dotum";text-decoration: none; color: #5A5A5A; }
+.text_gray11:active {font-size:8pt;font-family:"dotum";text-decoration: none; color: #5A5A5A; }
+.text_gray11:hover {font-size:8pt;font-family:"dotum";text-decoration: none; color: #949494; }
+
+.service_group_text_style01{float: left;text-align: left;line-height: 15px;}
+.service_group_text_style02{float: left;text-align: left;line-height: 15px;margin-left: 50px;}
+.service_group_text_style03{float: left;text-align: left;line-height: 15px;margin-left: 40px;}
+
+#serviceMap_title_img{float: left;width: 653px;text-align: left;}
+#service_group_01_title{float:left;width: 650px;}
+#service_group_02_title{float:left;width: 650px;margin-top: 30px;}
+#service_group_03_title{float:left;width: 650px;margin-top: 30px;}
+
+.service_group_01_box{float: left;width: 648px;border-left: 1px solid #e1e1ce;border-right: 1px solid #e1e1ce;border-bottom: 1px solid #e1e1ce;padding-bottom: 10px;}
+
+#service_group_01_contents{padding-left: 20px;}
+#service_group_02_contents{padding-left: 20px;}
+#service_group_03_contents{padding-left: 13px;}
+
+.service_group_01_contents_blue_title{float:left; width:200px;height:21px; background-image: url(/images/egovframework/guide/sub_title_bg.gif);background-repeat:no-repeat; background-position:left center; padding-top: 3px;margin-top: 20px;font-weight: bold;color:#2A72AD;margin-bottom:3px;}
+.service_group_02_contents_blue_title{float:left; width:200px;height:21px; background-image: url(/images/egovframework/guide/sub_title_bg.gif);background-repeat:no-repeat; background-position:left center; padding-top: 3px;margin-top: 20px;font-weight: bold;color:#2A72AD;margin-bottom:3px;font-size:12px;}
+
+.service_group_01_contents_box{float:left; border: 1px solid #e1e1ce;width: 580px;background-color: #f7f8eb;padding-top: 10px;padding-left: 15px;padding-right: 15px;padding-bottom: 10px;}
+.service_group_02_contents_box{float:left; border: 1px solid #e1e1ce;width:190px; background-color: #f7f8eb;padding-top: 10px;padding-left: 15px;padding-right: 15px;padding-bottom: 10px;}
+.service_group_03_contents_box{float:left; border: 1px solid #e1e1ce;width:170px; background-color: #f7f8eb;padding-top: 10px;padding-left: 15px;padding-right: 15px;padding-bottom: 10px;}
+.service_group_04_contents_box{float:left; border: 1px solid #e1e1ce;width:590px; background-color: #f7f8eb;padding-top: 10px;padding-left: 15px;padding-right: 15px;padding-bottom: 10px;}
+
+.service_group_01_contents_box_sub01{float:left;position:relative; width: 200px;}
+.service_group_01_contents_box_sub02{float:left;position:relative;width: 358px;}
+.service_group_01_contents_box_sub03{float:left;position:relative;}
+.service_group_01_contents_box_sub04{float:left;position:relative;width: 190px;}
+.service_group_01_contents_box_sub05{float:left;position:relative;width: 170px;}
+.service_group_01_contents_box_sub06{float:left;position:relative;width: 147px;}
+
+.service_group_01_contents_sub_title01{float:left;width:100%;text-align: left;color: #0089B1;font-weight: bold;}
+.service_group_01_contents_sub_title02{float:left;width:100%;text-align: left;color: #0089B1;font-weight: bold;}
+.service_group_01_contents_sub_title03{float:left;width:100%;text-align: left;color: #0089B1;font-weight: bold;}
+.service_group_01_contents_sub_title04{float:left;width:100%;text-align: left;color: #0089B1;font-weight: bold;}
+.service_group_01_contents_sub_title05{float:left;width:100%;text-align: left;color: #0089B1;font-weight: bold;}
+
+.service_group_01_contents_sub_bg01{float:left; border: 1px solid #e1e1ce;width: 560px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg01 ul{list-style-type:none;}
+.service_group_01_contents_sub_bg01 ul li{width:100px;}
+
+.service_group_01_contents_sub_bg02{float:left; border: 1px solid #e1e1ce;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg03{float:left; border: 1px solid #e1e1ce;width:358px; background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg04{float:left; border: 1px solid #e1e1ce;width: 328px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg05{float:left; border: 1px solid #e1e1ce;width: 200px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg06{float:left; border: 1px solid #e1e1ce;width: 170px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg07{float:left; border: 1px solid #e1e1ce;width: 160px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg08{float:left; border: 1px solid #e1e1ce;width: 200px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg09{float:left; border: 1px solid #e1e1ce;width: 150px;background-color: #FFFFFF;padding: 10px;}
+.service_group_01_contents_sub_bg10{float:left; border: 1px solid #e1e1ce;width: 117px;background-color: #FFFFFF;padding: 10px;}
+
+.titleimg_align{float:left; vertical-align:bottom;}
+
+/* Author : jiyeon Gu 2011.10.24 추가 */
+/* reset code */
+ul, ol, dl { margin:0; padding:0; list-style:none}
+li, dt, dd, th, td { margin:0; padding:0; font-size:12px } 
+em { font-weight:normal; font-style:normal}
+h4 { margin:0; padding:0;} 
+caption {width:0; height:0; font-size:0; line-height:0; overflow:hidden;}
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after,
+q:before, q:after { content: '';    content: none; }
+/* table { border-collapse: collapse;  border-spacing: 0; } */
+table {  border-spacing: 0; }
+img {border:0;}
+
+/* contents */
+.mapContents {width:100%; padding:0 0 25px; overflow:hidden}
+.prevVision { clear:both; width:100%;overflow:hidden;margin:10px 10px 10px 0; }
+.prevVision a{float:right}
+
+.navTab { clear:both; padding:10px 0 0; border-bottom:1px solid #bcbcbc; }
+.navTab ul { height:30px;  width:100%;}
+.navTab ul li { float:left; background: url(/images/egovframework/adt/tabOff.jpg) bottom no-repeat; margin-right:1px;  text-align:center; font-weight:bold;}
+.navTab ul li a { color:#000; text-decoration:none; width:156px; height:22px;line-height:22px; padding-top:8px; display:block;}/* *height:20px; *padding-top:10px;  */
+.navTab ul li.on { background: url(/images/egovframework/adt/tabOn.jpg) bottom no-repeat;}
+.navTab ul li.on a { color:#fff;}
+
+.boComTitle { clear:both; background: url(/images/egovframework/adt/ic_bul_blue.jpg) 0 2px no-repeat; color:#1783b8; font-size:14px; padding:0 0 0 20px; margin:15px 0 0 5px; text-align:left;}
+.mapList { clear:both; padding:15px 0; border-bottom:1px solid #cbcbcb; overflow:hidden; }
+
+.group { float:left; }
+.Wid1 { width:196px; margin-right:30px}
+.Wid2 { width:196px; margin-right:0}
+.Wid3 { width:163px; }
+.Wid4 { width:321px; }
+.groupLeft { clear:both; }
+.groupBox { background: url(/images/egovframework/adt/bg_box.jpg) 0 0 no-repeat; width:196px;
+    height:19px; padding:3px 0 1px;line-height:19px; 
+    text-align:center; font-weight:bold; font-size:12px; color:#fff; letter-spacing:-0.07em; } /* height:17px \0/IE9; padding:6px 0 0 \0/IE9; */
+
+.subList { clear:both; padding:12px 0 0 5px; letter-spacing:-0.07em;}
+.subList dt { background: url(/images/egovframework/adt/ic_arrow_blue.jpg) 0 3px no-repeat; padding:0 0 7px 8px;  color:#1783b8; text-align:left; }
+.subList dt.nonoe { background:none}
+.subList dd { color:#494949; padding:0 0 0 10px; line-height:16px; text-align:left; }
+.subList dd em { letter-spacing:0}
+.subList dd a { text-decoration:none; color:#494949; }
+.subList dd a:hover { text-decoration:underline; }
+
+.commDownload { clear:both; padding:10px 0 0 }
+table.downList { width:100%; border:1px solid #dbdbdb;}
+table.downList th { background:#f1f1f1; padding:5px 0; text-align:center; font-weight:bold; line-height:14px; border:1px solid #dbdbdb; overflow:hidden; color:#666}
+table.downList td { padding:5px 0; text-align:center; line-height:13px; border:1px solid #dbdbdb; overflow:hidden; font-size:11px; letter-spacing:-1px; color:#666}
+table.downList td a { text-decoration:none; color:#000}
+table.downList td a:hover { text-decoration:underline;}
+table.downList td.eng { font-family:Tahoma; letter-spacing:0; text-align:left; padding:5px 0 5px 5px; }
+
+.table_head {color:#666; text-align:center;}
+.text_left { text-align:left;}

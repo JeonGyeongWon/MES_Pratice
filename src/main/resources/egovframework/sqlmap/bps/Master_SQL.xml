@@ -1,0 +1,1442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="master">
+    <parameterMap class="java.util.Map" id="RoutingCopyRegistParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODEPOST" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNRSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="EquipmentCopyRegistParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODEPOST" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNESTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="ToolsCopyRegistParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODEPOST" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNESTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="RoutingCopyModelParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="MODEL" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="LOGIN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RS_CODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="RS_STATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+        
+    <procedure id="routing.routingcopy.call.Procedure" parameterClass="java.util.Map"  parameterMap="RoutingCopyRegistParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_ROUTING_COPY.CB_ROUTING_CONTROL_COPY( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="routing.equipmentcopy.call.Procedure" parameterClass="java.util.Map"  parameterMap="EquipmentCopyRegistParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_ROUTING_COPY.CB_EQUIPMENT_MASTER_COPY( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="routing.Toolscopy.call.Procedure" parameterClass="java.util.Map"  parameterMap="ToolsCopyRegistParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_ROUTING_COPY.CB_TOOL_MASTER_COPY( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="routing.routingcopymodel.call.Procedure" parameterClass="java.util.Map"  parameterMap="RoutingCopyModelParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_ROUTING_PKG.CB_ROUTING_COPY_MODEL( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+  <!-- 공정 등록 시작 -->
+  <sql id="master.routing.list.sql-select">
+  <![CDATA[
+        SELECT RANK() OVER(ORDER BY RC.ORG_ID, RC.COMPANY_ID, RC.ITEM_CODE, SORT_ORDER , RC.ROUTING_NO) AS RN 
+              ,RC.ORG_ID AS ORGID
+              ,RC.COMPANY_ID AS COMPANYID
+              ,RC.SORT_ORDER AS SORTORDER
+              ,RC.ROUTING_OP AS ROUTINGOP
+              ,RC.ROUTING_ID AS ROUTINGID
+              ,RC.ROUTING_ID AS ROUTINGIDREGIST
+              ,RC.ROUTING_NO AS ROUTINGNO
+              ,RC.ITEM_CODE AS ITEMCODE
+              ,(SELECT IM.ITEM_NAME
+                  FROM CB_ITEM_MASTER IM
+                 WHERE IM.ORG_ID = RC.ORG_ID
+                   AND IM.COMPANY_ID = RC.COMPANY_ID
+                   AND IM.ITEM_CODE = RC.ITEM_CODE) AS ITEMNAME
+              ,(SELECT IM.ORDER_NAME
+                  FROM CB_ITEM_MASTER IM
+                 WHERE IM.ORG_ID = RC.ORG_ID
+                   AND IM.COMPANY_ID = RC.COMPANY_ID
+                   AND IM.ITEM_CODE = RC.ITEM_CODE) AS ORDERNAME
+              ,SORT_ORDER AS SORTORDER
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE SC.ORG_ID = RC.ORG_ID
+                   AND SC.COMPANY_ID = RC.COMPANY_ID
+                   AND SC.BIG_CODE = 'MFG'
+                   AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                   AND SC.SMALL_CODE  = RC.ROUTING_NO) AS ROUTINGNAME
+              ,RC.SETUP_TIME AS SETUPTIME
+              ,RC.CYCLE_TIME AS CYCLETIME
+              ,RC.ETC_TIME AS ETCTIME
+              ,RC.CAVITY AS CAVITY
+              ,TRUNC((CASE WHEN ( NVL(RC.SETUP_TIME, 0) + NVL(RC.CYCLE_TIME, 0) + NVL(RC.ETC_TIME, 0) ) = 0 THEN
+                                   0
+                                ELSE
+                                   TRUNC(( ( (60 * 10) / ( NVL(RC.SETUP_TIME, 0) + NVL(RC.CYCLE_TIME, 0) + NVL(RC.ETC_TIME, 0) ) ) * NVL(RC.CAVITY, 0) * (TO_NUMBER(CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(RC.ORG_ID
+																																										                                                                                                                   ,RC.COMPANY_ID
+																																										                                                                                                                   ,'MFG'
+																																										                                                                                                                   ,'WORK_RATE'
+																																										                                                                                                                   ,'01'
+																																										                                                                                                                   ,'LABEL')) / 100 ) ), 0)
+                                END), 2) AS PRODTIME
+              ,TO_CHAR(RC.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+              ,TO_CHAR(RC.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+              ,RC.CONVERSION_COST AS CONVERSIONCOST
+              ,RC.MATERIAL_COST AS MATERIALCOST
+              ,RC.ACC_CONVERSION_COST AS ACCCONVERSIONCOST
+              ,RC.OUTSIDE_ORDER_GUBUN AS OUTSIDEORDERGUBUN
+              ,RC.CUSTOMER_CODE_OUT AS CUSTOMERCODEOUT
+              ,(SELECT CC.CUSTOMER_NAME
+                  FROM CB_CUSTOMER CC
+                 WHERE CC.ORG_ID = RC.ORG_ID
+                   AND CC.COMPANY_ID = RC.COMPANY_ID
+                   AND CC.CUSTOMER_CODE = RC.CUSTOMER_CODE_OUT) AS CUSTOMERNAMEOUT
+              ,(SELECT SC.REMARKS
+                FROM CB_SMALL_CODE SC
+               WHERE SC.ORG_ID = RC.ORG_ID
+                 AND SC.COMPANY_ID = RC.COMPANY_ID
+                 AND SC.BIG_CODE = 'MFG'
+                 AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                 AND SC.SMALL_CODE = RC.ROUTING_NO
+             ) AS ROUTINGGROUP
+            ,(SELECT CSC.SMALL_NAME
+                FROM CB_SMALL_CODE CSC 
+               WHERE CSC.ORG_ID = RC.ORG_ID
+                 AND CSC.COMPANY_ID = RC.COMPANY_ID
+                 AND CSC.BIG_CODE = 'MFG'
+                 AND CSC.MIDDLE_CODE = 'ROUTING_GROUP'
+                 AND CSC.SMALL_CODE = (SELECT SC.ATTRIBUTE1
+                                         FROM CB_SMALL_CODE SC
+                                        WHERE SC.ORG_ID = RC.ORG_ID
+                                          AND SC.COMPANY_ID = RC.COMPANY_ID
+                                          AND SC.BIG_CODE = 'MFG'
+                                          AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                                          AND SC.SMALL_CODE = RC.ROUTING_NO)
+             ) AS ROUTINGGROUPNAME
+              ,RC.ROUTING_SIZE_COST AS ROUTINGSIZECOST
+              ,INSPECTION_YN AS INSPECTIONYN
+              ,(CASE WHEN (SELECT COUNT(*)
+                            FROM CB_WORK_ORDER WO
+                           WHERE WO.ORG_ID = RC.ORG_ID
+                             AND WO.COMPANY_ID = RC.COMPANY_ID
+                             AND WO.ITEM_CODE = RC.ITEM_CODE
+                             AND WO.ROUTING_CODE = RC.ROUTING_ID) > 0 THEN
+                       'Y'
+                     ELSE
+                       'N'
+                     END) AS WOYN
+             ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(RC.ORG_ID
+                                                         ,RC.COMPANY_ID
+                                                         ,'MFG'
+                                                         ,'WORK_RATE'
+                                                         ,'01'
+                                                         ,'LABEL') AS WORKRATE
+      FROM CB_ROUTING_CONTROL RC
+  ]]>
+  </sql>
+
+  <sql id="master.routing.list.sql-where">
+    WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="itemname" prepend="AND">
+            ITEM_CODE IN (SELECT IM.ITEM_CODE
+                                 FROM CB_ITEM_MASTER IM
+                                WHERE IM.ITEM_NAME LIKE '%' || #itemname# || '%'
+                              )
+         </isNotEmpty>
+         <isNotEmpty property="ordername" prepend="AND">
+            ITEM_CODE IN (SELECT IM.ITEM_CODE
+                                 FROM CB_ITEM_MASTER IM
+                                WHERE IM.ORDER_NAME LIKE '%' || #ordername# || '%'
+                              )
+         </isNotEmpty>
+      ORDER BY RC.ORG_ID, RC.COMPANY_ID, RC.ITEM_CODE, SORT_ORDER , RC.ROUTING_NO
+  </sql>
+
+  <select id="master.routing.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="master.routing.list.sql-select" />
+      <include refid="master.routing.list.sql-where" />
+  </select>
+  
+  <select id="master.routing.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="master.routing.list.sql-select" />
+      <include refid="master.routing.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <insert id="master.routing.list.insert" parameterClass="java.util.Map">
+      <![CDATA[
+          INSERT INTO CB_ROUTING_CONTROL
+            (ORG_ID
+             ,COMPANY_ID
+             ,ITEM_CODE
+             ,ROUTING_ID
+             ,ROUTING_NO
+             ,SORT_ORDER
+      ]]>
+    <isNotEmpty property="ROUTINGOP" prepend=",">
+           ROUTING_OP
+    </isNotEmpty>
+    <isNotEmpty property="SETUPTIME" prepend=",">
+           SETUP_TIME
+    </isNotEmpty>
+    <isNotEmpty property="CYCLETIME" prepend=",">
+           CYCLE_TIME
+    </isNotEmpty>
+     <isNotEmpty property="CAVITY" prepend=",">
+           CAVITY
+    </isNotEmpty>
+     <isNotEmpty property="CONVERSIONCOST" prepend=",">
+           CONVERSION_COST
+    </isNotEmpty>
+     <isNotEmpty property="MATERIALCOST" prepend=",">
+           MATERIAL_COST
+    </isNotEmpty>
+     <isNotEmpty property="ACCCONVERSIONCOST" prepend=",">
+           ACC_CONVERSION_COST
+    </isNotEmpty>
+    <isNotEmpty property="OUTSIDEORDERGUBUN" prepend=",">
+           OUTSIDE_ORDER_GUBUN
+    </isNotEmpty>
+    <isNotEmpty property="CUSTOMERCODEOUT" prepend=",">
+           CUSTOMER_CODE_OUT
+    </isNotEmpty>
+    <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           EFFECTIVE_START_DATE
+    </isNotEmpty>
+    <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+           EFFECTIVE_END_DATE
+    </isNotEmpty>
+    <isNotEmpty property="ROUTINGSIZECOST" prepend=",">
+           ROUTING_SIZE_COST
+    </isNotEmpty>
+    <isNotEmpty property="INSPECTIONYN" prepend=",">
+           INSPECTION_YN
+    </isNotEmpty>
+    <![CDATA[
+           ,CREATION_DATE
+           ,CREATED_BY
+           ,LAST_UPDATE_DATE
+           ,LAST_UPDATED_BY
+           )
+        VALUES
+          (#ORGID#
+          ,#COMPANYID#
+          ,#ITEMCODE#
+          ,(SELECT NVL(MAX(ROUTING_ID), 0) + 1
+              FROM CB_ROUTING_CONTROL
+             WHERE 1=1)
+           ,#ROUTINGNO#
+           ,$SORTORDER$
+    ]]>
+    <isNotEmpty property="ROUTINGOP" prepend=",">
+           #ROUTINGOP#
+    </isNotEmpty>
+    <isNotEmpty property="SETUPTIME" prepend=",">
+           $SETUPTIME$
+    </isNotEmpty>
+    <isNotEmpty property="CYCLETIME" prepend=",">
+           $CYCLETIME$
+    </isNotEmpty>
+     <isNotEmpty property="CAVITY" prepend=",">
+           $CAVITY$
+    </isNotEmpty>
+     <isNotEmpty property="CONVERSIONCOST" prepend=",">
+           $CONVERSIONCOST$
+    </isNotEmpty>
+     <isNotEmpty property="MATERIALCOST" prepend=",">
+           $MATERIALCOST$
+    </isNotEmpty>
+     <isNotEmpty property="ACCCONVERSIONCOST" prepend=",">
+           $ACCCONVERSIONCOST$
+    </isNotEmpty>
+    <isNotEmpty property="OUTSIDEORDERGUBUN" prepend=",">
+           #OUTSIDEORDERGUBUN#
+    </isNotEmpty>
+    <isNotEmpty property="CUSTOMERCODEOUT" prepend=",">
+           #CUSTOMERCODEOUT#
+    </isNotEmpty>
+    <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+           TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isNotEmpty property="ROUTINGSIZECOST" prepend=",">
+           $ROUTINGSIZECOST$
+    </isNotEmpty>
+    <isNotEmpty property="INSPECTIONYN" prepend=",">
+           #INSPECTIONYN#
+    </isNotEmpty>
+    <![CDATA[
+           ,SYSDATE
+           ,#REGISTID#
+           ,SYSDATE
+           ,#REGISTID#
+           )
+    ]]>
+  </insert>
+  
+  <update id="master.routing.list.update" parameterClass="java.util.Map">
+      <![CDATA[
+      UPDATE CB_ROUTING_CONTROL
+         SET LAST_UPDATED_BY  = #UPDATEID#
+             , LAST_UPDATE_DATE = SYSDATE
+             , SORT_ORDER = $SORTORDER$
+      ]]>
+    <isNotEmpty property="ROUTINGOP" prepend=",">
+           ROUTING_OP = #ROUTINGOP#
+    </isNotEmpty>
+    <isEmpty property="ROUTINGOP" prepend=",">
+           ROUTING_OP = NULL
+    </isEmpty>
+    <isNotEmpty property="ROUTINGNO" prepend=",">
+           ROUTING_NO = #ROUTINGNO#
+    </isNotEmpty>
+    <isEmpty property="ROUTINGNO" prepend=",">
+           ROUTING_NO = NULL
+    </isEmpty>
+    <isNotEmpty property="SETUPTIME" prepend=",">
+           SETUP_TIME = $SETUPTIME$
+    </isNotEmpty>
+    <isEmpty property="SETUPTIME" prepend=",">
+           SETUP_TIME = NULL
+    </isEmpty>
+    <isNotEmpty property="CYCLETIME" prepend=",">
+           CYCLE_TIME = $CYCLETIME$
+    </isNotEmpty>
+    <isEmpty property="CYCLETIME" prepend=",">
+           CYCLE_TIME = NULL
+    </isEmpty>
+     <isNotEmpty property="CAVITY" prepend=",">
+           CAVITY = $CAVITY$
+    </isNotEmpty>
+    <isEmpty property="CAVITY" prepend=",">
+           CAVITY = NULL
+    </isEmpty>
+    <isNotEmpty property="CONVERSIONCOST" prepend=",">
+           CONVERSION_COST = $CONVERSIONCOST$
+    </isNotEmpty>
+    <isEmpty property="CONVERSIONCOST" prepend=",">
+           CONVERSION_COST = NULL
+    </isEmpty>
+    <isNotEmpty property="MATERIALCOST" prepend=",">
+           MATERIAL_COST = $MATERIALCOST$
+    </isNotEmpty>
+    <isEmpty property="MATERIALCOST" prepend=",">
+           MATERIAL_COST = NULL
+    </isEmpty>
+    <isNotEmpty property="ACCCONVERSIONCOST" prepend=",">
+           ACC_CONVERSION_COST = $ACCCONVERSIONCOST$
+    </isNotEmpty>
+    <isEmpty property="ACCCONVERSIONCOST" prepend=",">
+           ACC_CONVERSION_COST = NULL
+    </isEmpty>
+    <isNotEmpty property="OUTSIDEORDERGUBUN" prepend=",">
+           OUTSIDE_ORDER_GUBUN = #OUTSIDEORDERGUBUN#
+    </isNotEmpty>
+    <isNotEmpty property="CUSTOMERCODEOUT" prepend=",">
+           CUSTOMER_CODE_OUT = #CUSTOMERCODEOUT#
+    </isNotEmpty>
+    <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           EFFECTIVE_START_DATE = NULL
+    </isEmpty>
+    <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+           EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isEmpty property="EFFECTIVEENDDATE" prepend=",">
+           EFFECTIVE_END_DATE = NULL
+    </isEmpty>
+    <isNotEmpty property="ROUTINGSIZECOST" prepend=",">
+           ROUTING_SIZE_COST = $ROUTINGSIZECOST$
+    </isNotEmpty>
+    <isEmpty property="ROUTINGSIZECOST" prepend=",">
+           ROUTING_SIZE_COST = NULL
+    </isEmpty>
+    <isNotEmpty property="INSPECTIONYN" prepend=",">
+           INSPECTION_YN = #INSPECTIONYN#
+    </isNotEmpty>
+    <isEmpty property="INSPECTIONYN" prepend=",">
+           INSPECTION_YN = NULL
+    </isEmpty>
+      <![CDATA[
+      WHERE ORG_ID = $ORGID$
+         AND COMPANY_ID = $COMPANYID$
+         AND ROUTING_ID = $ROUTINGID$
+         AND ITEM_CODE = #ITEMCODE#
+      ]]>
+  </update>
+  
+  <delete id="master.routing.list.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_ROUTING_CONTROL
+      WHERE ORG_ID = $ORGID$
+         AND COMPANY_ID = $COMPANYID$
+         AND ROUTING_ID = $ROUTINGID$
+         AND ITEM_CODE = #ITEMCODE#
+  </delete>
+  <!-- 공정 등록 끝 -->
+  
+  <!-- 공정별 설비 연결 시작 -->
+  <select id="master.routing.first.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT  ORGID, COMPANYID, ITEMCODE, ROUTINGID, ROUTINGNO FROM (
+      <include refid="master.routing.list.sql-select" />
+      <include refid="master.routing.list.sql-where" />
+      )
+      WHERE ROWNUM = 1
+  </select>  
+  
+  <sql id="master.routing.detail.sql-select">
+    SELECT CWC.ORG_ID AS ORGID
+              ,CWC.COMPANY_ID AS COMPANYID
+              ,CWC.WORK_CENTER_CODE AS WORKCENTERCODE
+              ,CWC.WORK_CENTER_NAME AS WORKCENTERNAME
+              ,CWC.MODEL_STANDARD AS MODELSTANDARD
+              ,CWC.ROUTING_CODE AS ROUTINGCODE
+              ,CEM.ROUTING_ID AS ROUTINGID
+              ,CEM.REMARKS AS REMARKS
+              ,NVL(CEM.USE_YN, 'N') AS CHK
+              ,#itemcode# AS ITEMCODE
+              ,CEM.EQUIPMENT_CODE AS EQUIPMENTCODE
+      FROM CB_WORK_CENTER CWC, CB_EQUIPMENT_MASTER CEM
+  </sql>
+
+  <sql id="master.routing.detail.sql-where">
+     WHERE CWC.ORG_ID = CEM.ORG_ID(+)
+         AND CWC.COMPANY_ID = CEM.COMPANY_ID(+)
+         AND CWC.ROUTING_CODE = CEM.ROUTING_NO(+)
+         AND CWC.WORK_CENTER_CODE = CEM.WORK_CENTER_CODE(+)
+         AND SYSDATE BETWEEN CWC.EFFECTIVE_START_DATE AND CWC.EFFECTIVE_END_DATE
+         AND CWC.ORG_ID = #orgid#
+         AND CWC.COMPANY_ID = #companyid#
+         AND CEM.ROUTING_ID(+) = $routingid$
+<!--          AND CWC.ROUTING_CODE = SUBSTR(#routingno#, 1, 2) -->
+         AND CWC.ROUTING_CODE = (SELECT SC.ATTRIBUTE1
+                                               FROM CB_SMALL_CODE SC
+                                              WHERE SC.ORG_ID = CWC.ORG_ID
+                                                AND SC.COMPANY_ID = CWC.COMPANY_ID
+                                                AND SC.BIG_CODE = 'MFG'
+                                                AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                                                AND SC.SMALL_CODE = #routingno#) 
+<!-- 설비정보의 공정연결 정보 제거        AND CWC.ROUTING_CODE = #routingno# -->
+      ORDER BY CWC.ORG_ID, CWC.COMPANY_ID, CWC.WORK_CENTER_CODE, CWC.ROUTING_CODE
+  </sql>
+
+  <select id="master.routing.detail.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+      <include refid="master.routing.detail.sql-select" />
+      <include refid="master.routing.detail.sql-where" />
+  </select>
+  
+  <select id="master.routing.detail.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="master.routing.detail.sql-select" />
+      <include refid="master.routing.detail.sql-where" />
+    ) TOT
+  </select>
+  
+  <insert id="master.routing.detail.insert" parameterClass="java.util.Map">
+      <![CDATA[
+          INSERT INTO CB_EQUIPMENT_MASTER
+            (ORG_ID
+             ,COMPANY_ID
+             ,EQUIPMENT_CODE
+             ,ROUTING_ID
+             ,ROUTING_NO
+             ,ITEM_CODE
+             ,EQUIPMENT_NAME
+             ,WORK_CENTER_CODE
+             ,USE_YN
+      ]]>
+      <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS
+      </isNotEmpty>
+      <![CDATA[
+             ,CREATION_DATE
+             ,CREATED_BY
+             ,LAST_UPDATE_DATE
+             ,LAST_UPDATED_BY
+             )
+          VALUES
+            (#ORGID#
+            ,#COMPANYID#
+            ,CB_EQUIPMENT_MASTER_ID_S.NEXTVAL
+            ,#routingid#
+            ,#ROUTINGCODE#
+             ,#ITEMCODE#
+             ,#WORKCENTERNAME#
+             ,#WORKCENTERCODE#
+             ,#CHK#
+      ]]>
+      <isNotEmpty property="REMARKS" prepend=",">
+             #REMARKS#
+      </isNotEmpty>
+      <![CDATA[
+             ,SYSDATE
+             ,#REGISTID#
+             ,SYSDATE
+             ,#REGISTID#
+             )
+      ]]>
+  </insert>
+  
+  <update id="master.routing.detail.update" parameterClass="java.util.Map">
+      <![CDATA[
+      UPDATE CB_EQUIPMENT_MASTER
+         SET LAST_UPDATED_BY  = #UPDATETID#
+             , LAST_UPDATE_DATE = SYSDATE
+             
+             ,USE_YN = #CHK#
+      ]]>
+    <isNotEmpty property="REMARKS" prepend=",">
+           REMARKS = #REMARKS#
+    </isNotEmpty>
+    <isEmpty property="REMARKS" prepend=",">
+           REMARKS = NULL
+    </isEmpty>
+      <![CDATA[
+      WHERE ORG_ID = $ORGID$
+         AND COMPANY_ID = $COMPANYID$
+         AND EQUIPMENT_CODE = #EQUIPMENTCODE#
+         AND ROUTING_ID = #ROUTINGID#
+         AND ROUTING_NO = #ROUTINGCODE#
+         AND ITEM_CODE = #ITEMCODE#
+      ]]>
+  </update>
+  
+  <delete id="master.routing.detail.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_EQUIPMENT_MASTER
+      WHERE ORG_ID = $ORGID$
+         AND COMPANY_ID = $COMPANYID$
+         AND EQUIPMENT_CODE = #EQUIPMENTCODE#
+         AND ROUTING_ID = #ROUTINGID#
+         AND ROUTING_NO = #ROUTINGCODE#
+         AND ITEM_CODE = #ITEMCODE#
+  </delete>
+  <!-- 공정별 설비 연결 종료 -->
+    
+  <!-- BOM 등록 시작 -->
+  <sql id="master.bom.list.sql-select">
+    SELECT CB.ORG_ID AS ORGID
+              ,CB.COMPANY_ID AS COMPANYID
+              ,CB.UPPER_ITEM_CODE AS UPPERITEMCODE
+              ,CB.ITEM_CODE AS ITEMCODE
+              ,(SELECT IM.ITEM_NAME
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS ITEMNAME
+              ,(SELECT IM.ORDER_NAME
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS ORDERNAME
+              ,(SELECT IM.CAR_TYPE
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS MODEL
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_ITEM_MASTER IM , CB_SMALL_CODE SC
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE
+                   AND IM.ORG_ID = SC.ORG_ID
+                   AND IM.COMPANY_ID = SC.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'MODEL'
+                   AND SC.SMALL_CODE = IM.CAR_TYPE
+                   ) AS MODELNAME
+              ,(SELECT IM.ITEM_TYPE
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS ITEMTYPE
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_ITEM_MASTER IM , CB_SMALL_CODE SC
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE
+                   AND IM.ORG_ID = SC.ORG_ID
+                   AND IM.COMPANY_ID = SC.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                   AND SC.SMALL_CODE = IM.ITEM_TYPE
+                   ) AS ITEMTYPENAME
+              ,(SELECT IM.ITEM_STANDARD
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS ITEMSTANDARD
+              ,(SELECT IM.MATERIAL_TYPE
+                  FROM CB_ITEM_MASTER IM
+                 WHERE 1=1
+                   AND IM.ORG_ID = CB.ORG_ID
+                   AND IM.COMPANY_ID = CB.COMPANY_ID
+                   AND IM.ITEM_CODE = CB.ITEM_CODE) AS MATERIALTYPE
+              ,CB.SORT_ORDER AS SORTORDER
+              ,CB.LEV AS LEV
+              ,CB.UOM AS UOM
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE 1=1
+                   AND SC.ORG_ID = CB.ORG_ID
+                   AND SC.COMPANY_ID = CB.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'UOM'
+                   AND SC.SMALL_CODE = CB.UOM) AS UOMNAME
+              ,CB.QTY AS QTY
+              ,CB.YEILD_RATE AS YEILDRATE
+              ,CB.WAREHOUSING
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE 1=1
+                   AND SC.ORG_ID = CB.ORG_ID
+                   AND SC.COMPANY_ID = CB.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'WAREHOUSING'
+                   AND SC.SMALL_CODE = CB.WAREHOUSING) AS WAREHOUSINGNAME
+              ,CB.ROUTING_GUBUN AS ROUTINGGUBUN
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE 1=1
+                   AND SC.ORG_ID = CB.ORG_ID
+                   AND SC.COMPANY_ID = CB.COMPANY_ID
+                   AND SC.BIG_CODE = 'MFG'
+                   AND SC.MIDDLE_CODE = 'ROUTING_GUBUN'
+                   AND SC.SMALL_CODE = CB.ROUTING_GUBUN) AS ROUTINGGUBUNNAME
+              ,TO_CHAR(CB.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+              ,TO_CHAR(CB.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+              ,ROUTING_ID AS ROUTINGID
+              ,ROUTING_NO AS ROUTINGNO
+              ,(SELECT CRC.ROUTING_NAME
+                  FROM CB_ROUTING_CONTROL CRC
+                 WHERE CRC.ORG_ID = CB.ORG_ID
+                    AND CRC.COMPANY_ID = CB.COMPANY_ID
+                    AND CRC.ROUTING_ID = CB.ROUTING_ID)  AS ROUTINGNAME
+              ,(SELECT MIN(ROUTING_ID) FROM CB_ROUTING_CONTROL CRC
+               WHERE ORG_ID = #ORGID#
+                 AND COMPANY_ID = #COMPANYID#
+                 AND ITEM_CODE = #CREATEITEMCODE#
+                 AND CRC.ROUTING_NO = CB.ROUTING_NO) AS CREATEROUTINGID
+              ,(SELECT  (MAT + PRC + SHIP + SUB)   AS ABAIL 
+                FROM CB_INV_V  A
+               WHERE A.ORGID = CB.ORG_ID
+                 AND A.COMPANYID = CB.COMPANY_ID
+                 AND A.ITEMCODE = CB.ITEM_CODE) AS ABAIL
+                 ,REMARKS
+      FROM CB_BOM CB
+  </sql>
+
+  <sql id="master.bom.list.sql-where">
+    WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            CB.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            CB.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            CB.UPPER_ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+  </sql>
+
+  <select id="master.bom.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="master.bom.list.sql-select" />
+      <include refid="master.bom.list.sql-where" />
+      ORDER BY CB.ORG_ID, CB.COMPANY_ID, CB.SORT_ORDER
+  </select>
+  
+  <select id="master.bom.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="master.bom.list.sql-select" />
+      <include refid="master.bom.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <insert id="master.bom.list.insert" parameterClass="java.util.Map">
+      <![CDATA[
+          INSERT INTO CB_BOM
+            (ORG_ID
+             ,COMPANY_ID
+             ,UPPER_ITEM_CODE
+             ,ITEM_CODE
+             ,ROUTING_ID
+             ,ROUTING_NO
+             ,ROUTING_GUBUN
+      ]]>
+      <isNotEmpty property="SORTORDER" prepend=",">
+             SORT_ORDER
+            ,LEV
+      </isNotEmpty>
+      <isNotEmpty property="UOM" prepend=",">
+             UOM
+      </isNotEmpty>
+      <isNotEmpty property="WAREHOUSING" prepend=",">
+             WAREHOUSING
+      </isNotEmpty>
+      <isNotEmpty property="QTY" prepend=",">
+             QTY
+      </isNotEmpty>
+      <isNotEmpty property="YEILDRATE" prepend=",">
+             YEILD_RATE
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE
+      </isNotEmpty>
+      <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS
+      </isNotEmpty>
+      <![CDATA[
+             ,CREATION_DATE
+             ,CREATED_BY
+             ,LAST_UPDATE_DATE
+             ,LAST_UPDATED_BY
+             )
+          VALUES
+            (#ORGID#
+            ,#COMPANYID#
+            ,#UPPERITEMCODE#
+            ,#ITEMCODE#
+            ,#ROUTINGID#
+            ,#ROUTINGNO#
+            ,#ROUTINGGUBUN#
+      ]]>
+      <isNotEmpty property="SORTORDER" prepend=",">
+             $SORTORDER$
+            ,$SORTORDER$
+      </isNotEmpty>
+      <isNotEmpty property="UOM" prepend=",">
+             #UOM#
+      </isNotEmpty>
+      <isNotEmpty property="WAREHOUSING" prepend=",">
+             #WAREHOUSING#
+      </isNotEmpty>
+      <isNotEmpty property="QTY" prepend=",">
+             $QTY$
+      </isNotEmpty>
+      <isNotEmpty property="YEILDRATE" prepend=",">
+             $YEILDRATE$
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isNotEmpty property="REMARKS" prepend=",">
+             #REMARKS#
+      </isNotEmpty>
+      <![CDATA[
+             ,SYSDATE
+             ,#REGISTID#
+             ,SYSDATE
+             ,#REGISTID#
+             )
+      ]]>
+  </insert>
+  
+  <update id="master.bom.list.update" parameterClass="java.util.Map">
+      <![CDATA[
+      UPDATE CB_BOM
+         SET LAST_UPDATED_BY  = #UPDATEID#
+             , LAST_UPDATE_DATE = SYSDATE
+      ]]>
+    <isNotEmpty property="SORTORDER" prepend=",">
+           SORT_ORDER = $SORTORDER$
+    </isNotEmpty>
+    <isEmpty property="SORTORDER" prepend=",">
+           SORT_ORDER = NULL
+    </isEmpty>
+    <isNotEmpty property="UOM" prepend=",">
+           UOM = #UOM#
+    </isNotEmpty>
+    <isEmpty property="UOM" prepend=",">
+           UOM = NULL
+    </isEmpty>
+    <isNotEmpty property="QTY" prepend=",">
+           QTY = $QTY$
+    </isNotEmpty>
+    <isEmpty property="QTY" prepend=",">
+           QTY = NULL
+    </isEmpty>
+    <isNotEmpty property="ROUTINGID" prepend=",">
+           ROUTING_ID = #ROUTINGID#
+    </isNotEmpty>
+    <isEmpty property="ROUTINGID" prepend=",">
+           ROUTING_ID = NULL
+    </isEmpty>
+    <isNotEmpty property="ROUTINGNO" prepend=",">
+           ROUTING_NO = #ROUTINGNO#
+    </isNotEmpty>
+    <isEmpty property="ROUTINGNO" prepend=",">
+           ROUTING_NO = NULL
+    </isEmpty>
+
+    <isNotEmpty property="WAREHOUSING" prepend=",">
+           WAREHOUSING = #WAREHOUSING#
+    </isNotEmpty>
+    <isEmpty property="WAREHOUSING" prepend=",">
+           WAREHOUSING = NULL
+    </isEmpty>
+    <isNotEmpty property="ROUTINGGUBUN" prepend=",">
+           ROUTING_GUBUN = #ROUTINGGUBUN#
+    </isNotEmpty>
+    <isEmpty property="ROUTINGGUBUN" prepend=",">
+           ROUTING_GUBUN = NULL
+    </isEmpty>
+
+    <isNotEmpty property="YEILDRATE" prepend=",">
+           YEILD_RATE = $YEILDRATE$
+    </isNotEmpty>
+    <isEmpty property="YEILDRATE" prepend=",">
+           YEILD_RATE = NULL
+    </isEmpty>
+    <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isEmpty property="EFFECTIVESTARTDATE" prepend=",">
+           EFFECTIVE_START_DATE = NULL
+    </isEmpty>
+    <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+           EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+    </isNotEmpty>
+    <isEmpty property="EFFECTIVEENDDATE" prepend=",">
+           EFFECTIVE_END_DATE = NULL
+    </isEmpty>
+    <isNotEmpty property="REMARKS" prepend=",">
+           REMARKS = #REMARKS# 
+    </isNotEmpty>
+    <isEmpty property="REMARKS" prepend=",">
+           REMARKS = NULL
+    </isEmpty>
+      <![CDATA[
+      WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND UPPER_ITEM_CODE = #UPPERITEMCODE#
+           AND ITEM_CODE = #ITEMCODE# 
+      ]]>
+  </update>
+  
+  <delete id="master.bom.list.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_BOM
+       WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND UPPER_ITEM_CODE = #UPPERITEMCODE#
+           AND ITEM_CODE = #ITEMCODE# 
+  </delete>
+  <!-- BOM 등록 끝 -->
+  
+  <!-- 공구 LIST 조회 시작 -->
+  <select id="master.routing.detail.first.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT  ORGID, COMPANYID, ITEMCODE, ROUTINGID, EQUIPMENTCODE FROM (
+      <include refid="master.routing.detail.sql-select" />
+      <include refid="master.routing.detail.sql-where" />
+      )
+      WHERE 1=1
+        AND ROWNUM = 1
+  </select>
+  
+    <sql id="master.tool.list.sql-select">
+         SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, ROUTING_ID, EQUIPMENT_CODE, ITEM_NAME, EFFECTIVE_START_DATE, CHECK_SEQ) AS RN
+                  ,ORG_ID AS ORGID
+                  ,COMPANY_ID AS COMPANYID
+                  ,CHECK_SEQ AS CHECKSEQ
+                  ,ROUTING_ID AS ROUTINGID
+                  ,ROUTING_NO AS ROUTINGNO
+                  ,EQUIPMENT_CODE AS EQUIPMENTCODE
+                  ,ITEM_CODE AS ITEMCODE
+                  ,ORDER_NAME AS ORDERNAME
+                  ,ITEM_NAME AS ITEMNAME
+                  ,ITEM_STANDARD AS ITEMSTANDARD
+                  ,TOOL_LIFE AS TOOLLIFE
+                  
+                  ,PAGE_QTY AS PAGEQTY
+                  ,EQUIP_QTY AS EQUIPQTY
+                  ,MONTHLY_PROD_QTY AS MONTHLYPRODQTY
+                  
+                  ,CHECK_CODE1 AS CHECKCODE1
+                  ,CHECK_NAME1 AS CHECKNAME1
+                  ,CHECK_STANDARD1 AS CHECKSTANDARD1
+                  ,STANDARD_VALUE1 AS STANDARDVALUE1
+                  ,MAX_VALUE1 AS MAXVALUE1
+                  ,MIN_VALUE1 AS MINVALUE1
+                  ,CHECK_METHOD_TYPE1 AS CHECKMETHODTYPE1
+                  ,CHECK_METHOD_NAME1 AS CHECKMETHODNAME1
+                  ,CHECK_CODE2 AS CHECKCODE2
+                  ,CHECK_NAME2 AS CHECKNAME2
+                  ,CHECK_STANDARD2 AS CHECKSTANDARD2
+                  ,STANDARD_VALUE2 AS STANDARDVALUE2
+                  ,MAX_VALUE2 AS MAXVALUE2
+                  ,MIN_VALUE2 AS MINVALUE2
+                  ,CHECK_METHOD_TYPE2 AS CHECKMETHODTYPE2
+                  ,CHECK_METHOD_NAME2 AS CHECKMETHODNAME2
+                  ,CHECK_CODE3 AS CHECKCODE3
+                  ,CHECK_NAME3 AS CHECKNAME3
+                  ,CHECK_STANDARD3 AS CHECKSTANDARD3
+                  ,STANDARD_VALUE3 AS STANDARDVALUE3
+                  ,MAX_VALUE3 AS MAXVALUE3
+                  ,MIN_VALUE3 AS MINVALUE3
+                  ,CHECK_METHOD_TYPE3 AS CHECKMETHODTYPE3
+                  ,CHECK_METHOD_NAME3 AS CHECKMETHODNAME3
+                  ,CHECK_CODE4 AS CHECKCODE4
+                  ,CHECK_NAME4 AS CHECKNAME4
+                  ,CHECK_STANDARD4 AS CHECKSTANDARD4
+                  ,STANDARD_VALUE4 AS STANDARDVALUE4
+                  ,MAX_VALUE4 AS MAXVALUE4
+                  ,MIN_VALUE4 AS MINVALUE4
+                  ,CHECK_METHOD_TYPE4 AS CHECKMETHODTYPE4
+                  ,CHECK_METHOD_NAME4 AS CHECKMETHODNAME4
+                  ,EFFECTIVE_START_DATE AS EFFECTIVESTARTDATE
+                  ,EFFECTIVE_END_DATE AS EFFECTIVEENDDATE
+        FROM CB_TOOL_CHECK_MASTER_V
+    </sql>
+
+    <sql id="master.tool.list.sql-where">
+        WHERE 1=1
+       <isNotEmpty property="orgid" prepend="AND">
+           ORG_ID = #orgid#
+       </isNotEmpty>
+       <isNotEmpty property="companyid" prepend="AND">
+           COMPANY_ID = #companyid#
+       </isNotEmpty>
+       <isNotEmpty property="routingid" prepend="AND">
+           ROUTING_ID = #routingid#
+       </isNotEmpty>
+       <isNotEmpty property="equipmentcode" prepend="AND">
+           EQUIPMENT_CODE = #equipmentcode#
+       </isNotEmpty>
+        ORDER BY ORG_ID, COMPANY_ID, ROUTING_ID, EQUIPMENT_CODE, ITEM_NAME, EFFECTIVE_START_DATE, CHECK_SEQ
+    </sql>
+
+    <select id="master.tool.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="master.tool.list.sql-select" />
+           <include refid="master.tool.list.sql-where" />
+    </select>
+
+    <select id="master.tool.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="master.tool.list.sql-select" />
+            <include refid="master.tool.list.sql-where" />
+        ) TOT
+    </select>
+
+    <insert id="master.tool.list.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_TOOL_CHECK_MASTER
+        (
+          ORG_ID
+          ,COMPANY_ID
+          ,CHECK_SEQ
+          ,ITEM_CODE
+          ,ROUTING_ID
+          ,ROUTING_NO
+          ,EQUIPMENT_CODE
+          ,TOOL_LIFE
+          ,PAGE_QTY
+          ,EQUIP_QTY
+          ,MONTHLY_PROD_QTY
+          ,CHECK_CODE1
+          ,CHECK_STANDARD1
+          ,STANDARD_VALUE1
+          ,MAX_VALUE1
+          ,MIN_VALUE1
+          ,CHECK_METHOD_TYPE1
+          ,CHECK_CODE2
+          ,CHECK_STANDARD2
+          ,STANDARD_VALUE2
+          ,MAX_VALUE2
+          ,MIN_VALUE2
+          ,CHECK_METHOD_TYPE2
+          ,CHECK_CODE3
+          ,CHECK_STANDARD3
+          ,STANDARD_VALUE3
+          ,MAX_VALUE3
+          ,MIN_VALUE3
+          ,CHECK_METHOD_TYPE3
+          ,CHECK_CODE4
+          ,CHECK_STANDARD4
+          ,STANDARD_VALUE4
+          ,MAX_VALUE4
+          ,MIN_VALUE4
+          ,CHECK_METHOD_TYPE4
+          ,EFFECTIVE_START_DATE
+          ,EFFECTIVE_END_DATE
+          ,CREATED_BY
+          ,CREATION_DATE
+          ,LAST_UPDATED_BY
+          ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+          #ORGID#
+          ,#COMPANYID#
+          ,(SELECT TO_NUMBER(NVL(MAX(CHECK_SEQ), 0)) + 1
+             FROM CB_TOOL_CHECK_MASTER
+            WHERE 1=1)
+          ,#ITEMCODE#
+          ,$ROUTINGID$
+          ,#ROUTINGNO#
+          ,#EQUIPMENTCODE#
+          ,$TOOLLIFE$
+          ,$PAGEQTY$
+          ,$EQUIPQTY$
+          ,$MONTHLYPRODQTY$
+          ,#CHECKCODE1#
+          ,#CHECKSTANDARD1#
+          ,#STANDARDVALUE1#
+          ,$MAXVALUE1$
+          ,$MINVALUE1$
+          ,#CHECKMETHODTYPE1#
+          ,#CHECKCODE2#
+          ,#CHECKSTANDARD2#
+          ,#STANDARDVALUE2#
+          ,$MAXVALUE2$
+          ,$MINVALUE2$
+          ,#CHECKMETHODTYPE2#
+          ,#CHECKCODE3#
+          ,#CHECKSTANDARD3#
+          ,#STANDARDVALUE3#
+          ,$MAXVALUE3$
+          ,$MINVALUE3$
+          ,#CHECKMETHODTYPE3#
+          ,#CHECKCODE4#
+          ,#CHECKSTANDARD4#
+          ,#STANDARDVALUE4#
+          ,$MAXVALUE4$
+          ,$MINVALUE4$
+          ,#CHECKMETHODTYPE4#
+          ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+          ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+          ,#REGISTID#
+          ,SYSDATE
+          ,#REGISTID#
+          ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="master.tool.list.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_TOOL_CHECK_MASTER
+              SET LAST_UPDATE_DATE = SYSDATE
+                  ,LAST_UPDATED_BY = #UPDATEID#
+                  ,TOOL_LIFE = $TOOLLIFE$
+				          ,PAGE_QTY = $PAGEQTY$
+				          ,EQUIP_QTY = $EQUIPQTY$
+				          ,MONTHLY_PROD_QTY = $MONTHLYPRODQTY$
+                  ,CHECK_CODE1 = #CHECKCODE1#
+                  ,CHECK_STANDARD1 = #CHECKSTANDARD1#
+                  ,STANDARD_VALUE1 = #STANDARDVALUE1#
+                  ,MAX_VALUE1 = $MAXVALUE1$
+                  ,MIN_VALUE1 = $MINVALUE1$
+                  ,CHECK_METHOD_TYPE1 = #CHECKMETHODTYPE1#
+                  ,CHECK_CODE2 = #CHECKCODE2#
+                  ,CHECK_STANDARD2 = #CHECKSTANDARD2#
+                  ,STANDARD_VALUE2 = #STANDARDVALUE2#
+                  ,MAX_VALUE2 = $MAXVALUE2$
+                  ,MIN_VALUE2 = $MINVALUE2$
+                  ,CHECK_METHOD_TYPE2 = #CHECKMETHODTYPE2#
+                  ,CHECK_CODE3 = #CHECKCODE3#
+                  ,CHECK_STANDARD3 = #CHECKSTANDARD3#
+                  ,STANDARD_VALUE3 = #STANDARDVALUE3#
+                  ,MAX_VALUE3 = $MAXVALUE3$
+                  ,MIN_VALUE3 = $MINVALUE3$
+                  ,CHECK_METHOD_TYPE3 = #CHECKMETHODTYPE3#
+                  ,CHECK_CODE4 = #CHECKCODE4#
+                  ,CHECK_STANDARD4 = #CHECKSTANDARD4#
+                  ,STANDARD_VALUE4 = #STANDARDVALUE4#
+                  ,MAX_VALUE4 = $MAXVALUE4$
+                  ,MIN_VALUE4 = $MINVALUE4$
+                  ,CHECK_METHOD_TYPE4 = #CHECKMETHODTYPE4#
+                  ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+                  ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+          WHERE 1=1
+             AND ORG_ID = $ORGID$
+             AND COMPANY_ID = $COMPANYID$
+             AND CHECK_SEQ = $CHECKSEQ$
+    ]]>
+    </update>
+    <!-- 공구 LIST 조회 종료-->
+    
+  <!-- 관리도 계수 조회 종료 시작 -->
+    <sql id="master.spccalc.list.sql-select">
+        SELECT RANK() OVER(ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.CALC_DIV, SP.CALC_NUMBER, SP.SEQ) AS RN 
+              ,SP.ORG_ID AS ORGID
+              ,SP.COMPANY_ID AS COMPANYID
+              ,SP.SEQ AS SEQ
+              ,SP.CALC_DIV AS CALCDIV
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                  AND SC.ORG_ID = SP.ORG_ID
+                  AND SC.COMPANY_ID = SP.COMPANY_ID
+                  AND SC.BIG_CODE = 'MFG'
+                  AND SC.MIDDLE_CODE = 'CALC_DIV'
+                  AND SC.SMALL_CODE = SP.CALC_DIV) AS CALCDIVNAME
+              ,SP.CALC_NUMBER AS CALCNUMBER
+              ,SP.SPC_CALC AS SPCCALC
+              ,TO_CHAR(SP.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+              ,TO_CHAR(SP.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+              ,REMARKS AS REMARKS
+          FROM CB_SPC_CALC SP
+    </sql>
+
+    <sql id="master.spccalc.list.sql-where">
+         WHERE 1=1
+           AND TO_DATE(#REFDATE#, 'YYYY-MM-DD') BETWEEN SP.EFFECTIVE_START_DATE AND SP.EFFECTIVE_END_DATE
+       <isNotEmpty property="ORGID" prepend="AND">
+           SP.ORG_ID = #ORGID#
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+           SP.COMPANY_ID = #COMPANYID#
+       </isNotEmpty>
+       <isNotEmpty property="CALCDIV" prepend="AND">
+           SP.CALC_DIV = #CALCDIV#
+       </isNotEmpty>
+        ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.CALC_DIV, SP.CALC_NUMBER, SP.SEQ
+    </sql>
+
+    <select id="master.spccalc.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="master.spccalc.list.sql-select" />
+           <include refid="master.spccalc.list.sql-where" />
+    </select>
+
+    <select id="master.spccalc.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="master.spccalc.list.sql-select" />
+            <include refid="master.spccalc.list.sql-where" />
+        ) TOT
+    </select>
+
+    <insert id="master.spccalc.list.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SPC_CALC
+              (ORG_ID
+              ,COMPANY_ID
+              ,SEQ
+        ]]>
+      <isNotEmpty property="CALCDIV" prepend=",">
+             CALC_DIV
+      </isNotEmpty>
+      <isNotEmpty property="CALCNUMBER" prepend=",">
+             CALC_NUMBER
+      </isNotEmpty>
+      <isNotEmpty property="SPCCALC" prepend=",">
+             SPC_CALC
+      </isNotEmpty>
+       <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE
+      </isNotEmpty>
+       <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE
+      </isNotEmpty>
+       <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS
+      </isNotEmpty>
+      <![CDATA[
+             ,CREATION_DATE
+             ,CREATED_BY
+             ,LAST_UPDATE_DATE
+             ,LAST_UPDATED_BY
+             )
+          VALUES
+            (#ORGID#
+            ,#COMPANYID#
+            ,$SEQ$
+      ]]>
+      <isNotEmpty property="CALCDIV" prepend=",">
+             #CALCDIV#
+      </isNotEmpty>
+      <isNotEmpty property="CALCNUMBER" prepend=",">
+             $CALCNUMBER$
+      </isNotEmpty>
+      <isNotEmpty property="SPCCALC" prepend=",">
+             $SPCCALC$
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+       <isNotEmpty property="REMARKS" prepend=",">
+             #REMARKS#
+      </isNotEmpty>
+      <![CDATA[
+             ,SYSDATE
+             ,#REGISTID#
+             ,SYSDATE
+             ,#REGISTID#
+             )
+      ]]>
+    </insert>
+    
+    <update id="master.spccalc.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SPC_CALC
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+      <isNotEmpty property="CALCDIV" prepend=",">
+             CALC_DIV = #CALCDIV#
+      </isNotEmpty>
+      <isEmpty property="CALCDIV" prepend=",">
+             CALC_DIV = NULL
+      </isEmpty>
+      <isNotEmpty property="CALCNUMBER" prepend=",">
+             CALC_NUMBER = $CALCNUMBER$
+      </isNotEmpty>
+      <isEmpty property="CALCNUMBER" prepend=",">
+             CALC_NUMBER = NULL
+      </isEmpty>
+      <isNotEmpty property="SPCCALC" prepend=",">
+             SPC_CALC = $SPCCALC$
+      </isNotEmpty>
+      <isEmpty property="SPCCALC" prepend=",">
+             SPC_CALC = NULL
+      </isEmpty>
+      <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE = NULL
+      </isEmpty>
+      <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE = NULL
+      </isEmpty>
+       <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS = #REMARKS#
+      </isNotEmpty>
+      <isEmpty property="REMARKS" prepend=",">
+             REMARKS = NULL
+      </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND SEQ = $SEQ$
+        ]]>
+    </update>
+    
+    <delete id="master.spccalc.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SPC_CALC
+         WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND SEQ = $SEQ$
+    </delete>
+    <!-- 관리도 계수 조회 종료-->
+    
+    
+    <sql id="master.routing.sales.price.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, PRICE_SEQ ) AS RN 
+              ,ORG_ID AS ORGID
+							,COMPANY_ID AS COMPANYID
+							,PRICE_SEQ AS PRICESEQ
+							,ITEM_CODE AS ITEMCODE
+							,ROUTING_ID AS ROUTINGID
+							,TO_CHAR(EFFECTIVE_START_DATE,'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+							,TO_CHAR(EFFECTIVE_END_DATE,'YYYY-MM-DD') AS EFFECTIVEENDDATE
+							,UNIT_PRICE_A AS UNITPRICEA
+          FROM CB_SALES_PRICE_ROUTING SPR
+    </sql>
+
+    <sql id="master.routing.sales.price.sql-where">
+         WHERE 1=1
+           AND SPR.ORG_ID = #ORGID#
+           AND SPR.COMPANY_ID = #COMPANYID#
+           AND ITEM_CODE = #ITEMCODE#
+           AND ROUTING_ID = #ROUTINGID#
+        ORDER BY ORG_ID, COMPANY_ID, PRICE_SEQ 
+    </sql>
+
+    <select id="master.routing.sales.price.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="master.routing.sales.price.sql-select" />
+           <include refid="master.routing.sales.price.sql-where" />
+    </select>
+
+    <select id="master.routing.sales.price.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="master.routing.sales.price.sql-select" />
+            <include refid="master.routing.sales.price.sql-where" />
+        ) TOT
+    </select>
+    
+    <insert id="master.routing.price.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_SALES_PRICE_ROUTING
+               (ORG_ID
+              ,COMPANY_ID
+              ,PRICE_SEQ
+              ,ITEM_CODE
+              ,ROUTING_ID
+              ,EFFECTIVE_START_DATE
+              ,EFFECTIVE_END_DATE
+              ,UNIT_PRICE_A
+              ,REMARKS
+        ]]>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+         VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,(SELECT NVL(MAX(PRICE_SEQ),0) + 1
+                  FROM CB_SALES_PRICE_ROUTING
+                 WHERE ORG_ID = #ORGID#
+                   AND COMPANY_ID = #COMPANYID#)
+              ,#ITEMCODE#
+              ,#ROUTINGID#
+              ,TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+              ,TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+              ,#UNITPRICEA#
+              ,#REMARKS#
+        ]]>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="master.routing.price.update2" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_PRICE_ROUTING
+           SET LAST_UPDATED_BY  = #REGISTID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , EFFECTIVE_END_DATE = TO_DATE(TO_CHAR(SYSDATE,'YYYY-MM-DD'),'YYYY-MM-DD')
+        WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND ITEM_CODE = #ITEMCODE#
+           AND ROUTING_ID = #ROUTINGID#
+           AND PRICE_SEQ != (SELECT NVL(MAX(PRICE_SEQ),0)
+                              FROM CB_SALES_PRICE_ROUTING
+                             WHERE ORG_ID = #ORGID#
+                               AND COMPANY_ID = #COMPANYID#
+                               AND ITEM_CODE = #ITEMCODE#
+                               AND ROUTING_ID = #ROUTINGID#)
+           AND EFFECTIVE_END_DATE = TO_DATE('4999-12-31','YYYY-MM-DD')                     
+        ]]>
+    </update>
+    
+    
+    <update id="master.routing.price.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_PRICE_ROUTING
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+      <isNotEmpty property="UNITPRICEA" prepend=",">
+             UNIT_PRICE_A = $UNITPRICEA$
+      </isNotEmpty>
+      <isEmpty property="UNITPRICEA" prepend=",">
+             UNIT_PRICE_A = NULL
+      </isEmpty>
+      <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isEmpty property="EFFECTIVESTARTDATE" prepend=",">
+             EFFECTIVE_START_DATE = NULL
+      </isEmpty>
+      <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+      </isNotEmpty>
+      <isEmpty property="EFFECTIVEENDDATE" prepend=",">
+             EFFECTIVE_END_DATE = NULL
+      </isEmpty>
+       <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS = #REMARKS#
+      </isNotEmpty>
+      <isEmpty property="REMARKS" prepend=",">
+             REMARKS = NULL
+      </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND PRICE_SEQ = $PRICESEQ$
+        ]]>
+    </update>
+    
+    <delete id="master.routing.price.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SALES_PRICE_ROUTING
+         WHERE 1=1
+           AND ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND PRICE_SEQ = $PRICESEQ$
+    </delete>
+    <!-- 관리도 계수 조회 종료-->
+</sqlMap>

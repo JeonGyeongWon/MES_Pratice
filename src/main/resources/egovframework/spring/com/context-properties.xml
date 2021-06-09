@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+    <!-- 프로퍼티 정보 설정 -->
+    <bean name="propertiesService" class="egovframework.rte.fdl.property.impl.EgovPropertyServiceImpl" destroy-method="destroy">
+        <property name="properties">
+            <map>
+                <entry key="pageUnit" value="10"/>
+                <entry key="pageSize" value="10"/>
+                <entry key="posblAtchFileSize" value="5242880"/>
+                <entry key="Globals.fileStorePath" value="/uploadfiles/"/>
+                <!-- 프레임 웹앱 경로 -->
+                <entry key="Globals.path.webapp" value="/eGovFrameDev-3.7.0-SJT/workspace/SJT/src/main/webapp"/>
+                <!-- 프레임 파일 절대경로 -->
+                <entry key="Globals.fileAbsolutePath" value="D:\\eGovFrameDev-3.7.0-SJT\\workspace\\SJT\\src\\main\\webapp\\"/>
+                <!-- 프레임 출력물 절대경로 -->
+                <entry key="Globals.reportAbsolutePath" value="D:\\eGovFrameDev-3.7.0-SJT\\workspace\\SJT\\src\\main\\webapp\\WEB-INF\\jsp\\report\\"/>
+                <!-- 프레임 출력물 로고 절대경로 -->
+                <entry key="Globals.imageAbsolutePath" value="D:\\eGovFrameDev-3.7.0-SJT\\workspace\\SJT\\src\\main\\webapp\\images\\report\\"/>
+                <!-- 회사로고이미지 절대경로 -->
+                <entry key="Globals.reportOrgAbsolutePath" value="D:\\eGovFrameDev-3.7.0-SJT\\workspace\\SJT\\src\\main\\webapp\\images\\footer\\Footer_left.png"/>
+                <!-- WAS 웹앱 경로 -->
+<!--                 <entry key="Globals.path.webapp" value="/WAS/target/SJT"/> -->
+                <!-- WAS 파일 절대경로 -->
+<!--                 <entry key="Globals.fileAbsolutePath" value="D:\\WAS\\target\\SJT\\"/> -->
+                <!-- WAS 출력물 절대경로 -->
+<!--                 <entry key="Globals.reportAbsolutePath" value="D:\\WAS\\target\\SJT\\WEB-INF\\jsp\\report\\"/> -->
+                <!-- WAS 출력물 로고 절대경로 -->
+<!--                 <entry key="Globals.imageAbsolutePath" value="D:\\WAS\\target\\SJT\\images\\report\\"/> -->
+                <entry key="Globals.path.images" value="/images"/>
+                <entry key="Globals.addedOptions" value="false"/>
+            </map>
+        </property>
+    </bean>
+</beans>

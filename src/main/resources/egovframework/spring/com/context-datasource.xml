@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<!-- 환경설정 기본정보를 globals.properties 에서 참조하도록 propertyConfigurer 설정 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/egovframework/egovProps/globals.properties</value>
+				<!-- value>file:/product/jeus/egovProps/globals.properties</value -->
+			</list>
+		</property>
+	</bean>
+
+	<!-- datasource 설정(propertyConfigurer 활용) -->
+	<alias name="dataSource-${Globals.DbType}" alias="dataSource" />
+  <alias name="dataSource-${Globals2.DbType}" alias="dataSource2" />
+	<alias name="dataSource-${Globals.DbType}" alias="egov.dataSource" />
+	
+	<bean id="dataSource-oracle" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="jdbc/SJT" />
+		<property name="resourceRef" value="true" />
+	</bean>
+	
+  <!-- <bean id="dataSource-mysql" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="jdbc/DJ1" />
+    <property name="resourceRef" value="true" />
+  </bean> -->
+</beans>

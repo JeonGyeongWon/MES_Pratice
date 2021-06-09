@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="file">
+
+    <typeAlias alias="ImgFileVO" type="kr.co.bps.scs.table.ImgFileVO"/>
+
+    <select id="file.select" parameterClass="java.util.Map" resultClass="ImgFileVO">
+        <![CDATA[    
+            SELECT FILEID AS fileid,
+               FILENMVIEW AS filenmview,
+               FILENMREAL AS filenmreal,
+               FILEPATHVIEW AS filepathview,
+               FILEPATHREAL AS filepathreal,
+               FILEEXE AS fileexe,
+               FILECONTYPE AS filecontype,
+               CREATED_BY AS registid,
+               TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:SS') as registdt,
+               LAST_UPDATED_BY AS updateid,
+               TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD HH24:MI:SS') as updatedt
+          FROM CB_FILE
+       WHERE 1 = 1
+         AND FILEID = $fileid$
+        ]]>
+    </select>
+    
+    <insert id="file.insert" parameterClass="ImgFileVO">
+        <selectKey resultClass="java.lang.Integer" keyProperty="fileid">
+            SELECT COALESCE(MAX(FILEID),0)+1 AS fileid FROM CB_FILE
+        </selectKey>
+        <![CDATA[
+      INSERT INTO CB_FILE
+      (
+        FILEID,
+        FILENMVIEW,
+        FILENMREAL,
+        FILEPATHVIEW,
+        FILEPATHREAL,
+        FILEEXE,
+        FILECONTYPE,
+        CREATED_BY,
+        CREATION_DATE,
+        LAST_UPDATED_BY,
+        LAST_UPDATE_DATE
+      )
+      VALUES
+      (
+        #fileid#,
+        #filenmview#,
+        #filenmreal#,
+        #filepathview#,
+        #filepathreal#,
+        #fileexe#,
+        #filecontype#,
+        #registid#,
+        SYSDATE,
+        #updateid#,
+        SYSDATE
+      )     
+    ]]>
+    </insert>
+    
+  <select id="itemfile.select" parameterClass="java.util.Map" resultClass="ImgFileVO">
+        <![CDATA[    
+            SELECT f.FILEID AS fileid,
+                      f.FILENMVIEW AS filenmview,
+                      f.FILENMREAL AS filenmreal,
+                      f.filepathview,
+                      f.filepathreal,
+                      f.fileexe,
+                      f.filecontype
+              FROM CB_FILE f
+              INNER JOIN CB_ITEM_FILE i ON (i.FILEID = f.FILEID )
+              WHERE i.ITEM_CODE = #itemcd#
+              AND i.FILETYPE = #filetype#
+        ]]>
+        <isNotEmpty property="gubun" prepend="AND">
+          i.GUBUN = #gubun#
+        </isNotEmpty>
+        <isEmpty property="gubun" prepend="AND">
+          i.GUBUN IS NULL
+        </isEmpty>
+        <isNotEmpty property="routingid" prepend="AND">
+            i.ROUTING_ID = $routingid$
+        </isNotEmpty>
+        <isNotEmpty property="checkbig" prepend="AND">
+            i.CHECK_BIG = #checkbig#
+        </isNotEmpty>
+        <!-- <isEmpty property="routingid" prepend="AND">
+            i.ROUTING_ID IS NULL
+        </isEmpty> -->
+    </select>
+    
+    <insert id="itemfile.insert" parameterClass="java.util.Map">
+        <![CDATA[
+      INSERT INTO CB_ITEM_FILE
+              (ITEM_CODE
+              ,FILEID
+              ,FILETYPE
+              ,GUBUN
+              ,CHECK_BIG
+    ]]>
+    <isNotEmpty property="routingid" prepend=",">
+              ROUTING_ID
+    </isNotEmpty>
+        <![CDATA[
+              ,CREATED_BY
+              ,CREATION_DATE
+              ,LAST_UPDATED_BY
+              ,LAST_UPDATE_DATE
+               )
+        VALUES
+              (#itemcd#
+              ,$fileid$
+              ,#filetype#
+              ,#gubun#
+              ,#checkbig#
+    ]]>
+    <isNotEmpty property="routingid" prepend=",">
+              $routingid$
+    </isNotEmpty>
+        <![CDATA[
+              ,#registid#
+              ,SYSDATE
+              ,#updateid#
+              ,SYSDATE
+               )
+    ]]>
+    </insert>
+    
+    <delete id="file.delete" parameterClass="ImgFileVO">
+    DELETE FROM CB_FILE WHERE FILEID = $fileid$
+    </delete>
+    
+    <delete id="itemfile.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_ITEM_FILE
+         WHERE 1=1
+            AND FILEID = $fileid$
+            <!-- AND ITEM_CODE = #itemcd#
+            AND FILETYPE = #filetype#
+            AND GUBUN = #gubun#
+            AND CHECK_BIG = #checkbig#
+    <isNotEmpty property="routingid" prepend="AND">
+              ROUTING_ID = $routingid$
+    </isNotEmpty> -->
+    </delete>
+</sqlMap>

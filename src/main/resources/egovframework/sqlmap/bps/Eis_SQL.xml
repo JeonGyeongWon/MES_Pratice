@@ -1,0 +1,2154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="eis">
+   <sql id="eis.synthesis.summary.list.sql-select">
+   <![CDATA[
+   SELECT GUBUN1
+      ,(CASE WHEN A.GUBUN1 = 1 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매출'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '(천원)'
+                     ELSE
+                       NULL
+                     END)
+             WHEN A.GUBUN1 = 2 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매입'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '(천원)'
+                     ELSE
+                       NULL
+                     END)
+             WHEN A.GUBUN1 = 3 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매입'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '비율(%)'
+                     ELSE
+                       NULL
+                     END)
+             ELSE
+               NULL
+             END) AS GUBUN1NAME
+      ,GUBUN2
+      ,GUBUN2NAME
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-2
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-1
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS TOTAL
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'01'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON01
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'02'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON02
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'03'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON03
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'04'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON04
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'05'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON05
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'06'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON06
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'07'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON07
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'08'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON08
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'09'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON09
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'10'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON10
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'11'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON11
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'12'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON12
+  FROM (
+        SELECT (CASE WHEN LEVEL BETWEEN 1 AND 2 THEN
+                       1
+                     WHEN LEVEL BETWEEN 3 AND 4 THEN
+                       2
+                     WHEN LEVEL BETWEEN 5 AND 6 THEN
+                       3
+                     ELSE
+                       NULL
+                     END) AS GUBUN1
+              ,(CASE WHEN MOD(LEVEL, 2) = 0 THEN
+                       2
+                     ELSE
+                       1
+                     END) AS GUBUN2
+              ,(CASE WHEN MOD(LEVEL, 2) = 0 THEN
+                       '실적'
+                     ELSE
+                       '계획'
+                     END) AS GUBUN2NAME
+              ,#ORGID# AS ORG_ID
+              ,#COMPANYID# AS COMPANY_ID
+              ,#SEARCHYEAR# AS SEARCH_YEAR
+          FROM DUAL
+        CONNECT BY LEVEL <= 6
+        ) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.synthesis.summary.list.sql-where">
+		 WHERE 1=1
+   </sql>
+   
+   <select id="eis.synthesis.summary.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.synthesis.summary.list.sql-select" />
+      <include refid="eis.synthesis.summary.list.sql-where" />
+   </select>
+   
+   <select id="eis.synthesis.summary.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.synthesis.summary.list.sql-select" />
+      <include refid="eis.synthesis.summary.list.sql-where" />
+    ) TOT
+   </select>
+   
+   
+   <sql id="eis.synthesis.summary.chart1.sql-select">
+   <![CDATA[
+   SELECT A.RN || '월' AS STANDARDMONTH
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,A.RN
+                                     ,1
+                                     ,2) AS SALESAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,A.RN
+                                     ,2
+                                     ,2) AS PURCHASEAMOUNT
+  FROM (
+SELECT LPAD(LEVEL, 2, '0') AS RN
+      ,#ORGID# AS ORG_ID
+      ,#COMPANYID# AS COMPANY_ID
+      ,#SEARCHYEAR# AS SEARCH_YEAR
+  FROM DUAL
+CONNECT BY LEVEL <= 12
+) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.synthesis.summary.chart1.sql-where">
+     WHERE 1=1
+   </sql>
+   
+   <select id="eis.synthesis.summary.chart1.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.synthesis.summary.chart1.sql-select" />
+      <include refid="eis.synthesis.summary.chart1.sql-where" />
+   </select>
+   
+   <select id="eis.synthesis.summary.chart1.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.synthesis.summary.chart1.sql-select" />
+      <include refid="eis.synthesis.summary.chart1.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.synthesis.summary.chart2.sql-select">
+   <![CDATA[
+   SELECT A.RN || '월' AS STANDARDMONTH
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,A.RN
+                                     ,3
+                                     ,1) AS PLANAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,A.RN
+                                     ,3
+                                     ,2) AS RESULTAMOUNT
+  FROM (
+SELECT LPAD(LEVEL, 2, '0') AS RN
+      ,#ORGID# AS ORG_ID
+      ,#COMPANYID# AS COMPANY_ID
+      ,#SEARCHYEAR# AS SEARCH_YEAR
+  FROM DUAL
+CONNECT BY LEVEL <= 12
+) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.synthesis.summary.chart2.sql-where">
+     WHERE 1=1
+   </sql>
+   
+   <select id="eis.synthesis.summary.chart2.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.synthesis.summary.chart2.sql-select" />
+      <include refid="eis.synthesis.summary.chart2.sql-where" />
+   </select>
+   
+   <select id="eis.synthesis.summary.chart2.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.synthesis.summary.chart2.sql-select" />
+      <include refid="eis.synthesis.summary.chart2.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.synthesis.summary.chart3.sql-select">
+   <![CDATA[
+   SELECT A.GUBUN AS GUBUN
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-2
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-1
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS AMOUNT
+  FROM (
+SELECT (CASE WHEN LEVEL = 1 THEN
+               '매출'
+             WHEN LEVEL = 2 THEN
+               '매입'
+             ELSE
+               NULL
+             END) AS GUBUN
+      ,LEVEL AS RN
+      ,#ORGID# AS ORG_ID
+      ,#COMPANYID# AS COMPANY_ID
+      ,#SEARCHYEAR# AS SEARCH_YEAR
+  FROM DUAL
+CONNECT BY LEVEL <= 2
+) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.synthesis.summary.chart3.sql-where">
+     WHERE 1=1
+   </sql>
+   
+   <select id="eis.synthesis.summary.chart3.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.synthesis.summary.chart3.sql-select" />
+      <include refid="eis.synthesis.summary.chart3.sql-where" />
+   </select>
+   
+   <select id="eis.synthesis.summary.chart3.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.synthesis.summary.chart3.sql-select" />
+      <include refid="eis.synthesis.summary.chart3.sql-where" />
+    ) TOT
+   </select>
+   
+<!--    품목군 별 매입집계 현황 시작 -->
+   <sql id="eis.item.pur.summary.list.sql-select">
+   <![CDATA[
+ SELECT B.VALUE AS GUBUN1
+      ,(CASE WHEN A.GUBUN2 = 1 THEN
+               B.LABEL
+             WHEN A.GUBUN2 = 2 THEN
+               ''
+             ELSE
+               NULL
+             END) AS GUBUN1NAME
+      ,A.GUBUN2
+      ,A.GUBUN2NAME
+      ,A.ORG_ID AS ORGID
+      ,A.COMPANY_ID AS COMPANYID
+      ,A.SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR-2
+                                           ,NULL
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR-1
+                                           ,NULL
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,NULL
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS TOTAL
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'01'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON01
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'02'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON02
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'03'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON03
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'04'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON04
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'05'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON05
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'06'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON06
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'07'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON07
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'08'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON08
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'09'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON09
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'10'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON10
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'11'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON11
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(A.ORG_ID
+                                           ,A.COMPANY_ID
+                                           ,A.SEARCH_YEAR
+                                           ,'12'
+                                           ,B.VALUE
+                                           ,A.GUBUN2) AS MON12
+  FROM (
+        SELECT NVL(#ORGID#, ORG_ID) AS ORG_ID
+              ,NVL(#COMPANYID#, COMPANY_ID) AS COMPANY_ID
+              ,#SEARCHYEAR# AS SEARCH_YEAR
+              ,LEVEL AS GUBUN2
+              ,(CASE WHEN MOD(LEVEL, 2) = 0 THEN
+                       '실적'
+                     ELSE
+                       '계획'
+                     END) AS GUBUN2NAME
+          FROM CB_ORG_COMPANY_V
+        CONNECT BY LEVEL <= 2
+        ) A
+      ,(
+        SELECT SC.ORG_ID AS ORG_ID
+              ,SC.COMPANY_ID AS COMPANY_ID
+              ,SC.SMALL_CODE AS VALUE
+              ,SC.SMALL_NAME AS LABEL
+          FROM CB_SMALL_CODE SC
+                 ,CB_ORG_COMPANY_V OV
+         WHERE SC.ORG_ID = NVL(#ORGID#, OV.ORG_ID)
+           AND SC.COMPANY_ID = NVL(#COMPANYID#, OV.COMPANY_ID)
+           AND SC.BIG_CODE = 'EIS'
+           AND SC.MIDDLE_CODE = 'ITEM_PUR'
+           AND SC.USE_YN = 'Y'
+        ) B
+   ]]>
+   </sql>
+   
+   <sql id="eis.item.pur.summary.list.sql-where">
+     WHERE A.ORG_ID = B.ORG_ID
+   AND A.COMPANY_ID = B.COMPANY_ID
+ ORDER BY B.VALUE, A.GUBUN2
+
+   </sql>
+   
+   <select id="eis.item.pur.summary.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.pur.summary.list.sql-select" />
+      <include refid="eis.item.pur.summary.list.sql-where" />
+   </select>
+   
+   <select id="eis.item.pur.summary.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.pur.summary.list.sql-select" />
+      <include refid="eis.item.pur.summary.list.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.item.pur.summary.chart.sql-select">
+   <![CDATA[
+  SELECT A.RN || '월' AS STANDARDMONTH
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,SEARCH_YEAR
+                                           ,A.RN
+                                           ,A.GUBUN1
+                                           ,1) AS PLANAMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_PURCHASE_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,SEARCH_YEAR
+                                           ,A.RN
+                                           ,A.GUBUN1
+                                           ,2) AS RESULTAMOUNT
+  FROM (
+SELECT LPAD(LEVEL, 2, '0') AS RN
+      ,NVL(#ORGID#, ORG_ID) AS ORG_ID
+      ,NVL(#COMPANYID#, COMPANY_ID) AS COMPANY_ID
+      ,#SEARCHYEAR# AS SEARCH_YEAR
+      ,#GUBUN# AS GUBUN1
+  FROM CB_ORG_COMPANY_V
+CONNECT BY LEVEL <= 12
+) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.item.pur.summary.chart.sql-where">
+     WHERE 1=1
+   </sql>
+   
+   <select id="eis.item.pur.summary.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.pur.summary.chart.sql-select" />
+      <include refid="eis.item.pur.summary.chart.sql-where" />
+   </select>
+   
+   <select id="eis.item.pur.summary.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.pur.summary.chart.sql-select" />
+      <include refid="eis.item.pur.summary.chart.sql-where" />
+    ) TOT
+   </select>
+   
+<!--     품목군 별 매입집계 현황 끝 -->
+   
+   <sql id="eis.item.sales.result.list.sql-select">
+   <![CDATA[
+  SELECT BV.ORG_ID AS ORGID
+      ,BV.COMPANY_ID AS COMPANYID
+      ,BV.SMALL_CODE AS SMALLCODE
+      ,BV.SMALL_NAME AS SMALLNAME
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR-2
+                                             ,NULL
+                                             ,NULL
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR-1
+                                             ,NULL
+                                             ,NULL
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,NULL
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS TOTAL
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,1
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST01
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,2
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST02
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,3
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST03
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,4
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST04
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,5
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST05
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,6
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST06
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,7
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST07
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,8
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST08
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,9
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST09
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+                                             ,BV.COMPANY_ID
+                                             ,TMP.SEARCH_YEAR
+                                             ,NULL
+                                             ,10
+                                             ,BV.SMALL_CODE
+                                             ,NULL) AS CUST10
+    FROM CB_EIS_SALES_BASE_V BV
+      ,(SELECT #ORGID# AS ORG_ID
+              ,#COMPANYID# AS COMPANY_ID               
+             ,#SEARCHYEAR# AS SEARCH_YEAR
+          FROM DUAL) TMP
+    WHERE BV.ORG_ID = TMP.ORG_ID
+   AND BV.COMPANY_ID = TMP.COMPANY_ID
+   ]]>
+   </sql>
+   
+   <sql id="eis.item.sales.result.list.sql-where">
+   </sql>
+   
+   <select id="eis.item.sales.result.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.sales.result.list.sql-select" />
+      <include refid="eis.item.sales.result.list.sql-where" />
+   </select>
+   
+   <select id="eis.item.sales.result.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.sales.result.list.sql-select" />
+      <include refid="eis.item.sales.result.list.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.item.sales.result.chart.sql-select">
+   <![CDATA[
+		SELECT BV.ORG_ID AS ORGID
+		      ,BV.COMPANY_ID AS COMPANYID
+		      ,BV.SMALL_CODE AS SMALLCODE
+		      ,BV.SMALL_NAME AS SMALLNAME
+		      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_CUST_FIND(BV.ORG_ID
+		                                             ,BV.COMPANY_ID
+		                                             ,TMP.SEARCH_YEAR
+		                                             ,NULL
+		                                             ,NULL
+		                                             ,BV.SMALL_CODE
+		                                             ,NULL) AS TOTAL
+		  FROM CB_EIS_SALES_BASE_V BV
+		      ,(SELECT #ORGID# AS ORG_ID
+		              ,#COMPANYID# AS COMPANY_ID
+		              ,#SEARCHYEAR# AS SEARCH_YEAR
+		          FROM DUAL) TMP
+		 WHERE BV.ORG_ID = TMP.ORG_ID
+		   AND BV.COMPANY_ID = TMP.COMPANY_ID
+   ]]>
+   </sql>
+   
+   <sql id="eis.item.sales.result.chart.sql-where">
+   </sql>
+   
+   <select id="eis.item.sales.result.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.sales.result.chart.sql-select" />
+      <include refid="eis.item.sales.result.chart.sql-where" />
+   </select>
+   
+   <select id="eis.item.sales.result.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.sales.result.chart.sql-select" />
+      <include refid="eis.item.sales.result.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   <!--    품목/기종별 매출수량-->
+   <sql id="eis.item.model.sales.list.sql-select">
+SELECT G.RN
+      ,G.RN1
+      ,G.ORGID
+      ,G.COMPANYID
+      ,G.LABEL
+      ,G.LABELNAME
+      ,G.MODEL
+      ,G.MODELNAME
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR - 2
+                                        ,NULL
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR - 1
+                                        ,NULL
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,NULL
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS TOTAL
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,1
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT01
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,2
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT02
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,3
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT03
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,4
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT04
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,5
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT05
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,6
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT06
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,7
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT07
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,8
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT08
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,9
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT09
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,10
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT10
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,11
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT11
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(G.ORGID
+                                        ,G.COMPANYID
+                                        ,G.SEARCHYEAR
+                                        ,12
+                                        ,G.LABEL
+                                        ,G.MODEL
+                                        ,G.GUBUN) AS AMOUNT12
+  FROM (
+        SELECT RANK() OVER (ORDER BY IM.LABEL, IM.CAR_TYPE) AS RN
+              ,RANK() OVER (PARTITION BY IM.LABEL ORDER BY IM.CAR_TYPE) AS RN1
+              ,IM.ORG_ID AS ORGID
+              ,IM.COMPANY_ID AS COMPANYID
+              ,MAX(TMP.SEARCH_YEAR) AS SEARCHYEAR
+              ,MAX(TMP.GUBUN) AS GUBUN
+              ,IM.LABEL AS LABEL
+              ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                          ,IM.COMPANY_ID
+                                                          ,'OM'
+                                                          ,'SHIPPING_ITEM_GROUP'
+                                                          ,IM.LABEL
+                                                          ,'LABEL') AS LABELNAME
+              ,(CASE WHEN IM.CAR_TYPE IS NULL THEN
+                       '999'
+                     ELSE
+                       IM.CAR_TYPE
+                     END) AS MODEL
+              ,(CASE WHEN IM.CAR_TYPE IS NULL THEN
+                       '합계'
+                     ELSE
+                       CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                                  ,IM.COMPANY_ID
+                                                                  ,'CMM'
+                                                                  ,'MODEL'
+                                                                  ,IM.CAR_TYPE
+                                                                  ,'LABEL')
+                     END) AS MODELNAME
+          FROM CB_TRADE_H TH
+              ,CB_TRADE_D TD
+              ,CB_ITEM_MASTER IM
+              ,(SELECT 1 AS ORG_ID
+                      ,1 AS COMPANY_ID
+                      ,#SEARCHYEAR# AS SEARCH_YEAR
+                      ,ADD_MONTHS(TRUNC(TO_DATE(#SEARCHYEAR#, 'YYYY'), 'YYYY'), -24) AS SEARCH_FROM
+                      ,ADD_MONTHS(TRUNC(TO_DATE(#SEARCHYEAR#, 'YYYY'), 'YYYY'), 12) -1 AS SEARCH_TO
+                      ,#GUBUN# AS GUBUN
+                  FROM DUAL) TMP
+         WHERE TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.TRADE_NO = TD.TRADE_NO
+           AND TD.ORG_ID = IM.ORG_ID
+           AND TD.COMPANY_ID = IM.COMPANY_ID
+           AND TD.ITEM_CODE = IM.ITEM_CODE
+           AND TH.ORG_ID = TMP.ORG_ID
+           AND TH.COMPANY_ID = TMP.COMPANY_ID
+           AND TD.END_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO
+         GROUP BY IM.ORG_ID, IM.COMPANY_ID, IM.LABEL, ROLLUP(IM.CAR_TYPE)
+       ) G
+   </sql>
+   
+   <sql id="eis.item.model.sales.list.sql-where">
+      WHERE 1=1
+   </sql>
+   
+   <select id="eis.item.model.sales.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.model.sales.list.sql-select" />
+      <include refid="eis.item.model.sales.list.sql-where" />
+   </select>
+   
+   <select id="eis.item.model.sales.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.model.sales.list.sql-select" />
+      <include refid="eis.item.model.sales.list.sql-where" />
+    ) TOT
+   </select>
+   
+   <!--    품목/기종별 매출수량 차트 -->
+   <sql id="eis.item.model.sales.chart.sql-select">
+   <![CDATA[
+   SELECT TMP.RN AS RN
+      ,LPAD(TMP.RN, 2, '0') || '월' AS TITLE
+      ,TMP.ORG_ID AS ORGID
+      ,TMP.COMPANY_ID AS COMPANYID
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(TMP.ORG_ID
+                                        ,TMP.COMPANY_ID
+                                        ,TMP.SEARCH_YEAR
+                                        ,TMP.RN
+                                        ,'01'
+                                        ,'999'
+                                        ,TMP.GUBUN) AS LABEL01
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(TMP.ORG_ID
+                                        ,TMP.COMPANY_ID
+                                        ,TMP.SEARCH_YEAR
+                                        ,TMP.RN
+                                        ,'02'
+                                        ,'999'
+                                        ,TMP.GUBUN) AS LABEL02
+      ,CB_EIS_PKG.CB_EIS_ITEM_SALES_FIND(TMP.ORG_ID
+                                        ,TMP.COMPANY_ID
+                                        ,TMP.SEARCH_YEAR
+                                        ,TMP.RN
+                                        ,'03'
+                                        ,'999'
+                                        ,TMP.GUBUN) AS LABEL03
+  FROM (SELECT LEVEL AS RN
+              ,1 AS ORG_ID
+              ,1 AS COMPANY_ID
+              ,#SEARCHYEAR# AS SEARCH_YEAR
+              ,#GUBUN# AS GUBUN
+          FROM DUAL
+        CONNECT BY LEVEL <= 12) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.item.model.sales.chart.sql-where">
+      WHERE 1=1
+       ORDER BY TMP.RN
+   </sql>
+   
+   <select id="eis.item.model.sales.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.item.model.sales.chart.sql-select" />
+      <include refid="eis.item.model.sales.chart.sql-where" />
+   </select>
+   
+   <select id="eis.item.model.sales.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.item.model.sales.chart.sql-select" />
+      <include refid="eis.item.model.sales.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.cust.sales.result.list.sql-select">
+					SELECT DENSE_RANK() OVER(ORDER BY BB.CUSTOMERNAME) AS RN
+					      ,ROW_NUMBER() OVER(PARTITION BY BB.CUSTOMERNAME ORDER BY BB.SHIPPINGGROUPNAME, BB.CARTYPENAME) AS RN1
+					      ,ROW_NUMBER() OVER(PARTITION BY BB.CUSTOMERNAME, BB.SHIPPINGGROUPNAME ORDER BY BB.CARTYPENAME) AS RN2
+					      ,BB.CUSTOMERNAME AS CUSTOMERNAME
+					      ,BB.SHIPPINGGROUPNAME
+					      ,(CASE WHEN GROUPING(BB.CARTYPENAME) = 1 THEN
+					               (CASE WHEN BB.SHIPPINGGROUPNAME IS NOT NULL THEN
+					                       '기종별 소계'
+					                     ELSE
+					                       '품목별 소계'
+					                     END)
+					             ELSE
+					               CARTYPENAME
+					             END) AS CARTYPENAME
+					      ,SUM(BB.PRE2AMOUNT) AS PRE2AMOUNT
+					      ,SUM(BB.PRE2QTY) AS PRE2QTY
+					      ,SUM(BB.PREAMOUNT) AS PREAMOUNT
+					      ,SUM(BB.PREQTY) AS PREQTY
+					      ,SUM(BB.TOTALAMOUNT) AS TOTALAMOUNT
+					      ,SUM(BB.TOTALQTY) AS TOTALQTY
+					      ,SUM(BB.MO1) AS MO1
+					      ,SUM(BB.MOQ1) AS MOQ1
+					      ,SUM(BB.MO2) AS MO2
+					      ,SUM(BB.MOQ2) AS MOQ2
+					      ,SUM(BB.MO3) AS MO3
+					      ,SUM(BB.MOQ3) AS MOQ3
+					      ,SUM(BB.MO4) AS MO4
+					      ,SUM(BB.MOQ4) AS MOQ4
+					      ,SUM(BB.MO5) AS MO5
+					      ,SUM(BB.MOQ5) AS MOQ5
+					      ,SUM(BB.MO6) AS MO6
+					      ,SUM(BB.MOQ6) AS MOQ6
+					      ,SUM(BB.MO7) AS MO7
+					      ,SUM(BB.MOQ7) AS MOQ7
+					      ,SUM(BB.MO8) AS MO8
+					      ,SUM(BB.MOQ8) AS MOQ8
+					      ,SUM(BB.MO9) AS MO9
+					      ,SUM(BB.MOQ9) AS MOQ9
+					      ,SUM(BB.MO10) AS MO10
+					      ,SUM(BB.MOQ10) AS MOQ10
+					      ,SUM(BB.MO11) AS MO11
+					      ,SUM(BB.MOQ11) AS MOQ11
+					      ,SUM(BB.MO12) AS MO12
+					      ,SUM(BB.MOQ12) AS MOQ12
+					  FROM (SELECT RANK() OVER(ORDER BY AA.ORG_ID, AA.COMPANY_ID, AA.SHIPPING_GROUP_CODE, AA.CAR_TYPE_NAME) AS RN
+					              ,AA.SEARCHYEAR AS SEARCHYEAR
+					              ,AA.CUSTOMER_CODE AS CUSTOMERCODE
+					              ,AA.CUSTOMER_NAME AS CUSTOMERNAME
+					              ,AA.SHIPPING_GROUP_CODE AS SHIPPINGGROUPCODE
+					              ,AA.SHIPPING_GROUP_NAME AS SHIPPINGGROUPNAME
+					              ,AA.CAR_TYPE AS CARTYPE
+					              ,AA.CAR_TYPE_NAME AS CARTYPENAME
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR-2
+					                                                  ,NULL
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'TOTAL') AS PRE2AMOUNT
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR-1
+					                                                  ,NULL
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'TOTAL') AS PREAMOUNT
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,NULL
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'TOTAL') AS TOTALAMOUNT
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'01'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO1
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'02'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO2
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'03'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO3
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'04'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO4
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'05'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO5
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'06'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO6
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'07'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO7
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'08'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO8
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'09'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO9
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'10'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO10
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'11'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO11
+					              ,CB_COST_PKG.CB_COST_AMOUNT_CAR_TYPE(AA.ORG_ID
+					                                                  ,AA.COMPANY_ID
+					                                                  ,AA.CUSTOMER_CODE
+					                                                  ,AA.SEARCHYEAR
+					                                                  ,'12'
+					                                                  ,AA.CAR_TYPE
+					                                                  ,NULL
+					                                                  ,'MONTH') AS MO12
+					               
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR-2
+					                                               ,NULL
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'TOTAL') AS PRE2QTY
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR-1
+					                                               ,NULL
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'TOTAL') AS PREQTY
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,NULL
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'TOTAL') AS TOTALQTY
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'01'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ1
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'02'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ2
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'03'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ3
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'04'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ4
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'05'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ5
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'06'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ6
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'07'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ7
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'08'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ8
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'09'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ9
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'10'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ10
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'11'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ11
+					              ,CB_COST_PKG.CB_COST_QTY_CAR_TYPE(AA.ORG_ID
+					                                               ,AA.COMPANY_ID
+					                                               ,AA.CUSTOMER_CODE
+					                                               ,AA.SEARCHYEAR
+					                                               ,'12'
+					                                               ,AA.CAR_TYPE
+					                                               ,NULL
+					                                               ,'MONTH') AS MOQ12
+					          FROM (SELECT RANK() OVER(ORDER BY TV.ORG_ID, TV.COMPANY_ID, TV.CUSTOMER_NAME, TV.ITEM_NAME, TV.TRADE_DATE, TV.TRADE_NO, TV.TRADE_SEQ) AS RN
+					                      ,TV.ORG_ID
+					                      ,TV.COMPANY_ID
+					                      ,TV.CUSTOMER_CODE
+					                      ,TV.CUSTOMER_NAME
+					                      ,TV.ITEM_NAME
+					                      ,TV.LABEL AS SHIPPING_GROUP_CODE
+					                      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(TV.ORG_ID
+					                                                                  ,TV.COMPANY_ID
+					                                                                  ,'OM'
+					                                                                  ,'SHIPPING_ITEM_GROUP'
+					                                                                  ,TV.LABEL
+					                                                                  ,'LABEL') AS SHIPPING_GROUP_NAME
+					                      ,TV.CAR_TYPE
+					                      ,TV.CAR_TYPE_NAME
+					                      ,TV.TRADE_AMOUNT AS TRADE_AMOUNT
+					                      ,TMP.SEARCH_YEAR AS SEARCHYEAR
+					                  FROM CB_COST_SALES_D_V TV
+					                      ,(SELECT #ORGID# AS ORG_ID
+					                           ,#COMPANYID# AS COMPANY_ID
+					                           ,#SEARCHYEAR# AS SEARCH_YEAR
+					                       FROM DUAL) TMP
+   </sql>
+   
+   <sql id="eis.cust.sales.result.list.sql-where">
+                 WHERE TV.ORG_ID = TMP.ORG_ID
+				                   AND TV.COMPANY_ID = TMP.COMPANY_ID
+				                   AND TV.END_DATE1 BETWEEN TRUNC(TO_DATE(TMP.SEARCH_YEAR-2, 'YYYY'), 'YYYY') AND ADD_MONTHS(TRUNC(TO_DATE(TMP.SEARCH_YEAR, 'YYYY'), 'YYYY'), 12) -1) AA
+				         GROUP BY AA.ORG_ID
+				                 ,AA.COMPANY_ID
+				                 ,AA.SEARCHYEAR
+				                 ,AA.CUSTOMER_CODE
+				                 ,AA.CUSTOMER_NAME
+				                 ,AA.SHIPPING_GROUP_CODE
+				                 ,AA.SHIPPING_GROUP_NAME
+				                 ,AA.CAR_TYPE
+				                 ,AA.CAR_TYPE_NAME
+				         ORDER BY AA.ORG_ID
+				                 ,AA.COMPANY_ID
+				                 ,AA.SHIPPING_GROUP_CODE
+				                 ,AA.CAR_TYPE_NAME) BB
+				 GROUP BY ROLLUP(BB.CUSTOMERNAME, BB.SHIPPINGGROUPNAME, BB.CARTYPENAME), BB.SEARCHYEAR
+				HAVING GROUPING(BB.CUSTOMERNAME) = 0
+   </sql>
+   
+   <select id="eis.cust.sales.result.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.cust.sales.result.list.sql-select" />
+      <include refid="eis.cust.sales.result.list.sql-where" />
+   </select>
+   
+   <select id="eis.cust.sales.result.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.cust.sales.result.list.sql-select" />
+      <include refid="eis.cust.sales.result.list.sql-where" />
+    ) TOT
+   </select>
+   
+   <!--    월별/년도별 매출 실적 그리드1 -->
+   <sql id="eis.monthly.year.sales.result.list1.sql-select">
+   <![CDATA[
+   SELECT A.RN AS RN
+      ,A.ORGID
+      ,A.COMPANYID
+      ,A.LICENSENO
+      ,A.CUSTOMERCODE
+      ,A.CUSTOMERNAME
+      ,A.TOTALAMOUNT
+      ,A.TOTALQTY
+      ,A.AMOUNT01
+      ,A.QTY01
+      ,A.AMOUNT02
+      ,A.QTY02
+      ,A.AMOUNT03
+      ,A.QTY03
+      ,A.AMOUNT04
+      ,A.QTY04
+      ,A.AMOUNT05
+      ,A.QTY05
+      ,A.AMOUNT06
+      ,A.QTY06
+      ,A.AMOUNT07
+      ,A.QTY07
+      ,A.AMOUNT08
+      ,A.QTY08
+      ,A.AMOUNT09
+      ,A.QTY09
+      ,A.AMOUNT10
+      ,A.QTY10
+      ,A.AMOUNT11
+      ,A.QTY11
+      ,A.AMOUNT12
+      ,A.QTY12
+  FROM (
+        SELECT RANK() OVER(ORDER BY NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                                                       ,TMP.COMPANYID
+                                                                       ,CC.CUSTOMER_CODE
+                                                                       ,TMP.SEARCHYEAR
+                                                                       ,NULL
+                                                                       ,'TOTAL'), 0) DESC) AS RN
+          ,CC.ORG_ID AS ORGID
+          ,CC.COMPANY_ID AS COMPANYID
+          ,CC.LICENSE_NO AS LICENSENO
+          ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+          ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+          ,TMP.SEARCHYEAR AS SEARCHYEAR
+          
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL') AS TOTALAMOUNT
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'01'
+                                          ,'MONTHLY') AS AMOUNT01
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'02'
+                                          ,'MONTHLY') AS AMOUNT02
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'03'
+                                          ,'MONTHLY') AS AMOUNT03
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'04'
+                                          ,'MONTHLY') AS AMOUNT04
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'05'
+                                          ,'MONTHLY') AS AMOUNT05
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'06'
+                                          ,'MONTHLY') AS AMOUNT06
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'07'
+                                          ,'MONTHLY') AS AMOUNT07
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'08'
+                                          ,'MONTHLY') AS AMOUNT08
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'09'
+                                          ,'MONTHLY') AS AMOUNT09
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'10'
+                                          ,'MONTHLY') AS AMOUNT10
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'11'
+                                          ,'MONTHLY') AS AMOUNT11
+          ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'12'
+                                          ,'MONTHLY') AS AMOUNT12
+          
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL') AS TOTALQTY
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'01'
+                                          ,'MONTHLY') AS QTY01
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'02'
+                                          ,'MONTHLY') AS QTY02
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'03'
+                                          ,'MONTHLY') AS QTY03
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'04'
+                                          ,'MONTHLY') AS QTY04
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'05'
+                                          ,'MONTHLY') AS QTY05
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'06'
+                                          ,'MONTHLY') AS QTY06
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'07'
+                                          ,'MONTHLY') AS QTY07
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'08'
+                                          ,'MONTHLY') AS QTY08
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'09'
+                                          ,'MONTHLY') AS QTY09
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'10'
+                                          ,'MONTHLY') AS QTY10
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'11'
+                                          ,'MONTHLY') AS QTY11
+          ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,CC.CUSTOMER_CODE
+                                          ,TMP.SEARCHYEAR
+                                          ,'12'
+                                          ,'MONTHLY') AS QTY12
+      FROM CB_CUSTOMER CC
+          ,(SELECT NVL(#ORGID#, ORG_ID) AS ORGID
+                  ,NVL(#COMPANYID#, COMPANY_ID) AS COMPANYID
+                  ,#SEARCHYEAR# AS SEARCHYEAR
+              FROM CB_ORG_COMPANY_V) TMP
+     WHERE CC.CUSTOMER_CODE <> '9999999999'
+       AND CC.CUSTOMER_TYPE IN ('A', 'S')
+       AND CC.USE_YN = 'Y'
+       AND CC.ORG_ID = TMP.ORGID
+       AND CC.COMPANY_ID = TMP.COMPANYID
+       AND NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TMP.SEARCHYEAR
+                                              ,NULL
+                                              ,'TOTAL'), 0) > 0
+     ) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.monthly.year.sales.result.list1.sql-where">
+      WHERE 1=1
+   </sql>
+   
+   <select id="eis.monthly.year.sales.result.list1.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.monthly.year.sales.result.list1.sql-select" />
+      <include refid="eis.monthly.year.sales.result.list1.sql-where" />
+   </select>
+   
+   <select id="eis.monthly.year.sales.result.list1.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.monthly.year.sales.result.list1.sql-select" />
+      <include refid="eis.monthly.year.sales.result.list1.sql-where" />
+    ) TOT
+   </select>
+   
+   <!--    월별/년도별 매출 실적 그리드2 -->
+   <sql id="eis.monthly.year.sales.result.list2.sql-select">
+   <![CDATA[
+   SELECT A.RN AS RN
+      ,A.ORGID
+      ,A.COMPANYID
+      ,A.LICENSENO
+      ,A.CUSTOMERCODE
+      ,A.CUSTOMERNAME
+      ,A.TOTALYEAR
+      ,A.TOTALQTY
+      
+      ,A.TOTALYEAR1
+      ,A.TOTALQTY1
+      ,A.TOTALYEAR2
+      ,A.TOTALQTY2
+      ,A.TOTALYEAR3
+      ,A.TOTALQTY3
+      ,A.TOTALYEAR4
+      ,A.TOTALQTY4
+      ,A.TOTALYEAR5
+      ,A.TOTALQTY5
+  FROM (
+        SELECT RANK() OVER(ORDER BY NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                                                       ,TMP.COMPANYID
+                                                                       ,CC.CUSTOMER_CODE
+                                                                       ,TMP.SEARCHYEAR
+                                                                       ,NULL
+                                                                       ,'TOTAL'), 0) DESC) AS RN
+              ,CC.ORG_ID AS ORGID
+              ,CC.COMPANY_ID AS COMPANYID
+              ,CC.LICENSE_NO AS LICENSENO
+              ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+              ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+    
+              ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-4)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALYEAR1
+              ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-3)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALYEAR2
+              ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-2)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALYEAR3
+              ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-1)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALYEAR4
+              ,CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALYEAR5
+    
+              ,NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-4)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-3)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-2)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-1)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR)
+                                              ,NULL
+                                              ,'TOTAL'), 0) AS TOTALYEAR
+              
+              ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-4)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALQTY1
+              ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-3)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALQTY2
+              ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-2)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALQTY3
+              ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-1)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALQTY4
+              ,CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR)
+                                              ,NULL
+                                              ,'TOTAL') AS TOTALQTY5
+    
+              ,NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-4)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-3)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-2)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR-1)
+                                              ,NULL
+                                              ,'TOTAL'), 0)
+              +NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                              ,TMP.COMPANYID
+                                              ,CC.CUSTOMER_CODE
+                                              ,TO_CHAR(TMP.SEARCHYEAR)
+                                              ,NULL
+                                              ,'TOTAL'), 0) AS TOTALQTY
+          FROM CB_CUSTOMER CC
+              ,(SELECT #ORGID# AS ORGID
+                      ,#COMPANYID# AS COMPANYID
+                      ,#SEARCHYEAR# AS SEARCHYEAR
+                  FROM DUAL) TMP
+         WHERE CC.CUSTOMER_CODE <> '9999999999'
+           AND CC.CUSTOMER_TYPE IN ('A', 'S')
+           AND CC.USE_YN = 'Y'
+           AND CC.ORG_ID = TMP.ORGID
+           AND CC.COMPANY_ID = TMP.COMPANYID
+           AND NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                                  ,TMP.COMPANYID
+                                                  ,CC.CUSTOMER_CODE
+                                                  ,TMP.SEARCHYEAR
+                                                  ,NULL
+                                                  ,'TOTAL'), 0) > 0
+         ) A
+   ]]>
+   </sql>
+   
+   <sql id="eis.monthly.year.sales.result.list2.sql-where">
+      WHERE 1=1
+   </sql>
+   
+   <select id="eis.monthly.year.sales.result.list2.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.monthly.year.sales.result.list2.sql-select" />
+      <include refid="eis.monthly.year.sales.result.list2.sql-where" />
+   </select>
+   
+   <select id="eis.monthly.year.sales.result.list2.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.monthly.year.sales.result.list2.sql-select" />
+      <include refid="eis.monthly.year.sales.result.list2.sql-where" />
+    ) TOT
+   </select>
+   
+      <!--    월별/년도별 매출 실적 차트 -->
+   <sql id="eis.sales.result.monthly.chart.sql-select">
+   <![CDATA[
+   SELECT TMP.ORGID AS ORGID
+      ,TMP.COMPANYID AS COMPANYID
+      ,'월별 매출 실적(' || TMP.SEARCHYEAR || '년)' AS TITLE
+      ,TMP.SEARCHNUM || '월' AS SEARCHYEAR
+      ,NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,TMP.SEARCHNUM
+                                          ,'MONTHLY_TOTAL'), 0) AS AMOUNT
+      ,NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                       ,TMP.COMPANYID
+                                       ,NULL
+                                       ,TMP.SEARCHYEAR
+                                       ,TMP.SEARCHNUM
+                                       ,'MONTHLY_TOTAL'), 0) AS QTY
+  FROM (SELECT #ORGID# AS ORGID
+              ,#COMPANYID# AS COMPANYID
+              ,#SEARCHYEAR# AS SEARCHYEAR
+              ,LPAD(LEVEL, 2, '0') AS SEARCHNUM
+          FROM DUAL
+        CONNECT BY LEVEL <= 12) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.sales.result.monthly.chart.sql-where">
+ WHERE NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL'), 0) > 0
+   </sql>
+   
+   <select id="eis.sales.result.monthly.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.sales.result.monthly.chart.sql-select" />
+      <include refid="eis.sales.result.monthly.chart.sql-where" />
+   </select>
+   
+   <select id="eis.sales.result.monthly.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.sales.result.monthly.chart.sql-select" />
+      <include refid="eis.sales.result.monthly.chart.sql-where" />
+    ) TOT
+   </select>
+   
+         <!--    월별/년도별 매출 실적 차트2 -->
+   <sql id="eis.sales.result.year.chart.sql-select">
+   <![CDATA[
+   SELECT TMP.ORGID AS ORGID
+      ,TMP.COMPANYID AS COMPANYID
+      ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR,'9999') - TMP.SEARCHNUM) || '년' AS SEARCHYEAR
+      ,NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR, '9999') - TMP.SEARCHNUM)
+                                          ,NULL
+                                          ,'TOTAL'), 0) AS AMOUNT
+      ,NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                       ,TMP.COMPANYID
+                                       ,NULL
+                                       ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR, '9999') - TMP.SEARCHNUM)
+                                       ,NULL
+                                       ,'TOTAL'), 0) AS QTY
+  FROM (SELECT #ORGID# AS ORGID
+              ,#COMPANYID# AS COMPANYID
+              ,#SEARCHYEAR# AS SEARCHYEAR
+              ,LEVEL - 1 AS SEARCHNUM
+          FROM DUAL
+        CONNECT BY LEVEL <= 3) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.sales.result.year.chart.sql-where">
+ WHERE NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL'), 0) > 0
+ ORDER BY SEARCHYEAR
+
+   </sql>
+   
+   <select id="eis.sales.result.year.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.sales.result.year.chart.sql-select" />
+      <include refid="eis.sales.result.year.chart.sql-where" />
+   </select>
+   
+   <select id="eis.sales.result.year.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.sales.result.year.chart.sql-select" />
+      <include refid="eis.sales.result.year.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   
+   
+   <sql id="eis.mobile.tab1.year.chart.sql-select">
+   <![CDATA[
+   SELECT TMP.ORGID AS ORGID
+      ,TMP.COMPANYID AS COMPANYID
+      ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR,'9999') - TMP.SEARCHNUM) || '년' AS SEARCHYEAR
+      ,NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR, '9999') - TMP.SEARCHNUM)
+                                          ,NULL
+                                          ,'TOTAL'), 0) AS AMOUNT
+      ,NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                       ,TMP.COMPANYID
+                                       ,NULL
+                                       ,TO_CHAR(TO_NUMBER(TMP.SEARCHYEAR, '9999') - TMP.SEARCHNUM)
+                                       ,NULL
+                                       ,'TOTAL'), 0) AS QTY
+  FROM (SELECT ORG_ID AS ORGID
+              ,COMPANY_ID AS COMPANYID
+              ,#SEARCHYEAR# AS SEARCHYEAR
+              ,LEVEL - 1 AS SEARCHNUM
+          FROM CB_ORG_COMPANY_V
+        CONNECT BY LEVEL <= 3) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.mobile.tab1.year.chart.sql-where">
+ WHERE NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL'), 0) > 0
+ ORDER BY SEARCHYEAR
+
+   </sql>
+   
+   <select id="eis.mobile.tab1.year.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.mobile.tab1.year.chart.sql-select" />
+      <include refid="eis.mobile.tab1.year.chart.sql-where" />
+   </select>
+   
+   <select id="eis.mobile.tab1.year.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.mobile.tab1.year.chart.sql-select" />
+      <include refid="eis.mobile.tab1.year.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.mobile.tab1.monthly.chart.sql-select">
+   <![CDATA[
+   SELECT TMP.ORGID AS ORGID
+      ,TMP.COMPANYID AS COMPANYID
+      ,'월별 매출 실적(' || TMP.SEARCHYEAR || '년)' AS TITLE
+      ,TMP.SEARCHNUM || '월' AS SEARCHYEAR
+      ,NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,TMP.SEARCHNUM
+                                          ,'MONTHLY_TOTAL'), 0) AS AMOUNT
+      ,NVL(CB_COST_PKG.CB_COST_QTY_FIND(TMP.ORGID
+                                       ,TMP.COMPANYID
+                                       ,NULL
+                                       ,TMP.SEARCHYEAR
+                                       ,TMP.SEARCHNUM
+                                       ,'MONTHLY_TOTAL'), 0) AS QTY
+  FROM (SELECT ORG_ID AS ORGID
+              ,COMPANY_ID AS COMPANYID
+              ,#SEARCHYEAR# AS SEARCHYEAR
+              ,LPAD(LEVEL, 2, '0') AS SEARCHNUM
+          FROM CB_ORG_COMPANY_V
+        CONNECT BY LEVEL <= 12) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.mobile.tab1.monthly.chart.sql-where">
+ WHERE NVL(CB_COST_PKG.CB_COST_AMOUNT_FIND(TMP.ORGID
+                                          ,TMP.COMPANYID
+                                          ,NULL
+                                          ,TMP.SEARCHYEAR
+                                          ,NULL
+                                          ,'TOTAL'), 0) > 0
+ ORDER BY SEARCHYEAR
+
+   </sql>
+   
+   <select id="eis.mobile.tab1.monthly.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.mobile.tab1.monthly.chart.sql-select" />
+      <include refid="eis.mobile.tab1.monthly.chart.sql-where" />
+   </select>
+   
+   <select id="eis.mobile.tab1.monthly.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.mobile.tab1.monthly.chart.sql-select" />
+      <include refid="eis.mobile.tab1.monthly.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.mobile.tab3.monthly.chart.sql-select">
+   <![CDATA[
+   SELECT RANK() OVER(ORDER BY CC.STANDARD_MONTH) AS RN
+            ,CC.ORG_ID AS ORGID
+            ,CC.COMPANY_ID AS COMPANYID
+            ,TO_CHAR(CC.STANDARD_MONTH, 'MM"월"') AS STANDARDMONTH
+            ,TMP.LABEL
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,1
+                                                 ,'TOTAL') AS QTY01
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,2
+                                                 ,'TOTAL') AS QTY02
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,3
+                                                 ,'TOTAL') AS QTY03
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,4
+                                                 ,'TOTAL') AS QTY04
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,5
+                                                 ,'TOTAL') AS QTY05
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,6
+                                                 ,'TOTAL') AS QTY06
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,7
+                                                 ,'TOTAL') AS QTY07
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,8
+                                                 ,'TOTAL') AS QTY08
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,9
+                                                 ,'TOTAL') AS QTY09
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_C_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,TMP.LABEL
+                                                 ,10
+                                                 ,'TOTAL') AS QTY10
+      FROM CB_CALENDAR CC
+             ,(SELECT ORG_ID AS ORG_ID
+                      ,COMPANY_ID AS COMPANY_ID
+                      ,#SEARCHYEAR# AS SEARCH_YEAR
+                      ,#SEARCHLABEL# AS LABEL
+                FROM CB_ORG_COMPANY_V) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.mobile.tab3.monthly.chart.sql-where">
+     WHERE CC.ORG_ID = TMP.ORG_ID
+        AND CC.COMPANY_ID = TMP.COMPANY_ID
+        AND TO_CHAR(CC.STANDARD_MONTH, 'YYYY') = TMP.SEARCH_YEAR
+     GROUP BY CC.ORG_ID, CC.COMPANY_ID, TMP.SEARCH_YEAR, CC.STANDARD_MONTH, TMP.LABEL
+   </sql>
+   
+   <select id="eis.mobile.tab3.monthly.chart.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.mobile.tab3.monthly.chart.sql-select" />
+      <include refid="eis.mobile.tab3.monthly.chart.sql-where" />
+   </select>
+   
+   <select id="eis.mobile.tab3.monthly.chart.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.mobile.tab3.monthly.chart.sql-select" />
+      <include refid="eis.mobile.tab3.monthly.chart.sql-where" />
+    ) TOT
+   </select>
+   
+   <sql id="eis.mobile.tab3.monthly.list.sql-select">
+   <![CDATA[
+   SELECT RANK() OVER(ORDER BY CC.STANDARD_MONTH) AS RN
+            ,CC.ORG_ID AS ORGID
+            ,CC.COMPANY_ID AS COMPANYID
+            ,TO_CHAR(CC.STANDARD_MONTH, 'MM"월"') AS STANDARDMONTH
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,1
+                                                 ,1
+                                                 ,'TOTAL') AS LABEL101
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,1
+                                                 ,2
+                                                 ,'TOTAL') AS LABEL102
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,1
+                                                 ,3
+                                                 ,'TOTAL') AS LABEL103
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,1
+                                                 ,4
+                                                 ,'TOTAL') AS LABEL104
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,1
+                                                 ,5
+                                                 ,'TOTAL') AS LABEL105
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,2
+                                                 ,1
+                                                 ,'TOTAL') AS LABEL201
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,2
+                                                 ,2
+                                                 ,'TOTAL') AS LABEL202
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,2
+                                                 ,3
+                                                 ,'TOTAL') AS LABEL203
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,2
+                                                 ,4
+                                                 ,'TOTAL') AS LABEL204
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,2
+                                                 ,5
+                                                 ,'TOTAL') AS LABEL205
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,3
+                                                 ,1
+                                                 ,'TOTAL') AS LABEL301
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,3
+                                                 ,2
+                                                 ,'TOTAL') AS LABEL302
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,3
+                                                 ,3
+                                                 ,'TOTAL') AS LABEL303
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,3
+                                                 ,4
+                                                 ,'TOTAL') AS LABEL304
+            ,CB_EIS_PKG.CB_EIS_MOBILE_TAB3_G_FIND(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,TMP.SEARCH_YEAR
+                                                 ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                 ,3
+                                                 ,5
+                                                 ,'TOTAL') AS LABEL305
+      FROM CB_CALENDAR CC
+             ,(SELECT ORG_ID AS ORG_ID
+                      ,COMPANY_ID AS COMPANY_ID
+                      ,#SEARCHYEAR# AS SEARCH_YEAR
+                FROM CB_ORG_COMPANY_V) TMP
+   ]]>
+   </sql>
+   
+   <sql id="eis.mobile.tab3.monthly.list.sql-where">
+     WHERE CC.ORG_ID = TMP.ORG_ID
+        AND CC.COMPANY_ID = TMP.COMPANY_ID
+        AND TO_CHAR(CC.STANDARD_MONTH, 'YYYY') = TMP.SEARCH_YEAR
+     GROUP BY CC.ORG_ID, CC.COMPANY_ID, TMP.SEARCH_YEAR, CC.STANDARD_MONTH
+   </sql>
+   
+   <select id="eis.mobile.tab3.monthly.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="eis.mobile.tab3.monthly.list.sql-select" />
+      <include refid="eis.mobile.tab3.monthly.list.sql-where" />
+   </select>
+   
+   <select id="eis.mobile.tab3.monthly.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="eis.mobile.tab3.monthly.list.sql-select" />
+      <include refid="eis.mobile.tab3.monthly.list.sql-where" />
+    ) TOT
+   </select>
+   
+</sqlMap>

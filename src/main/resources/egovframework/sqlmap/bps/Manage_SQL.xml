@@ -1,0 +1,2075 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="manage">
+
+    <parameterMap class="java.util.Map" id="kpi3FaultUpdateParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="DATEFROM" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="kpi3.updatepkg.call.Procedure" parameterClass="java.util.Map"  parameterMap="kpi3FaultUpdateParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_KPI_PKG.CB_KPI3_FAULT_CREATE( ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+<!--        kpi2 시간당생산량 -->
+    <sql id="manage.kpi2.ManigeArea1.select.sql-select">
+        SELECT TWV.ORGID,
+               TWV.COMPANYID,
+               TWV.WORKCENTERCODE,
+               TWV.WORKCENTERNAME,
+               TO_CHAR(TWV.WORK_END_DATE,'YYYY-MM-DD') AS WORKENDDATE, 
+               TO_CHAR(TWV.WORK_END_DATE, 'YYYY-MM') AS WORKDATE,
+               TWV.ROUTING_CODE AS ROUTINGCODE,
+               (SELECT SC.SMALL_NAME 
+                 FROM CB_SMALL_CODE SC
+                WHERE SC.ORG_ID = TWV.ORGID
+                   AND SC.COMPANY_ID = TWV.COMPANYID
+				           AND SC.BIG_CODE = 'MFG'
+				           AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+				           AND SC.SMALL_CODE = TWV.ROUTING_CODE) AS ROUTINGNAME,
+               TWV.PRODUCEDQTY,
+               TWV.WORKTIME,
+               DECODE(TWV.WORKTIME,0,0
+                        ,TWV.PRODUCEDQTY/TWV.WORKTIME) AS WORKOFTIME
+          FROM CB_KPI_TIME_WORK_V TWV
+     </sql>
+    
+     <sql id="manage.kpi2.ManigeArea1.select.sql-where">
+            WHERE 1=1
+            AND WORKTIME > 0
+       <isNotEmpty property="ORGID" prepend="AND">
+             TWV.ORGID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             TWV.COMPANYID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="WORKCNETERCODE" prepend="AND">
+             TWV.WORKCENTERCODE = #WORKCNETERCODE#
+       </isNotEmpty>
+       <isNotEmpty property="ROUTINGCODE" prepend="AND">
+             TWV.ROUTING_CODE = #ROUTINGCODE#
+       </isNotEmpty>
+       <isNotEmpty property="TXRDATEFROM" prepend="AND">
+             WORK_END_DATE BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'), 'MM') AND
+             LAST_DAY(TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'), 'MM'))
+       </isNotEmpty>
+       </sql>
+    
+      <select id="manage.kpi2.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi2.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi2.ManigeArea1.select.sql-where" />
+                ORDER BY TWV.WORK_END_DATE
+      </select>
+      
+      <select id="manage.kpi2.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi2.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi2.ManigeArea1.select.sql-where" />
+                ORDER BY TWV.WORK_END_DATE
+               )TOT      
+      </select>
+      
+    
+      <select id="manage.kpi2.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+        <![CDATA[
+              SELECT AA.WORKCENTERNAME,
+                     AA.WORKENDDATE,
+                     AA.PRODUCEDQTY FROM(
+                     SELECT A.WORKCENTERNAME,
+                            TO_CHAR(A.WORK_END_DATE,'MM') AS WORKENDDATE,
+                            SUM(A.PRODUCEDQTY) AS PRODUCEDQTY
+                     FROM CB_KPI_TIME_WORK_V A
+              
+                      WHERE A.ORGID = $ORGID$
+                      AND A.COMPANYID = $COMPANYID$
+                      AND TO_CHAR(A.WORK_END_DATE,'YYYY') = #DATEYEAR#
+         ]]>             
+         <isNotEmpty property="WORKCNETERCODE" prepend="AND">
+             A.WORKCENTERCODE = #WORKCNETERCODE#
+         </isNotEmpty>
+         <![CDATA[
+                      GROUP BY TO_CHAR(A.WORK_END_DATE,'MM'),A.WORKCENTERNAME
+              )AA
+              WHERE 1=1
+              ORDER BY AA.WORKENDDATE
+         ]]>
+         
+      </select>
+      
+       <select id="manage.kpi2.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+        <![CDATA[
+              SELECT COUNT(*) FROM(
+              SELECT AA.WORKCENTERNAME,
+                     AA.WORKENDDATE,
+                     AA.PRODUCEDQTY FROM(
+                     SELECT A.WORKCENTERNAME,
+                            TO_CHAR(A.WORK_END_DATE,'MM') AS WORKENDDATE,
+                            SUM(A.PRODUCEDQTY) AS PRODUCEDQTY
+                     FROM CB_KPI_TIME_WORK_V A
+              
+                      WHERE A.ORGID = $ORGID$
+                      AND A.COMPANYID = $COMPANYID$
+                      AND TO_CHAR(A.WORK_END_DATE,'YYYY') = #DATEYEAR#
+         ]]>             
+         <isNotEmpty property="WORKCNETERCODE" prepend="AND">
+             A.WORKCENTERCODE = #WORKCNETERCODE#
+         </isNotEmpty>
+         <![CDATA[
+                      GROUP BY TO_CHAR(A.WORK_END_DATE,'MM'),A.WORKCENTERNAME
+              )AA
+              WHERE 1=1
+              ORDER BY AA.WORKENDDATE
+              )TOT
+         ]]>
+      </select>
+
+      <sql id="manage.kpi2.ManigeArea3.select.sql-select">
+                SELECT A.ORGID,
+                     A.COMPANYID,
+                     A.WORKCENTERCODE,
+                     A.WORKCENTERNAME,
+                     TO_CHAR(A.WORK_END_DATE,'DD')AS WORKENDDATE,
+                     A.WORKOFTIME
+                FROM CB_KPI_TIME_WORK_V A
+     </sql>
+    
+     <sql id="manage.kpi2.ManigeArea3.select.sql-where">
+            WHERE 1=1
+       <isNotEmpty property="ORGID" prepend="AND">
+             ORGID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             COMPANYID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="TXRDATEFROM" prepend="AND">
+             WORK_END_DATE BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#,'YYYY-MM'),'MM')
+             AND LAST_DAY(TRUNC(TO_DATE(#TXRDATEFROM#,'YYYY-MM'),'MM'))
+       </isNotEmpty>
+        <isNotEmpty property="WORKCNETERCODE" prepend="AND">
+             A.WORKCENTERCODE = #WORKCNETERCODE#
+       </isNotEmpty>
+        <isNotEmpty property="ROUTINGCODE" prepend="AND">
+             A.ROUTING_CODE = #ROUTINGCODE#
+       </isNotEmpty>
+             ORDER BY WORKENDDATE
+       </sql>
+    
+      <select id="manage.kpi2.ManigeArea3.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi2.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi2.ManigeArea3.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi2.ManigeArea3.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi2.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi2.ManigeArea3.select.sql-where" />
+               )TOT      
+      </select>
+      
+    
+    
+      <sql id="manage.kpi3.ManigeArea1.select.sql-select">
+			SELECT SC.ORG_ID AS ORGID
+			      ,SC.COMPANY_ID AS COMPANYID
+			      ,SC.SMALL_CODE AS SMALLCODE
+			      ,SC.SMALL_NAME AS SMALLNAME
+			      ,DECODE(LENGTH(TMP.LV), 1, '0'||LV, LV) AS TRXDATE
+			      ,CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID
+			                                    ,SC.COMPANY_ID
+			                                    ,TMP.YYYY
+			                                    ,TMP.LV
+			                                    ,NULL
+			                                    ,SC.SMALL_CODE
+			                                    ,'M'
+			                                    ,'PPM'
+			                                    ,NULL) AS PPMQTY
+			  FROM CB_SMALL_CODE SC
+			      ,(SELECT LEVEL AS LV
+			              ,#DATEYEAR# AS YYYY
+			          FROM DUAL
+			        CONNECT BY LEVEL <![CDATA[ <= ]]> 12)TMP
+     </sql>
+    
+     <sql id="manage.kpi3.ManigeArea1.select.sql-where">
+       WHERE SC.BIG_CODE = 'MFG'
+         AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+       <isNotEmpty property="ORGID" prepend="AND">
+             SC.ORG_ID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             SC.COMPANY_ID = $COMPANYID$
+       </isNotEmpty>
+        ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE, TMP.LV
+       </sql>
+    
+      <select id="manage.kpi3.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi3.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea1.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi3.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi3.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea1.select.sql-where" />
+               )TOT      
+      </select>
+      
+     <sql id="manage.kpi3.ManigeArea2.select.sql-select">
+      SELECT SC.ORG_ID AS ORGID,
+             SC.COMPANY_ID AS COMPANYID,
+             SC.SMALL_CODE AS SMALLCODE,
+             SC.SMALL_NAME AS SMALLNAME,
+             DECODE(LENGTH(TMP.LV), 1, '0' || LV, LV) AS TRXDATE,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                          'PPM',
+                                          #FAULTGROUP#) AS PPMQTY
+        FROM CB_SMALL_CODE SC,
+             (SELECT LEVEL AS LV, #DATEFROM# AS YYYY FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> TO_NUMBER(TO_CHAR(LAST_DAY(TO_DATE(#DATEFROM#, 'YYYY-MM')), 'DD'))) TMP
+     </sql>
+    
+     <sql id="manage.kpi3.ManigeArea2.select.sql-where">
+       WHERE SC.BIG_CODE = 'MFG'
+         AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+       <isNotEmpty property="ORGID" prepend="AND">
+             SC.ORG_ID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             SC.COMPANY_ID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="ROUTINGGROUP" prepend="AND">
+             SC.SMALL_CODE = #ROUTINGGROUP#
+       </isNotEmpty>
+       ORDER BY SC.ORG_ID, SC.COMPANY_ID, TMP.LV, SC.SMALL_CODE
+       </sql>
+    
+      <select id="manage.kpi3.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi3.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea2.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi3.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi3.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea2.select.sql-where" />
+               )TOT      
+      </select>      
+      
+      <sql id="manage.kpi3.ManigeArea3.select.sql-select">
+      SELECT RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, TMP.LV, SC.SMALL_CODE) AS RN,
+             SC.ORG_ID AS ORGID,
+             SC.COMPANY_ID AS COMPANYID,
+             SC.SMALL_CODE AS SMALLCODE,
+             SC.SMALL_NAME AS SMALLNAME,
+             TMP.YYYY||'-'||DECODE(LENGTH(TMP.LV), 1, '0' || LV, LV) AS PRODDATE,
+             DECODE(LENGTH(TMP.LV), 1, '0' || LV, LV) AS TRXDATE,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'PPM',
+                                           '01') AS PPMQTY01,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'PPM',
+                                           '02') AS PPMQTY02,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'IMPORT',
+                                           NULL) AS IMPORTQTY,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'FAULT',
+                                           NULL) AS TOTALFAULTQTY,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'FAULT',
+                                           '01') AS FAULTQTY01,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'FAULT',
+                                           '02') AS FAULTQTY02,
+             CB_KPI_PKG.CB_KPI7_PPM_SEARCH(SC.ORG_ID,
+                                           SC.COMPANY_ID,
+                                           TMP.YYYY,
+                                           NULL,
+                                           TMP.LV,
+                                           SC.SMALL_CODE,
+                                           'D',
+                                           'LOSS',
+                                           NULL) AS LOSSQTY
+        FROM CB_SMALL_CODE SC,
+             (SELECT LEVEL AS LV, #DATEFROM# AS YYYY FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> TO_NUMBER(TO_CHAR(LAST_DAY(TO_DATE(#DATEFROM#, 'YYYY-MM')), 'DD'))) TMP
+     </sql>
+    
+     <sql id="manage.kpi3.ManigeArea3.select.sql-where">
+       WHERE SC.BIG_CODE = 'MFG'
+         AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+       <isNotEmpty property="ORGID" prepend="AND">
+             SC.ORG_ID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             SC.COMPANY_ID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="ROUTINGGROUP" prepend="AND">
+             SC.SMALL_CODE = #ROUTINGGROUP#
+       </isNotEmpty>
+       ORDER BY SC.ORG_ID, SC.COMPANY_ID, TMP.LV, SC.SMALL_CODE
+       </sql>
+    
+      <select id="manage.kpi3.ManigeArea3.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi3.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea3.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi3.ManigeArea3.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi3.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi3.ManigeArea3.select.sql-where" />
+               )TOT      
+      </select>    
+
+      <sql id="manage.kpi4.ManigeArea1.select.sql-select">
+            SELECT 
+                  TO_CHAR(TO_DATE(SRV.TRXMONTHS,'YYYY-MM'),'MM')AS TRXMONTHS
+                  ,SRV.SOQTY AS SOQTY
+                  ,SRV.SHIPQTY AS SHIPQTY
+                  ,SRV.SHIPRATE AS SHIPRATE
+            FROM CB_KPI_SHIP_RATE_V SRV
+     </sql>
+    
+     <sql id="manage.kpi4.ManigeArea1.select.sql-where">
+            WHERE 1=1
+       <isNotEmpty property="ORGID" prepend="AND">
+            SRV.ORGID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+            SRV.COMPANYID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="DATEYEAR" prepend="AND">
+            TO_CHAR(TO_DATE(SRV.TRXMONTHS,'YYYY-MM'),'YYYY') = #DATEYEAR#
+       </isNotEmpty>
+            ORDER BY TRXMONTHS
+       </sql>
+    
+      <select id="manage.kpi4.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi4.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea1.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi4.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi4.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea1.select.sql-where" />
+               )TOT      
+      </select>
+
+      <sql id="manage.kpi4.ManigeArea2.select.sql-select">
+            SELECT SIV.ITEMNAME AS ITEMNAME
+                  ,TO_CHAR(TO_DATE(SIV.SHIPDATE,'YYYY-MM-DD'),'DD') AS SHIPDATE
+                  ,SUM(SIV.SHIPQTY) AS SHIPQTY
+            FROM CB_KPI_SHIP_ITEM_V SIV
+     </sql>
+    
+     <sql id="manage.kpi4.ManigeArea2.select.sql-where">
+             WHERE 1=1
+       <isNotEmpty property="ORGID" prepend="AND">
+             SIV.ORGID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             SIV.COMPANYID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="TXRDATEFROM" prepend="AND">
+             TO_DATE(SIV.SHIPDATE, 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM')) AND LAST_DAY(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'))
+       </isNotEmpty>
+       <isNotEmpty property="ORDERNAME" prepend="AND">
+             SIV.ORDERNAME LIKE '%'||#ORDERNAME#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMNAME" prepend="AND">
+             SIV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+       </isNotEmpty>
+            GROUP BY SHIPDATE, ITEMNAME
+            ORDER BY SHIPDATE, ITEMNAME
+       </sql>
+    
+      <select id="manage.kpi4.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi4.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea2.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi4.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi4.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea2.select.sql-where" />
+               )TOT      
+      </select>
+      
+      <sql id="manage.kpi4.ManigeArea3.select.sql-select">
+                SELECT SIV.ORGID AS ORGID,
+                     SIV.COMPANYID AS COMPANYID,
+                     SIV.BIGNAME AS BIGNAME,
+                     SIV.MIDDLENAME AS MIDDLENAME,
+                     SIV.SMALLNAME AS SMALLNAME,
+                     SIV.ITEMCODE AS ITEMCODE,
+                     SIV.ITEMNAME AS ITEMNAME,
+                     SIV.ORDERNAME AS ORDERNAME,
+                     SIV.SHIPDATE AS SHIPDATE,
+                     SIV.CUSTOMERCODE AS CUSTOMERCODE,
+                     SIV.CUSTOMERNAME AS CUSTOMERNAME,
+                     SIV.SHIPPERSON AS SHIPPERSON,
+                     SIV.SHIPPERSONNAME AS SHIPPERSONNAME,
+                     SIV.CUSTOMERGUBUN AS CUSTOMERGUBUN,
+                     SIV.CUSTOMERGUBUNNAME AS CUSTOMERGUBUNNAME,
+                     SUM(SIV.SHIPQTY) AS SHIPQTY
+                 FROM CB_KPI_SHIP_ITEM_V SIV
+     </sql>
+    
+     <sql id="manage.kpi4.ManigeArea3.select.sql-where">
+             WHERE 1=1
+       <isNotEmpty property="ORGID" prepend="AND">
+             SIV.ORGID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             SIV.COMPANYID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="TXRDATEFROM" prepend="AND">
+             TO_DATE(SIV.SHIPDATE, 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM')) AND LAST_DAY(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'))
+       </isNotEmpty>
+       <isNotEmpty property="ORDERNAME" prepend="AND">
+             SIV.ORDERNAME LIKE '%'||#ORDERNAME#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMNAME" prepend="AND">
+             SIV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+       </isNotEmpty>
+              GROUP BY ORGID,
+	                          COMPANYID,
+	                          BIGNAME,
+	                          MIDDLENAME,
+	                          SMALLNAME,
+	                          ITEMCODE,
+	                          ITEMNAME,
+	                          ORDERNAME,
+	                          SHIPDATE,
+	                          CUSTOMERCODE,
+	                          CUSTOMERNAME,
+	                          SHIPPERSON,
+	                          SHIPPERSONNAME,
+	                          CUSTOMERGUBUN,
+	                          CUSTOMERGUBUNNAME
+	             ORDER BY SHIPDATE, SIV.ITEMCODE
+       </sql>
+    
+      <select id="manage.kpi4.ManigeArea3.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi4.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea3.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi4.ManigeArea3.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi4.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi4.ManigeArea3.select.sql-where" />
+               )TOT      
+      </select>   
+      
+      <sql id="manage.kpi5.ManigeArea1.select.sql-select">
+      SELECT AAA.TRXMONTHS AS TRXMONTHS,
+			       SUM(AAA.NEEDLEADTIME) AS NEEDLEADTIME,
+			       SUM(AAA.REALLEADTIME) AS REALLEADTIME
+			  FROM (SELECT TO_CHAR((SELECT MIN(WD.START_TIME)
+			                         FROM CB_WORK_ORDER_D WD
+			                        WHERE WD.ORG_ID = WOH.ORG_ID
+			                          AND WD.COMPANY_ID = WOH.COMPANY_ID
+			                          AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID),
+			                       'MM') AS TRXMONTHS,
+			               (SELECT SUM(NVL(WO.WORK_ORDER_QTY, 0) *
+			                           (SELECT RC.CYCLE_TIME
+			                              FROM CB_ROUTING_CONTROL RC
+			                             WHERE RC.ORG_ID = WO.ORG_ID
+			                               AND RC.COMPANY_ID = WO.COMPANY_ID
+			                               AND RC.ITEM_CODE = WO.ITEM_CODE
+			                               AND RC.ROUTING_ID = WO.ROUTING_CODE))
+			                  FROM CB_WORK_ORDER WO
+			                 WHERE WO.ORG_ID = WOH.ORG_ID
+			                   AND WO.COMPANY_ID = WOH.COMPANY_ID
+			                   AND WO.WORK_ORDER_ID = WOH.WORK_ORDER_ID) AS NEEDLEADTIME,
+			               NVL((SELECT SUM(NVL(WD.QTY, 0) * TRUNC((WD.END_TIME - WD.START_TIME) * 24,0) ) AS CYCLETIME
+			                      FROM CB_WORK_ORDER_D WD
+			                     WHERE WD.ORG_ID = WOH.ORG_ID
+			                       AND WD.COMPANY_ID = WOH.COMPANY_ID
+			                       AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID
+			                    ),
+			                   0) AS REALLEADTIME
+			          FROM CB_WORK_ORDER_HEADER WOH
+     </sql>
+    
+     <sql id="manage.kpi5.ManigeArea1.select.sql-where">
+               WHERE WOH.WORK_STATUS != 'CANCEL' 
+               <isNotEmpty property="ORGID" prepend="AND">
+                    WOH.ORG_ID = $ORGID$
+               </isNotEmpty>
+               <isNotEmpty property="COMPANYID" prepend="AND">
+                    WOH.COMPANY_ID = $COMPANYID$
+               </isNotEmpty>
+               <isNotEmpty property="DATEYEAR" prepend="AND">
+                    TO_CHAR((SELECT MIN(WD.START_TIME)
+                         FROM CB_WORK_ORDER_D WD
+                        WHERE WD.ORG_ID = WOH.ORG_ID
+                          AND WD.COMPANY_ID = WOH.COMPANY_ID
+                          AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID),'YYYY') = #DATEYEAR#
+               </isNotEmpty>
+                 )AAA
+        GROUP BY AAA.TRXMONTHS
+        ORDER BY AAA.TRXMONTHS
+       </sql>
+    
+      <select id="manage.kpi5.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi5.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea1.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi5.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi5.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea1.select.sql-where" />
+               )TOT      
+      </select>
+
+      <sql id="manage.kpi5.ManigeArea2.select.sql-select">
+      SELECT AA.TRXMONTHS AS TRXMONTHS 
+               ,AA.WORKSTARTDATE AS WORKSTARTDATE
+               ,AA.ITEMCODE AS ITEMCODE
+               ,AA.ORDERNAME AS ORDERNAME
+               ,AA.ITEMNAME AS ITEMNAME
+               ,AA.DRAWINGNO AS DRAWINGNO
+               ,AA.REALLEADTIME AS REALLEADTIME
+        FROM (SELECT WOH.ORG_ID AS ORGID
+                    ,WOH.COMPANY_ID AS COMPANYID
+                    ,TO_CHAR((SELECT MIN(WD.START_TIME)
+                                     FROM CB_WORK_ORDER_D WD
+                                   WHERE WD.ORG_ID = WOH.ORG_ID
+                                     AND WD.COMPANY_ID = WOH.COMPANY_ID
+                                     AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 'DD') AS TRXMONTHS
+                    ,TO_DATE(TO_CHAR((SELECT MIN(WD.START_TIME)
+                                                  FROM CB_WORK_ORDER_D WD
+                                                WHERE WD.ORG_ID = WOH.ORG_ID
+                                                  AND WD.COMPANY_ID = WOH.COMPANY_ID
+                                                  AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 'YYYY-MM-DD'), 'YYYY-MM-DD') AS WORKSTARTDATE
+                    ,OD.ITEM_CODE AS ITEMCODE
+                    ,IM.ORDER_NAME AS ORDERNAME
+                    ,IM.ITEM_NAME AS ITEMNAME
+                    ,IM.DRAWING_NO AS DRAWINGNO
+                    ,NVL((SELECT SUM(NVL(AA.QTY, 0) * NVL((SELECT SUM(TRUNC((WD.END_TIME - WD.START_TIME) * 24, 0))
+                                                              FROM CB_WORK_ORDER_D WD
+                                                             WHERE WD.ORG_ID = AA.ORG_ID
+                                                               AND WD.COMPANY_ID = AA.COMPANY_ID
+                                                               AND WD.WORK_ORDER_ID = AA.WORK_ORDER_ID
+                                                               AND WD.WORK_ORDER_SEQ = AA.WORK_ORDER_SEQ), 0)) AS CYCLETIME
+                            FROM (SELECT WD.ORG_ID
+                                        ,WD.COMPANY_ID
+                                        ,WD.WORK_ORDER_ID
+                                        ,WD.WORK_ORDER_SEQ
+                                        ,SUM(WD.QTY) AS QTY
+                                    FROM CB_WORK_ORDER_D WD
+                                   GROUP BY WD.ORG_ID, WD.COMPANY_ID
+                                           ,WD.WORK_ORDER_ID, WD.WORK_ORDER_SEQ)AA
+                           WHERE AA.ORG_ID = WOH.ORG_ID
+                             AND AA.COMPANY_ID = WOH.COMPANY_ID
+                             AND AA.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 0) AS REALLEADTIME
+                FROM CB_WORK_ORDER_HEADER WOH
+                    ,CB_PROD_PLAN PP
+                    ,CB_SALES_ORDER_D OD
+                    ,CB_SALES_ORDER_H OH
+                    ,CB_ITEM_MASTER IM
+     </sql>
+    
+     <sql id="manage.kpi5.ManigeArea2.select.sql-where">
+               WHERE WOH.ORG_ID = PP.ORG_ID
+                 AND WOH.COMPANY_ID = PP.COMPANY_ID
+                 AND WOH.WORK_PLAN_NO = PP.WORK_PLAN_NO
+                 AND PP.ORG_ID = OD.ORG_ID
+                 AND PP.COMPANY_ID = OD.COMPANY_ID
+                 AND PP.SO_NO = OD.SO_NO
+                 AND PP.SO_SEQ = OD.SO_SEQ
+                 AND OD.ORG_ID = OH.ORG_ID
+                 AND OD.COMPANY_ID = OH.COMPANY_ID
+                 AND OD.SO_NO = OH.SO_NO
+                 AND WOH.WORK_STATUS != 'CANCEL'
+                 AND OD.ORG_ID = IM.ORG_ID
+                 AND OD.COMPANY_ID = IM.COMPANY_ID
+                 AND OD.ITEM_CODE = IM.ITEM_CODE
+               <isNotEmpty property="ORGID" prepend="AND">
+                     WOH.ORG_ID = $ORGID$
+               </isNotEmpty>
+               <isNotEmpty property="COMPANYID" prepend="AND">
+                     WOH.COMPANY_ID = $COMPANYID$
+               </isNotEmpty>
+               <isNotEmpty property="TXRDATEFROM" prepend="AND">
+                     TO_DATE(TO_CHAR((SELECT MIN(WD.START_TIME)
+                                        FROM CB_WORK_ORDER_D WD
+                                       WHERE WD.ORG_ID = WOH.ORG_ID
+                                         AND WD.COMPANY_ID = WOH.COMPANY_ID
+                                         AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM')) AND LAST_DAY(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'))
+               </isNotEmpty>
+               <isNotEmpty property="ITEMCODE" prepend="AND">
+                     IM.ITEM_CODE = #ITEMCODE#
+               </isNotEmpty>
+               <isNotEmpty property="ITEMNAME" prepend="AND">
+                     IM.ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+               </isNotEmpty>
+               <isNotEmpty property="ORDERNAME" prepend="AND">
+                     IM.ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+               </isNotEmpty>
+                 )AA
+              ORDER BY AA.ORGID, AA.COMPANYID, AA.WORKSTARTDATE, AA.ITEMCODE
+       </sql>
+    
+      <select id="manage.kpi5.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi5.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea2.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi5.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi5.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea2.select.sql-where" />
+               )TOT      
+      </select>
+      
+      <sql id="manage.kpi5.ManigeArea3.select.sql-select">
+      SELECT RANK() OVER (ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, WOH.WORK_START_DATE, WOH.WORK_ORDER_ID) AS RN
+            ,WOH.ORG_ID AS ORGID
+            ,WOH.COMPANY_ID AS COMPANYID
+            ,TO_CHAR((SELECT MIN(WD.START_TIME)
+                             FROM CB_WORK_ORDER_D WD
+                           WHERE WD.ORG_ID = WOH.ORG_ID
+                             AND WD.COMPANY_ID = WOH.COMPANY_ID
+                             AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 'YYYY-MM-DD') AS WORKSTARTDATE
+            ,TO_CHAR(OH.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+            ,WOH.WORK_ORDER_ID AS WORKORDERID
+            ,OH.CUSTOMER_CODE AS CUSTOMERCODE
+            ,(SELECT CC.CUSTOMER_NAME
+                FROM CB_CUSTOMER CC
+               WHERE CC.ORG_ID = OH.ORG_ID
+                 AND CC.COMPANY_ID = OH.COMPANY_ID
+                 AND CC.CUSTOMER_CODE = OH.CUSTOMER_CODE) AS CUSTOMERNAME
+            ,OD.ITEM_CODE AS ITEMCODE
+            ,IM.DRAWING_NO AS DRAWINGNO
+            ,IM.ITEM_NAME AS ITEMNAME
+            ,IM.ORDER_NAME AS ORDERNAME
+            ,IM.UOM AS UOM
+            ,IM.UOM_NAME AS UOMNAME
+            ,IM.ITEM_TYPE AS ITEMTYPE
+            ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME
+            ,IM.CAR_TYPE AS CARTYPE
+            ,IM.CAR_TYPE_NAME AS CARTYPENAME
+            ,IM.MATERIAL_TYPE AS MATERIALTYPE
+            ,(SELECT SUM(NVL(WO.WORK_ORDER_QTY, 0) * (SELECT RC.CYCLE_TIME
+                                                        FROM CB_ROUTING_CONTROL RC
+                                                       WHERE RC.ORG_ID = WO.ORG_ID
+                                                         AND RC.COMPANY_ID = WO.COMPANY_ID
+                                                         AND RC.ITEM_CODE = WO.ITEM_CODE
+                                                         AND RC.ROUTING_ID = WO.ROUTING_CODE))
+                FROM CB_WORK_ORDER WO
+               WHERE WO.ORG_ID = WOH.ORG_ID
+                 AND WO.COMPANY_ID = WOH.COMPANY_ID
+                 AND WO.WORK_ORDER_ID = WOH.WORK_ORDER_ID) AS NEEDLEADTIME
+            ,(SELECT SUM(NVL(AA.QTY, 0) * NVL((SELECT SUM(TRUNC((WD.END_TIME - WD.START_TIME) * 24, 0))
+                                                  FROM CB_WORK_ORDER_D WD
+                                                 WHERE WD.ORG_ID = AA.ORG_ID
+                                                   AND WD.COMPANY_ID = AA.COMPANY_ID
+                                                   AND WD.WORK_ORDER_ID = AA.WORK_ORDER_ID
+                                                   AND WD.WORK_ORDER_SEQ = AA.WORK_ORDER_SEQ), 0)) AS CYCLETIME
+                FROM (SELECT WD.ORG_ID
+                            ,WD.COMPANY_ID
+                            ,WD.WORK_ORDER_ID
+                            ,WD.WORK_ORDER_SEQ
+                            ,SUM(WD.QTY) AS QTY
+                        FROM CB_WORK_ORDER_D WD
+                       GROUP BY WD.ORG_ID, WD.COMPANY_ID
+                               ,WD.WORK_ORDER_ID, WD.WORK_ORDER_SEQ)AA
+               WHERE AA.ORG_ID = WOH.ORG_ID
+                 AND AA.COMPANY_ID = WOH.COMPANY_ID
+                 AND AA.WORK_ORDER_ID = WOH.WORK_ORDER_ID) AS REALLEADTIME
+        FROM CB_WORK_ORDER_HEADER WOH
+            ,CB_PROD_PLAN PP
+            ,CB_SALES_ORDER_D OD
+            ,CB_SALES_ORDER_H OH
+            ,CB_ITEM_MASTER_V IM
+     </sql>
+    
+     <sql id="manage.kpi5.ManigeArea3.select.sql-where">
+       WHERE WOH.ORG_ID = PP.ORG_ID
+         AND WOH.COMPANY_ID = PP.COMPANY_ID
+         AND WOH.WORK_PLAN_NO = PP.WORK_PLAN_NO
+         AND PP.ORG_ID = OD.ORG_ID
+         AND PP.COMPANY_ID = OD.COMPANY_ID
+         AND PP.SO_NO = OD.SO_NO
+         AND PP.SO_SEQ = OD.SO_SEQ
+         AND OD.ORG_ID = OH.ORG_ID
+         AND OD.COMPANY_ID = OH.COMPANY_ID
+         AND OD.SO_NO = OH.SO_NO
+         AND WOH.WORK_STATUS != 'CANCEL'
+         AND OD.ORG_ID = IM.ORG_ID
+         AND OD.COMPANY_ID = IM.COMPANY_ID
+         AND OD.ITEM_CODE = IM.ITEM_CODE
+       <isNotEmpty property="ORGID" prepend="AND">
+             WOH.ORG_ID = $ORGID$
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+             WOH.COMPANY_ID = $COMPANYID$
+       </isNotEmpty>
+       <isNotEmpty property="TXRDATEFROM" prepend="AND">
+             TO_DATE(TO_CHAR((SELECT MIN(WD.START_TIME)
+                                FROM CB_WORK_ORDER_D WD
+                               WHERE WD.ORG_ID = WOH.ORG_ID
+                                 AND WD.COMPANY_ID = WOH.COMPANY_ID
+                                 AND WD.WORK_ORDER_ID = WOH.WORK_ORDER_ID), 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(#TXRDATEFROM#, 'YYYY-MM')) AND LAST_DAY(TO_DATE(#TXRDATEFROM#, 'YYYY-MM'))
+       </isNotEmpty>
+       <isNotEmpty property="ITEMCODE" prepend="AND">
+             IM.ITEM_CODE = #ITEMCODE#
+       </isNotEmpty>
+       <isNotEmpty property="ITEMNAME" prepend="AND">
+             IM.ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ORDERNAME" prepend="AND">
+             IM.ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+       </isNotEmpty>
+      ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, (SELECT MIN(WE.START_TIME)
+													                                         FROM CB_WORK_EMPLOYEE WE
+													                                       WHERE WE.ORG_ID = WOH.ORG_ID
+													                                         AND WE.COMPANY_ID = WOH.COMPANY_ID
+													                                         AND WE.WORK_ORDER_ID = WOH.WORK_ORDER_ID), WOH.WORK_ORDER_ID
+       </sql>
+    
+      <select id="manage.kpi5.ManigeArea3.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi5.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea3.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi5.ManigeArea3.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi5.ManigeArea3.select.sql-select" />
+               <include refid="manage.kpi5.ManigeArea3.select.sql-where" />
+               )TOT      
+      </select>
+      
+     <sql id="manage.kpi7.ManigeArea1.select.sql-select">
+			SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE) AS RN
+			      ,IM.ORG_ID AS ORGID
+			      ,IM.COMPANY_ID AS COMPANYID
+			      ,IM.ITEM_CODE AS ITEMCODE
+			      ,IM.ORDER_NAME AS ORDERNAME
+			      ,IM.DRAWING_NO AS DRAWINGNO
+			      ,IM.ITEM_NAME AS ITEMNAME
+			      ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE SC.ORG_ID = IM.ORG_ID
+			           AND SC.COMPANY_ID = IM.COMPANY_ID
+			           AND SC.BIG_CODE = 'MFG'
+			           AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+			           AND SC.SMALL_CODE = TMP.NUM) AS GROUPNAME
+			      ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID,
+			                                     IM.COMPANY_ID,
+			                                     IM.ITEM_CODE,
+			                                     TMP.SEARCH_DATE,
+			                                     TMP.NUM,
+			                                     'LIST') AS GROUPQTY
+			  FROM CB_ITEM_MASTER_V IM
+			      ,(SELECT $ORGID$ AS ORG_ID
+			              ,$COMPANYID$ AS COMPANY_ID
+			              ,TO_DATE(#TXRDATEFROM#, 'YYYY-MM-DD') AS SEARCH_DATE
+			              ,'A' AS GROUP_CODE
+			          FROM DUAL) TMP
+			       ,(SELECT LEVEL AS NUM FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> 8) TMP
+     </sql>
+    
+     <sql id="manage.kpi7.ManigeArea1.select.sql-where">
+       WHERE IM.ORG_ID = TMP.ORG_ID
+         AND IM.COMPANY_ID = TMP.COMPANY_ID
+         AND IM.GROUP_CODE = TMP.GROUP_CODE
+       <isNotEmpty property="ORDERNAME" prepend="AND">
+             IM.ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMNAME" prepend="AND">
+             IM.ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+       </isNotEmpty>
+         AND SYSDATE BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE
+       ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE
+       </sql>
+    
+      <select id="manage.kpi7.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi7.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi7.ManigeArea1.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi7.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi7.ManigeArea1.select.sql-select" />
+               <include refid="manage.kpi7.ManigeArea1.select.sql-where" />
+               )TOT      
+      </select>
+      
+      <sql id="manage.kpi7.ManigeArea2.select.sql-select">
+      SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE) AS RN
+            ,IM.ORG_ID AS ORGID
+            ,IM.COMPANY_ID AS COMPANYID
+            ,IM.ITEM_CODE AS ITEMCODE
+            ,IM.ORDER_NAME AS ORDERNAME
+            ,IM.DRAWING_NO AS DRAWINGNO
+            ,IM.ITEM_NAME AS ITEMNAME
+            ,(SELECT SC.SMALL_NAME
+                FROM CB_SMALL_CODE SC
+               WHERE SC.ORG_ID = IM.ORG_ID
+                 AND SC.COMPANY_ID = IM.COMPANY_ID
+                 AND SC.BIG_CODE = 'MFG'
+                 AND SC.MIDDLE_CODE = 'ROUTING_GROUP'
+                 AND SC.SMALL_CODE = TMP.NUM) AS GROUPNAME
+            ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID,
+                                           IM.COMPANY_ID,
+                                           IM.ITEM_CODE,
+                                           TMP.SEARCH_DATE,
+                                           TMP.NUM,
+                                           'LIST') AS GROUPQTY
+        FROM CB_ITEM_MASTER_V IM
+            ,(SELECT $ORGID$ AS ORG_ID
+                    ,$COMPANYID$ AS COMPANY_ID
+                    ,TO_DATE(#TXRDATEFROM#, 'YYYY-MM-DD') AS SEARCH_DATE
+                    ,'A' AS GROUP_CODE
+                FROM DUAL) TMP
+             ,(SELECT LEVEL AS NUM FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> 8) TMP
+     </sql>
+    
+     <sql id="manage.kpi7.ManigeArea2.select.sql-where">
+       WHERE IM.ORG_ID = TMP.ORG_ID
+         AND IM.COMPANY_ID = TMP.COMPANY_ID
+         AND IM.GROUP_CODE = TMP.GROUP_CODE
+       <isNotEmpty property="ORDERNAME" prepend="AND">
+             IM.ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMNAME" prepend="AND">
+             IM.ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+       </isNotEmpty>
+         AND SYSDATE BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE
+       ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE
+       </sql>
+    
+      <select id="manage.kpi7.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+               <include refid="manage.kpi7.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi7.ManigeArea2.select.sql-where" />
+      </select>
+      
+      <select id="manage.kpi7.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+               <include refid="manage.kpi7.ManigeArea2.select.sql-select" />
+               <include refid="manage.kpi7.ManigeArea2.select.sql-where" />
+               )TOT      
+      </select>
+      
+      
+      
+     <sql id="manage.kpi8.ManigeArea1.select.sql-select">
+     <![CDATA[
+     SELECT TO_NUMBER(TO_CHAR(SEARCH_DATE,'MM')) AS SEARCHMONTH
+               ,MATCOUNT
+               ,MATPRICE
+               ,ROUTCNT
+               ,ROUTPRICE 
+               ,FINISHITEM
+               ,FINISHITEMPRICE
+               ,MATCOUNT + ROUTCNT + FINISHITEM AS TOTALCOUNT
+               ,MATPRICE + ROUTPRICE + FINISHITEMPRICE AS TOTALPRICE
+        FROM ( SELECT A.SEARCH_DATE
+      ,SUM(A.MATCOUNT) AS MATCOUNT
+      ,SUM(A.MATPRICE) AS MATPRICE
+      ,SUM(A.FINISHITEM) AS FINISHITEM
+      ,SUM(A.FINISHITEMPRICE) AS FINISHITEMPRICE
+     ,SUM(ROUT01+ROUT02+ROUT03+ROUT04+ROUT05+ROUT06+ROUT07+ROUT08+ROUT09+ROUT10+ROUT11+ROUT12+ROUT13+ROUT14+ROUT15+ROUT16+ROUT17+ROUT18+ROUT19+ROUT20) AS ROUTCNT
+      ,(SELECT 
+                            SUM(NVL(CB_MFG_PKG.CB_ROUT_REMAIN_QTY2(RC.ORG_ID,
+                                                               RC.COMPANY_ID,
+                                                               RC.ITEM_CODE,
+                                                               A.SEARCH_DATE,
+                                                               RC.ROUTING_ID,
+                                                               'DETAIL'),0) *
+                            NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                                                      RC.COMPANY_ID ,
+                                                                      RC.ITEM_CODE  ,
+                                                                      RC.ROUTING_ID ,
+                                                                      A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                        FROM CB_ROUTING_CONTROL RC
+                         WHERE RC.ORG_ID=A.ORGID
+                         AND RC.COMPANY_ID=A.COMPANYID) AS ROUTPRICE
+ /*  /*    ,SUM(NVL(A.ROUT01 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME01
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL( A.ROUT02 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME02
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(A.ROUT03 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME03
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(A.ROUT04 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME04
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL( A.ROUT05 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME05
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL( A.ROUT06 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME06
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(   A.ROUT07 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME07
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT08 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME08
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL(  A.ROUT09 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME09
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT10 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME10
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(      A.ROUT11 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME11
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL(    A.ROUT12 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME12
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT13 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME13
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT14 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME14
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT15 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME15
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT16 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME16
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT17 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME17
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT18 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME18
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT19 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME19
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT20 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME20
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) ) AS ROUTPRICE
+                      
+                      
+      */                
+                      
+                      
+ FROM (SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE/*IM.CUSTOMER_NAME, IM.ORDER_NAME, IM.ITEM_NAME*/) AS RN
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.SALES_PRICE AS PRICE
+                ,IM.ITEM_CODE
+                
+                ,CB_MFG_PKG.CB_MAT_REMAIN_QTY(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                              ) AS MATCOUNT
+                ,CB_MFG_PKG.CB_MAT_REMAIN_QTY(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                              ) * NVL(IM.SALES_PRICE,0) AS MATPRICE
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) AS FINISHITEM
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) * NVL(IM.SALES_PRICE,0) AS FINISHITEMPRICE
+                                              
+                ,(SELECT COUNT(*)
+                    FROM CB_ROUTING_CONTROL RC
+                   WHERE 1=1
+                     AND RC.ORG_ID = IM.ORG_ID
+                     AND RC.COMPANY_ID = IM.COMPANY_ID
+                     AND RC.ITEM_CODE = IM.ITEM_CODE
+                     AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) AS ROUTINGCNT
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,1 - 1
+                                              ,'DETAIL') AS ROUT01
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,2 - 1
+                                              ,'DETAIL') AS ROUT02
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,3 - 1
+                                              ,'DETAIL') AS ROUT03
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,4 - 1
+                                              ,'DETAIL') AS ROUT04
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,5 - 1
+                                              ,'DETAIL') AS ROUT05
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,6 - 1
+                                              ,'DETAIL') AS ROUT06
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,7 - 1
+                                              ,'DETAIL') AS ROUT07
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,8 - 1
+                                              ,'DETAIL') AS ROUT08
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,9 - 1
+                                              ,'DETAIL') AS ROUT09
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,10 - 1
+                                              ,'DETAIL') AS ROUT10
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11 - 1
+                                              ,'DETAIL') AS ROUT11
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,12 - 1
+                                              ,'DETAIL') AS ROUT12
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,13 - 1
+                                              ,'DETAIL'
+                                               ) AS ROUT13
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,14 - 1
+                                              ,'DETAIL') AS ROUT14
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,15 - 1
+                                              ,'DETAIL') AS ROUT15
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,16 - 1
+                                              ,'DETAIL') AS ROUT16
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,17 - 1
+                                              ,'DETAIL') AS ROUT17
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,18 - 1
+                                              ,'DETAIL') AS ROUT18
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,19 - 1
+                                              ,'DETAIL') AS ROUT19
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,20 - 1
+                                              ,'DETAIL') AS ROUT20
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,1) AS ROUTNAME01
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,2) AS ROUTNAME02
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,3) AS ROUTNAME03
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,4) AS ROUTNAME04
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,5) AS ROUTNAME05
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,6) AS ROUTNAME06
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,7) AS ROUTNAME07
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,8) AS ROUTNAME08
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,9) AS ROUTNAME09
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,10) AS ROUTNAME10
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,11) AS ROUTNAME11
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,12) AS ROUTNAME12
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,13) AS ROUTNAME13
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,14) AS ROUTNAME14
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,15) AS ROUTNAME15
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,16) AS ROUTNAME16
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,17) AS ROUTNAME17
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,18) AS ROUTNAME18
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,19) AS ROUTNAME19
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,20) AS ROUTNAME20 
+                ,TMP.SEARCH_DATE
+        FROM CB_ITEM_MASTER_V IM
+                ,(SELECT 1 AS ORG_ID
+                          ,1 AS COMPANY_ID
+                          ,'A' AS GROUP_CODE
+                          ,TO_DATE(TO_CHAR(#DATEYEAR#)||'-'||TO_CHAR(LEVEL),'YYYY-MM') AS SEARCH_DATE
+                    FROM DUAL
+                    CONNECT BY LEVEL<=12) TMP
+                    ]]>
+     </sql>
+    
+     <sql id="manage.kpi8.ManigeArea1.select.sql-where">
+        WHERE 1=1
+             AND IM.ORG_ID = TMP.ORG_ID
+             AND IM.COMPANY_ID = TMP.COMPANY_ID
+             AND IM.GROUP_CODE = TMP.GROUP_CODE
+             AND LAST_DAY(TMP.SEARCH_DATE) BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE) A
+             GROUP BY A.SEARCH_DATE, A.ORGID, A.COMPANYID
+             ORDER BY A.SEARCH_DATE)
+       </sql>
+       
+<!--        임시사용 -->
+       <sql id="manage.kpi8.ManageArea1.imsi.select.sql-select">
+       <![CDATA[
+       SELECT SEARCHMONTH
+               ,MATCOUNT
+               ,MATPRICE
+               ,ROUTCNT
+               ,ROUTPRICE 
+               ,FINISHITEM
+               ,FINISHITEMPRICE
+               ,TOTALCOUNT
+               ,TOTALPRICE
+               FROM 
+									(SELECT TO_NUMBER(SUBSTR(STANDARD_MONTH,6,2)) AS SEARCHMONTH
+									      ,INV_MAT_QTY AS MATCOUNT
+									      ,INV_MAT_AMT AS MATPRICE
+									      ,INV_ROUTING_QTY AS ROUTCNT
+									      ,INV_ROUTING_AMT AS ROUTPRICE 
+									      ,INV_PROD_QTY AS FINISHITEM
+									      ,INV_PROD_AMT AS FINISHITEMPRICE
+									      ,INV_MAT_QTY + INV_ROUTING_QTY + INV_PROD_QTY AS TOTALCOUNT
+									      ,INV_MAT_AMT + INV_ROUTING_AMT + INV_PROD_AMT AS TOTALPRICE
+									  FROM CB_KPI_INVENTORY A
+							/*		
+									UNION ALL
+									 
+									
+									SELECT TO_NUMBER(TMP.SEARCHMONTH) AS SEARCHMONTH
+									      ,INV_MAT_QTY AS MATCOUNT
+									      ,INV_MAT_AMT AS MATPRICE
+									      ,INV_ROUTING_QTY AS ROUTCNT
+									      ,INV_ROUTING_AMT AS ROUTPRICE 
+									      ,INV_PROD_QTY AS FINISHITEM
+									      ,INV_PROD_AMT AS FINISHITEMPRICE
+									      ,INV_MAT_QTY + INV_ROUTING_QTY + INV_PROD_QTY AS TOTALCOUNT
+									      ,INV_MAT_AMT + INV_ROUTING_AMT + INV_PROD_AMT AS TOTALPRICE       
+									  
+									   FROM(SELECT 1 AS ORG_ID
+									                ,1 AS COMPANY_ID
+									                ,TO_CHAR(LEVEL+4) AS SEARCHMONTH
+									                ,'2021-04' AS TMPDATE
+									          FROM DUAL
+									          CONNECT BY LEVEL<=8) TMP
+									              ,CB_KPI_INVENTORY A
+									   WHERE A.ORG_ID = TMP.ORG_ID
+									     AND A.COMPANY_ID = TMP.COMPANY_ID
+									     AND A.STANDARD_MONTH = TMP.TMPDATE*/
+									           )
+									ORDER BY SEARCHMONTH
+			]]>
+       </sql>
+    
+      <select id="manage.kpi8.ManigeArea1.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+<!--                <include refid="manage.kpi8.ManigeArea1.select.sql-select" /> -->
+<!--                <include refid="manage.kpi8.ManigeArea1.select.sql-where" /> -->
+               <include refid="manage.kpi8.ManageArea1.imsi.select.sql-select" />
+      </select>
+      
+      <select id="manage.kpi8.ManigeArea1.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+<!--                <include refid="manage.kpi8.ManigeArea1.select.sql-select" /> -->
+<!--                <include refid="manage.kpi8.ManigeArea1.select.sql-where" /> -->
+               
+               <include refid="manage.kpi8.ManageArea1.imsi.select.sql-select" />
+               )TOT      
+      </select>
+      
+      <sql id="manage.kpi8.ManigeArea2.select.sql-select">
+      <![CDATA[
+      SELECT TO_CHAR(SEARCH_DATE,'MM')||'월' AS SEARCHMONTH
+               ,MATCOUNT
+               ,MATPRICE
+              ,ROUTCNT
+               ,ROUTPRICE 
+               ,FINISHITEM
+               ,FINISHITEMPRICE
+               ,MATCOUNT + ROUTCNT + FINISHITEM AS TOTALCOUNT
+               ,MATPRICE + ROUTPRICE + FINISHITEMPRICE AS TOTALPRICE
+        FROM ( SELECT A.SEARCH_DATE
+      ,SUM(A.MATCOUNT) AS MATCOUNT
+      ,SUM(A.MATPRICE) AS MATPRICE
+      ,SUM(A.FINISHITEM) AS FINISHITEM
+      ,SUM(A.FINISHITEMPRICE) AS FINISHITEMPRICE
+     ,SUM(ROUT01+ROUT02+ROUT03+ROUT04+ROUT05+ROUT06+ROUT07+ROUT08+ROUT09+ROUT10+ROUT11+ROUT12+ROUT13+ROUT14+ROUT15+ROUT16+ROUT17+ROUT18+ROUT19+ROUT20) AS ROUTCNT
+     ,(SELECT 
+                            SUM(NVL(CB_MFG_PKG.CB_ROUT_REMAIN_QTY2(RC.ORG_ID,
+                                                               RC.COMPANY_ID,
+                                                               RC.ITEM_CODE,
+                                                               A.SEARCH_DATE,
+                                                               RC.ROUTING_ID,
+                                                               'DETAIL'),0) *
+                            NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                                                      RC.COMPANY_ID ,
+                                                                      RC.ITEM_CODE  ,
+                                                                      RC.ROUTING_ID ,
+                                                                      A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                        FROM CB_ROUTING_CONTROL RC
+                         WHERE RC.ORG_ID=A.ORGID
+                         AND RC.COMPANY_ID=A.COMPANYID) AS ROUTPRICE
+ /*      ,SUM(NVL(A.ROUT01 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME01
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL( A.ROUT02 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME02
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(A.ROUT03 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME03
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(A.ROUT04 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME04
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL( A.ROUT05 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME05
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL( A.ROUT06 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME06
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(   A.ROUT07 * (SELECT  NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST)AS RCCOST
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME07
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT08 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME08
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL(  A.ROUT09 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME09
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT10 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME10
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(      A.ROUT11 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME11
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) ,0) +
+           NVL(    A.ROUT12 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME12
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT13 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME13
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT14 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME14
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT15 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME15
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT16 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME16
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT17 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME17
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT18 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME18
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(     A.ROUT19 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME19
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) +
+           NVL(    A.ROUT20 * (SELECT  MAX(NVL(CB_COST_PKG.CB_SALES_PRICE_ROUTING_FNC(RC.ORG_ID,
+                                        RC.COMPANY_ID ,
+                                        RC.ITEM_CODE  ,
+                                        RC.ROUTING_ID ,
+                                        A.SEARCH_DATE ) ,RC.CONVERSION_COST))
+                     FROM CB_ROUTING_CONTROL RC
+                    WHERE RC.ROUTING_NAME=A.ROUTNAME20
+                      AND RC.ITEM_CODE = A.ITEM_CODE
+                      AND A.SEARCH_DATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE),0) ) AS ROUTPRICE
+                      
+                      
+      */                
+                      
+                      
+ FROM (SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE/*IM.CUSTOMER_NAME, IM.ORDER_NAME, IM.ITEM_NAME*/) AS RN
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.SALES_PRICE AS PRICE
+                ,IM.ITEM_CODE
+                
+                ,CB_MFG_PKG.CB_MAT_REMAIN_QTY(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                              ) AS MATCOUNT
+                ,CB_MFG_PKG.CB_MAT_REMAIN_QTY(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                              ) * NVL(IM.SALES_PRICE,0) AS MATPRICE
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) AS FINISHITEM
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) * NVL(IM.SALES_PRICE,0) AS FINISHITEMPRICE
+                                              
+                ,(SELECT COUNT(*)
+                    FROM CB_ROUTING_CONTROL RC
+                   WHERE 1=1
+                     AND RC.ORG_ID = IM.ORG_ID
+                     AND RC.COMPANY_ID = IM.COMPANY_ID
+                     AND RC.ITEM_CODE = IM.ITEM_CODE
+                     AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) AS ROUTINGCNT
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,1 - 1
+                                              ,'DETAIL') AS ROUT01
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,2 - 1
+                                              ,'DETAIL') AS ROUT02
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,3 - 1
+                                              ,'DETAIL') AS ROUT03
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,4 - 1
+                                              ,'DETAIL') AS ROUT04
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,5 - 1
+                                              ,'DETAIL') AS ROUT05
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,6 - 1
+                                              ,'DETAIL') AS ROUT06
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,7 - 1
+                                              ,'DETAIL') AS ROUT07
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,8 - 1
+                                              ,'DETAIL') AS ROUT08
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,9 - 1
+                                              ,'DETAIL') AS ROUT09
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,10 - 1
+                                              ,'DETAIL') AS ROUT10
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11 - 1
+                                              ,'DETAIL') AS ROUT11
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,12 - 1
+                                              ,'DETAIL') AS ROUT12
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,13 - 1
+                                              ,'DETAIL'
+                                               ) AS ROUT13
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,14 - 1
+                                              ,'DETAIL') AS ROUT14
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,15 - 1
+                                              ,'DETAIL') AS ROUT15
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,16 - 1
+                                              ,'DETAIL') AS ROUT16
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,17 - 1
+                                              ,'DETAIL') AS ROUT17
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,18 - 1
+                                              ,'DETAIL') AS ROUT18
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,19 - 1
+                                              ,'DETAIL') AS ROUT19
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,20 - 1
+                                              ,'DETAIL') AS ROUT20
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,1) AS ROUTNAME01
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,2) AS ROUTNAME02
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,3) AS ROUTNAME03
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,4) AS ROUTNAME04
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,5) AS ROUTNAME05
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,6) AS ROUTNAME06
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,7) AS ROUTNAME07
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,8) AS ROUTNAME08
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,9) AS ROUTNAME09
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,10) AS ROUTNAME10
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,11) AS ROUTNAME11
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,12) AS ROUTNAME12
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,13) AS ROUTNAME13
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,14) AS ROUTNAME14
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,15) AS ROUTNAME15
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,16) AS ROUTNAME16
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,17) AS ROUTNAME17
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,18) AS ROUTNAME18
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,19) AS ROUTNAME19
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,20) AS ROUTNAME20 
+                ,TMP.SEARCH_DATE
+        FROM CB_ITEM_MASTER_V IM
+                ,(SELECT 1 AS ORG_ID
+                          ,1 AS COMPANY_ID
+                          ,'A' AS GROUP_CODE
+                          ,TO_DATE(TO_CHAR(#DATEYEAR#)||'-'||TO_CHAR(LEVEL),'YYYY-MM') AS SEARCH_DATE
+                    FROM DUAL
+                    CONNECT BY LEVEL<=12) TMP
+                    ]]>
+     </sql>
+    
+     <sql id="manage.kpi8.ManigeArea2.select.sql-where">
+         
+          WHERE 1=1
+             AND IM.ORG_ID = TMP.ORG_ID
+             AND IM.COMPANY_ID = TMP.COMPANY_ID
+             AND IM.GROUP_CODE = TMP.GROUP_CODE
+             AND LAST_DAY(TMP.SEARCH_DATE) BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE) A
+             GROUP BY A.SEARCH_DATE, A.ORGID, A.COMPANYID
+             ORDER BY A.SEARCH_DATE)
+       </sql>
+    
+    <!--        임시사용 -->
+       <sql id="manage.kpi8.ManageArea2.imsi.select.sql-select">
+       <![CDATA[
+       SELECT TO_CHAR(SEARCHMONTH) AS SEARCHMONTH
+               ,MATCOUNT
+               ,MATPRICE
+               ,ROUTCNT
+               ,ROUTPRICE 
+               ,FINISHITEM
+               ,FINISHITEMPRICE
+               ,TOTALCOUNT
+               ,TOTALPRICE
+               ,(SELECT AVG(INV_MAT_QTY + INV_ROUTING_QTY + INV_PROD_QTY)
+                  FROM CB_KPI_INVENTORY) AS AVGCOUNT
+               ,(SELECT AVG(INV_MAT_AMT + INV_ROUTING_AMT + INV_PROD_AMT)
+                  FROM CB_KPI_INVENTORY) AS AVGPRICE
+               FROM 
+                  (SELECT /*TO_NUMBER(SUBSTR(STANDARD_MONTH,6,2)) AS SEARCHMONTH*/
+                        STANDARD_MONTH AS SEARCHMONTH
+                        ,INV_MAT_QTY AS MATCOUNT
+                        ,INV_MAT_AMT AS MATPRICE
+                        ,INV_ROUTING_QTY AS ROUTCNT
+                        ,INV_ROUTING_AMT AS ROUTPRICE 
+                        ,INV_PROD_QTY AS FINISHITEM
+                        ,INV_PROD_AMT AS FINISHITEMPRICE
+                        ,INV_MAT_QTY + INV_ROUTING_QTY + INV_PROD_QTY AS TOTALCOUNT
+                        ,INV_MAT_AMT + INV_ROUTING_AMT + INV_PROD_AMT AS TOTALPRICE
+                    FROM CB_KPI_INVENTORY A
+                  /*
+                  UNION ALL
+                   
+                  
+                  SELECT TO_NUMBER(TMP.SEARCHMONTH) AS SEARCHMONTH
+                        ,INV_MAT_QTY AS MATCOUNT
+                        ,INV_MAT_AMT AS MATPRICE
+                        ,INV_ROUTING_QTY AS ROUTCNT
+                        ,INV_ROUTING_AMT AS ROUTPRICE 
+                        ,INV_PROD_QTY AS FINISHITEM
+                        ,INV_PROD_AMT AS FINISHITEMPRICE
+                        ,INV_MAT_QTY + INV_ROUTING_QTY + INV_PROD_QTY AS TOTALCOUNT
+                        ,INV_MAT_AMT + INV_ROUTING_AMT + INV_PROD_AMT AS TOTALPRICE       
+                    
+                     FROM(SELECT 1 AS ORG_ID
+                                  ,1 AS COMPANY_ID
+                                  ,TO_CHAR(LEVEL+4) AS SEARCHMONTH
+                                  ,'2021-04' AS TMPDATE
+                            FROM DUAL
+                            CONNECT BY LEVEL<=8) TMP
+                                ,CB_KPI_INVENTORY A
+                     WHERE A.ORG_ID = TMP.ORG_ID
+                       AND A.COMPANY_ID = TMP.COMPANY_ID
+                       AND A.STANDARD_MONTH = TMP.TMPDATE*/
+                             ) A 
+                  ORDER BY A.SEARCHMONTH
+      ]]>
+       </sql>
+      <select id="manage.kpi8.ManigeArea2.select" parameterClass="java.util.Map"
+           resultClass="java.util.HashMap">
+<!--                <include refid="manage.kpi8.ManigeArea2.select.sql-select" /> -->
+<!--                <include refid="manage.kpi8.ManigeArea2.select.sql-where" /> -->
+
+               <include refid="manage.kpi8.ManageArea2.imsi.select.sql-select" />
+      </select>
+      
+      <select id="manage.kpi8.ManigeArea2.count" parameterClass="java.util.Map"
+           resultClass="java.lang.Integer">
+               SELECT COUNT(*) FROM(
+<!--                <include refid="manage.kpi8.ManigeArea2.select.sql-select" /> -->
+<!--                <include refid="manage.kpi8.ManigeArea2.select.sql-where" /> -->
+               
+               <include refid="manage.kpi8.ManageArea2.imsi.select.sql-select" />
+               )TOT      
+      </select>
+</sqlMap>

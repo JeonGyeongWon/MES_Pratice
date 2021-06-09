@@ -1,0 +1,1853 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="cost">
+ 
+    <!-- Dummy Lov 시작 -->
+    <sql id="cost.dummy.month.sql-select">
+        SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS DATEFROM,
+                  TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO,
+                  TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+          FROM DUAL
+    </sql>
+
+    <sql id="cost.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="cost.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="cost.dummy.month.sql-select" />
+        <include refid="cost.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+    
+    <sql id="cost.unit.list.sql-select">
+         SELECT CUM.SEQ AS SEQ
+                  ,CUM.ORG_ID AS ORGID
+                  ,CUM.COMPANY_ID AS COMPANYID
+                  ,TO_CHAR(TO_DATE(CUM.YYYYMM,'YYYY-MM'),'YYYY-MM') AS PREMONTHDATE
+                  ,TO_CHAR(CUM.EFFECTIVE_START_DATE,'YYYY-MM-DD') AS STARTDATE
+                  ,TO_CHAR(CUM.EFFECTIVE_END_DATE,'YYYY-MM-DD') AS ENDDATE
+                  ,CUM.GUBUN AS GUBUN
+                  ,CUM.UNIT_GUBUN AS UNITGUBUN
+                  ,DECODE(CUM.GUBUN
+                         ,'인원', (SELECT SC.SMALL_NAME
+                                    FROM CB_SMALL_CODE SC
+                                   WHERE SC.ORG_ID = CUM.ORG_ID
+                                     AND SC.COMPANY_ID = CUM.COMPANY_ID
+                                     AND SC.BIG_CODE = 'COST'
+                                     AND SC.MIDDLE_CODE = 'RESOURCE_MAN'
+                                     AND SC.SMALL_CODE = CUM.UNIT_GUBUN), ''
+                         ) AS UNITGUBUNNAME1
+                  ,DECODE(CUM.GUBUN
+                         ,'설비', (SELECT WC.WORK_CENTER_NAME
+                                        FROM CB_WORK_CENTER WC
+                                       WHERE WC.ORG_ID = CUM.ORG_ID
+                                         AND WC.COMPANY_ID = CUM.COMPANY_ID
+                                         AND WC.WORK_CENTER_CODE = CUM.UNIT_GUBUN
+                                        ), ''
+                         ) AS UNITGUBUNNAME2
+                  ,RESOURCE_UOM AS RESOURCEUOM
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE SC.ORG_ID = CUM.ORG_ID
+                       AND SC.COMPANY_ID = CUM.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'UOM'
+                       AND SC.SMALL_CODE = CUM.RESOURCE_UOM) AS RESOURCEUOMNAME
+                  ,PRICE_UOM AS PRICEUOM
+                  ,(SELECT SC.SMALL_NAME
+                     FROM CB_SMALL_CODE SC
+                     WHERE SC.ORG_ID = CUM.ORG_ID
+                      AND SC.COMPANY_ID = CUM.ORG_ID
+                      AND SC.BIG_CODE = 'CMM'
+                      AND SC.MIDDLE_CODE = 'UOM'
+                      AND SMALL_CODE = CUM.PRICE_UOM)AS PRICEUOMNAME
+                  ,PRICE AS PRICE
+                  ,REMARKS AS REMARKS
+       FROM CB_COST_UNIT_MASTER CUM
+    </sql>
+    
+    <sql id="cost.unit.list.sql-where">
+        WHERE 1=1
+    <isNotEmpty property="ORGID" prepend="AND">
+        CUM.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CUM.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="GUBUN" prepend="AND">
+        CUM.GUBUN = #GUBUN#
+    </isNotEmpty>
+    <isNotEmpty property="PREMONTHTO">
+      <isNotEmpty property="PREMONTHFROM" prepend="AND">
+        TO_DATE(YYYYMM,'YYYY-MM') BETWEEN TRUNC(TO_DATE(#PREMONTHFROM#,'YYYY-MM')) AND LAST_DAY(TO_DATE(#PREMONTHTO#,'YYYY-MM'))
+      </isNotEmpty>
+      <isEmpty property="PREMONTHFROM" prepend="AND">
+        CUM.YYYYMM = REPLACE(#PREMONTHTO#,'-')
+      </isEmpty>
+    </isNotEmpty>
+    <isEmpty property="PREMONTHTO">
+      <isNotEmpty property="PREMONTHFROM" prepend="AND">
+        CUM.YYYYMM = REPLACE(#PREMONTHFROM#,'-')
+      </isNotEmpty>
+    </isEmpty>
+    
+    </sql>
+    
+    <select id="cost.unit.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="cost.unit.list.sql-select" />
+      <include refid="cost.unit.list.sql-where" />
+    </select>
+    
+    <select id="cost.unit.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="cost.unit.list.sql-select" />
+            <include refid="cost.unit.list.sql-where" />
+        )
+    </select>
+ 
+    <sql id="cost.std.sales.master.list.sql-select">
+    <![CDATA[
+          SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE) AS RN
+                  ,CC.ORG_ID AS ORGID
+                  ,CC.COMPANY_ID AS COMPANYID
+                  ,CC.LICENSE_NO AS LICENSENO
+                  ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+                  ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+                  ,NVL((SELECT SUM(SOD.SUPPLY_PRICE /*+ SOD.ADDITIONAL_TAX*/)
+                          FROM CB_SALES_ORDER_H SOH
+                              ,CB_SALES_ORDER_D SOD
+                         WHERE SOH.ORG_ID = SOD.ORG_ID
+                           AND SOH.COMPANY_ID = SOD.COMPANY_ID
+                           AND SOH.SO_NO = SOD.SO_NO
+                           AND SOH.SO_STATUS <> 'CANCEL'
+                           AND SOD.ORG_ID = CC.ORG_ID
+                           AND SOD.COMPANY_ID = CC.COMPANY_ID
+                           AND SOH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+                           AND SOD.DUE_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO), 0) AS SALESTOTAL
+                  ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+                          FROM CB_TRADE_H TH
+                              ,CB_TRADE_D TD
+                         WHERE TH.ORG_ID = TD.ORG_ID
+                           AND TH.COMPANY_ID = TD.COMPANY_ID
+                           AND TH.TRADE_NO = TD.TRADE_NO
+                           AND TD.ORG_ID = CC.ORG_ID
+                           AND TD.COMPANY_ID = CC.COMPANY_ID
+                           AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+                           AND TD.END_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO), 0) AS TRANSTOTAL
+        FROM CB_CUSTOMER CC
+                ,(SELECT TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AS SEARCH_FROM
+                        ,TO_DATE(#SEARCHTO#, 'YYYY-MM-DD') AS SEARCH_TO
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+    
+    <sql id="cost.std.sales.master.list.sql-where">
+        WHERE CC.CUSTOMER_CODE <![CDATA[ <> ]]> '9999999999'
+           AND CC.CUSTOMER_TYPE IN ('A', 'S')
+           AND CC.USE_YN = 'Y'
+    <isNotEmpty property="ORGID" prepend="AND">
+        CC.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CC.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+        CC.CUSTOMER_CODE = #CUSTOMERCODE#
+    </isNotEmpty>
+           AND ( NVL((SELECT SUM(SOD.SUPPLY_PRICE /*+ SOD.ADDITIONAL_TAX*/)
+                          FROM CB_SALES_ORDER_H SOH
+                              ,CB_SALES_ORDER_D SOD
+                         WHERE SOH.ORG_ID = SOD.ORG_ID
+                           AND SOH.COMPANY_ID = SOD.COMPANY_ID
+                           AND SOH.SO_NO = SOD.SO_NO
+                           AND SOH.SO_STATUS <![CDATA[ <> ]]> 'CANCEL'
+                           AND SOD.ORG_ID = CC.ORG_ID
+                           AND SOD.COMPANY_ID = CC.COMPANY_ID
+                           AND SOH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+                           AND SOD.DUE_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO), 0) > 0
+           OR NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+                          FROM CB_TRADE_H TH
+                              ,CB_TRADE_D TD
+                         WHERE TH.ORG_ID = TD.ORG_ID
+                           AND TH.COMPANY_ID = TD.COMPANY_ID
+                           AND TH.TRADE_NO = TD.TRADE_NO
+                           AND TD.ORG_ID = CC.ORG_ID
+                           AND TD.COMPANY_ID = CC.COMPANY_ID
+                           AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+                           AND TD.END_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO), 0) > 0 )
+         ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE
+    </sql>
+    
+    <select id="cost.std.sales.master.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="cost.std.sales.master.list.sql-select" />
+      <include refid="cost.std.sales.master.list.sql-where" />
+    </select>
+    
+    <select id="cost.std.sales.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="cost.std.sales.master.list.sql-select" />
+            <include refid="cost.std.sales.master.list.sql-where" />
+        )
+    </select> 
+    
+    <sql id="cost.std.sales.line.list.sql-select">
+    <![CDATA[
+          SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE, NVL(A.ITEM_NAME,B.ITEM_NAME), NVL(A.CAR_TYPE_NAME,B.CAR_TYPE_NAME)) AS RN
+                ,CC.ORG_ID AS ORGID
+                ,CC.COMPANY_ID AS COMPANYID
+                ,CC.LICENSE_NO AS LICENSENO
+                ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+                ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+                ,NVL(A.ITEM_NAME,B.ITEM_NAME) AS ITEMNAME
+                ,NVL(A.CAR_TYPE_NAME,B.CAR_TYPE_NAME) AS CARTYPENAME
+                ,A.SUPPLY_PRICE AS SALESTOTAL
+                ,B.SUPPLY_PRICE AS TRANSTOTAL
+                ,B.QTY AS TRANSQTY
+                ,A.ITEMSTANDARDDETAIL
+           FROM
+                (SELECT SOH.ORG_ID
+                       ,SOH.COMPANY_ID
+                       ,SOH.CUSTOMER_CODE
+                       ,ITEM_NAME
+                       ,CAR_TYPE_NAME
+                       ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                       ,SUM(SOD.SUPPLY_PRICE) AS SUPPLY_PRICE
+                   FROM CB_SALES_ORDER_H SOH
+                       ,CB_SALES_ORDER_D SOD
+                       ,CB_ITEM_MASTER_V IM
+                  WHERE SOH.ORG_ID = SOD.ORG_ID
+                    AND SOH.COMPANY_ID = SOD.COMPANY_ID
+                    AND SOH.SO_NO = SOD.SO_NO
+                    AND SOH.SO_STATUS <> 'CANCEL'
+                    AND SOD.ORG_ID = IM.ORG_ID
+                    AND SOD.COMPANY_ID = IM.COMPANY_ID
+                    AND SOD.ITEM_CODE = IM.ITEM_CODE
+                    AND SOD.DUE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+                  GROUP BY SOH.ORG_ID, SOH.COMPANY_ID, SOH.CUSTOMER_CODE,IM.ITEM_NAME,IM.CAR_TYPE_NAME, IM.ITEM_STANDARD_DETAIL) A
+               ,(SELECT TH.ORG_ID
+                       ,TH.COMPANY_ID
+                       ,TH.CUSTOMER_CODE
+                       ,ITEM_NAME
+                       ,CAR_TYPE_NAME
+                       ,SUM(TD.SUPPLY_PRICE) AS SUPPLY_PRICE
+                       ,SUM(TD.TRANSACTION_QTY) AS QTY
+                   FROM CB_TRADE_H TH
+                       ,CB_TRADE_D TD
+                       ,CB_ITEM_MASTER_V IM
+                  WHERE TH.ORG_ID = TD.ORG_ID
+                    AND TH.COMPANY_ID = TD.COMPANY_ID
+                    AND TH.TRADE_NO = TD.TRADE_NO
+                    AND TD.ORG_ID = IM.ORG_ID
+                    AND TD.COMPANY_ID = IM.COMPANY_ID
+                    AND TD.ITEM_CODE = IM.ITEM_CODE
+                    AND TD.END_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+                  GROUP BY TH.ORG_ID, TH.COMPANY_ID, TH.CUSTOMER_CODE,IM.ITEM_NAME,IM.CAR_TYPE_NAME) B
+                ,CB_CUSTOMER CC
+    ]]>
+    </sql>
+    
+    <sql id="cost.std.sales.line.list.sql-where">
+     <![CDATA[
+        WHERE A.CUSTOMER_CODE = B.CUSTOMER_CODE(+)
+          AND A.ITEM_NAME = B.ITEM_NAME(+)
+          AND A.CAR_TYPE_NAME = B.CAR_TYPE_NAME(+)
+          AND CC.ORG_ID = NVL(A.ORG_ID,B.ORG_ID)
+          AND CC.COMPANY_ID = NVL(A.COMPANY_ID,B.COMPANY_ID)
+          AND CC.CUSTOMER_CODE = NVL(A.CUSTOMER_CODE,B.CUSTOMER_CODE)
+          AND CC.CUSTOMER_CODE  <>  '9999999999'
+          AND CC.CUSTOMER_TYPE IN ('A', 'S')
+          AND CC.USE_YN = 'Y'
+          AND NVL(A.SUPPLY_PRICE,0) + NVL(B.SUPPLY_PRICE,0) > 0
+          AND CC.ORG_ID = #ORGID#
+          AND CC.COMPANY_ID = #COMPANYID#
+          AND CC.CUSTOMER_CODE = #CUSTOMERCODE#
+         ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE,NVL(A.ITEM_NAME,B.ITEM_NAME), NVL(A.CAR_TYPE_NAME,B.CAR_TYPE_NAME)
+         ]]>
+    </sql>
+    
+    <select id="cost.std.sales.line.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="cost.std.sales.line.list.sql-select" />
+      <include refid="cost.std.sales.line.list.sql-where" />
+    </select>
+    
+    <select id="cost.std.sales.line.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="cost.std.sales.line.list.sql-select" />
+            <include refid="cost.std.sales.line.list.sql-where" />
+        )
+    </select> 
+    
+    <sql id="cost.std.sales.detail.list.sql-select">
+         SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, CUSTOMER_NAME, ITEM_NAME, TRADE_DATE, TRADE_NO, TRADE_SEQ) AS RN
+                  ,ORG_ID AS ORGID
+                  ,COMPANY_ID AS COMPANYID
+                  ,CUSTOMER_CODE AS CUSTOMERCODE
+                  ,CUSTOMER_NAME AS CUSTOMERNAME
+                  ,ITEM_CODE AS ITEMCODE
+                  ,ORDER_NAME AS ORDERNAME
+                  ,DRAWING_NO AS DRAWINGNO
+                  ,ITEM_NAME AS ITEMNAME
+                  ,CAR_TYPE AS CARTYPE
+                  ,CAR_TYPE_NAME AS CARTYPENAME
+                  ,MATERIAL_TYPE AS MATERIALTYPE
+                  ,UOM AS UOM
+                  ,UOM_NAME AS UOMNAME
+                  ,SO_NO AS SONO
+                  ,SO_SEQ AS SOSEQ
+                  ,SALES_PRICE AS SALESPRICE
+                  ,TRADE_NO AS TRADENO
+                  ,TRADE_SEQ AS TRADESEQ
+                  ,TRADE_DATE AS TRADEDATE
+                  ,END_DATE AS ENDDATE
+                  ,QTY AS QTY
+                  ,TRADE_AMOUNT AS TRADEAMOUNT
+                  ,ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+          FROM CB_COST_SALES_D_V TV
+                ,(SELECT TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AS SEARCH_FROM
+                        ,TO_DATE(#SEARCHTO#, 'YYYY-MM-DD') AS SEARCH_TO
+                    FROM DUAL) TMP
+    </sql>
+    
+    <sql id="cost.std.sales.detail.list.sql-where">
+        WHERE TV.END_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO
+      <isNotEmpty property="ORGID" prepend="AND">
+          TV.ORG_ID = #ORGID#
+      </isNotEmpty>
+      <isNotEmpty property="COMPANYID" prepend="AND">
+          TV.COMPANY_ID = #COMPANYID#
+      </isNotEmpty>
+      <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          TV.CUSTOMER_CODE = #CUSTOMERCODE#
+      </isNotEmpty>
+      <isNotEmpty property="ITEMNAME" prepend="AND">
+          TV.ITEM_NAME = #ITEMNAME#
+      </isNotEmpty>
+      <isNotEmpty property="CARTYPENAME" prepend="AND">
+          TV.CAR_TYPE_NAME = #CARTYPENAME#
+      </isNotEmpty>
+    </sql>
+    
+    <select id="cost.std.sales.detail.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      <include refid="cost.std.sales.detail.list.sql-select" />
+      <include refid="cost.std.sales.detail.list.sql-where" />
+    </select>
+    
+    <select id="cost.std.sales.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="cost.std.sales.detail.list.sql-select" />
+            <include refid="cost.std.sales.detail.list.sql-where" />
+        )
+    </select> 
+    
+    <select id="cost.std.polist.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+      SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO) AS RN
+            ,CC.ORG_ID AS ORGID
+            ,CC.COMPANY_ID AS COMPANYID
+            ,CC.LICENSE_NO AS LICENSENO
+            ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+            ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+            ,CC.CUSTOMER_TYPE AS CUSTOMERTYPE
+            ,(SELECT SC.SMALL_NAME
+                FROM CB_SMALL_CODE SC
+               WHERE SC.ORG_ID = CC.ORG_ID
+                 AND SC.COMPANY_ID = CC.COMPANY_ID
+                 AND SC.BIG_CODE = 'CMM'
+                 AND SC.MIDDLE_CODE = 'CUSTOMER_TYPE'
+                 AND SC.SMALL_CODE = CC.CUSTOMER_TYPE) AS CUSTOMERTYPENAME
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'PRE_DATE'
+                                           ,'QTY') AS PREQTY
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'PRE_DATE'
+                                           ,'TOTAL') AS PRETOTAL
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_DATE'
+                                           ,'QTY') AS POSTQTY
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_DATE'
+                                           ,'TOTAL') AS POSTTOTAL
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_MONTH'
+                                           ,'QTY') AS POSTMONTHQTY
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_MONTH'
+                                           ,'SUPPLY') AS POSTMONTHSUPPLY
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_MONTH'
+                                           ,'ADDTAX') AS POSTMONTHADDTAX
+            ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                           ,CC.COMPANY_ID
+                                           ,CC.CUSTOMER_CODE
+                                           ,TMP.SEARCH_DATE
+                                           ,'POST_MONTH'
+                                           ,'TOTAL') AS POSTMONTHTOTAL
+        FROM CB_CUSTOMER CC
+           ,(SELECT $ORGID$ AS ORG_ID
+                   ,$COMPANYID$ AS COMPANY_ID
+                   ,TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD') AS SEARCH_DATE
+               FROM DUAL) TMP
+       WHERE CC.ORG_ID = TMP.ORG_ID
+         AND CC.COMPANY_ID = TMP.COMPANY_ID
+      <isNotEmpty property="ORGID" prepend="AND">
+          CC.ORG_ID = #ORGID#
+      </isNotEmpty>
+      <isNotEmpty property="COMPANYID" prepend="AND">
+          CC.COMPANY_ID = #COMPANYID#
+      </isNotEmpty>
+      <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          CC.CUSTOMER_CODE = #CUSTOMERCODE#
+      </isNotEmpty>
+         AND (CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                    FROM CB_TRANS_CONFIRM_V OV
+                                   WHERE OV.ORG_ID = TMP.ORG_ID
+                                     AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                     AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+         OR CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                    FROM CB_OUT_TRANS_CONFIRM_V OV
+                                   WHERE OV.ORG_ID = TMP.ORG_ID
+                                     AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                     AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+                                     )
+       ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO
+    </select>
+    
+    <select id="cost.std.polist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO) AS RN
+                  ,CC.ORG_ID AS ORGID
+                  ,CC.COMPANY_ID AS COMPANYID
+                  ,CC.LICENSE_NO AS LICENSENO
+                  ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+                  ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+                  ,CC.CUSTOMER_TYPE AS CUSTOMERTYPE
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'CUSTOMER_TYPE'
+                       AND SC.SMALL_CODE = CC.CUSTOMER_TYPE) AS CUSTOMERTYPENAME
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'PRE_DATE'
+                                                 ,'QTY') AS PREQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'PRE_DATE'
+                                                 ,'TOTAL') AS PRETOTAL
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_DATE'
+                                                 ,'QTY') AS POSTQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_DATE'
+                                                 ,'TOTAL') AS POSTTOTAL
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'QTY') AS POSTMONTHQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'SUPPLY') AS POSTMONTHSUPPLY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'ADDTAX') AS POSTMONTHADDTAX
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'TOTAL') AS POSTMONTHTOTAL
+              FROM CB_CUSTOMER CC
+                 ,(SELECT $ORGID$ AS ORG_ID
+                         ,$COMPANYID$ AS COMPANY_ID
+                         ,TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD') AS SEARCH_DATE
+                     FROM DUAL) TMP
+             WHERE CC.ORG_ID = TMP.ORG_ID
+               AND CC.COMPANY_ID = TMP.COMPANY_ID
+            <isNotEmpty property="ORGID" prepend="AND">
+                CC.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+                CC.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+                CC.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+               AND (CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                          FROM CB_TRANS_CONFIRM_V OV
+                                         WHERE OV.ORG_ID = TMP.ORG_ID
+                                           AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                           AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+               OR CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                          FROM CB_OUT_TRANS_CONFIRM_V OV
+                                         WHERE OV.ORG_ID = TMP.ORG_ID
+                                           AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                           AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+                                           )
+             ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO
+        )
+    </select> 
+    
+    <select id="cost.std.polist.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT CUSTOMERCODE AS CUSTOMERCODE FROM (
+            SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO) AS RN
+                  ,CC.ORG_ID AS ORGID
+                  ,CC.COMPANY_ID AS COMPANYID
+                  ,CC.LICENSE_NO AS LICENSENO
+                  ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+                  ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+                  ,CC.CUSTOMER_TYPE AS CUSTOMERTYPE
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'CUSTOMER_TYPE'
+                       AND SC.SMALL_CODE = CC.CUSTOMER_TYPE) AS CUSTOMERTYPENAME
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'PRE_DATE'
+                                                 ,'QTY') AS PREQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'PRE_DATE'
+                                                 ,'TOTAL') AS PRETOTAL
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_DATE'
+                                                 ,'QTY') AS POSTQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_DATE'
+                                                 ,'TOTAL') AS POSTTOTAL
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'QTY') AS POSTMONTHQTY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'SUPPLY') AS POSTMONTHSUPPLY
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'ADDTAX') AS POSTMONTHADDTAX
+                  ,CB_COST_PKG.CB_COST_RESULT_FNC(CC.ORG_ID
+                                                 ,CC.COMPANY_ID
+                                                 ,CC.CUSTOMER_CODE
+                                                 ,TMP.SEARCH_DATE
+                                                 ,'POST_MONTH'
+                                                 ,'TOTAL') AS POSTMONTHTOTAL
+              FROM CB_CUSTOMER CC
+                 ,(SELECT $ORGID$ AS ORG_ID
+                         ,$COMPANYID$ AS COMPANY_ID
+                         ,TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD') AS SEARCH_DATE
+                     FROM DUAL) TMP
+             WHERE CC.ORG_ID = TMP.ORG_ID
+               AND CC.COMPANY_ID = TMP.COMPANY_ID
+            <isNotEmpty property="ORGID" prepend="AND">
+                CC.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+                CC.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+                CC.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+               AND (CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                          FROM CB_TRANS_CONFIRM_V OV
+                                         WHERE OV.ORG_ID = TMP.ORG_ID
+                                           AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                           AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+               OR CC.CUSTOMER_CODE IN (SELECT OV.CUSTOMER_CODE
+                                          FROM CB_OUT_TRANS_CONFIRM_V OV
+                                         WHERE OV.ORG_ID = TMP.ORG_ID
+                                           AND OV.COMPANY_ID = TMP.COMPANY_ID
+                                           AND OV.FLAG_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND LAST_DAY(TMP.SEARCH_DATE))
+                                           )
+             ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.LICENSE_NO
+        )
+        WHERE ROWNUM = 1
+    </select>
+          
+      <sql id="cost.std.polistdetail.sql-select">
+        SELECT RANK() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.CUSTOMERCODE, AA.TRANSDATE, AA.ITEMCODE) AS RN
+              ,AA.ORGID AS ORGID
+              ,AA.COMPANYID AS COMPANYID
+              ,AA.CUSTOMERCODE AS CUSTOMERCODE
+              ,AA.CUSTOMERNAME AS CUSTOMERNAME
+              ,AA.ITEMCODE AS ITEMCODE
+              ,AA.ORDERNAME AS ORDERNAME
+              ,AA.ITEMNAME AS ITEMNAME
+              ,AA.ITEMSTANDARD AS ITEMSTANDARD
+              ,AA.MATERIALTYPE AS MATERIALTYPE
+              ,AA.UOM AS UOM
+              ,AA.UOMNAME AS UOMNAME
+              ,AA.UNITPRICE AS UNIT_PRICE
+              ,AA.ITEMTYPE AS ITEMTYPE
+              ,AA.ITEMTYPENAME AS ITEMTYPENAME
+              ,AA.FLAGDATE AS FLAGDATE
+              ,AA.TRANSDATE AS TRANSDATE
+              ,AA.TRANSQTY AS TRANSQTY
+              ,AA.CONFIRMDATE AS CONFIRMDATE
+              ,AA.CONFIRMQTY AS CONFIRMQTY
+              ,AA.TRANSSUPPLYPRICE AS TRANSSUPPLYPRICE
+              ,AA.TRANSADDITIONALTAX AS TRANSADDITIONALTAX
+              ,AA.TRANSAMOUNT AS TRANSAMOUNT
+          FROM (SELECT CV.ORG_ID AS ORGID
+                      ,CV.COMPANY_ID AS COMPANYID
+                      ,CV.CUSTOMER_CODE AS CUSTOMERCODE
+                      ,CV.CUSTOMER_NAME AS CUSTOMERNAME
+                      ,CV.ITEM_CODE AS ITEMCODE
+                      ,CV.ORDER_NAME AS ORDERNAME
+                      ,CV.ITEM_NAME AS ITEMNAME
+                      ,CV.ITEM_STANDARD AS ITEMSTANDARD
+                      ,CV.MATERIAL_TYPE AS MATERIALTYPE
+                      ,CV.UOM AS UOM
+                      ,CV.UOM_NAME AS UOMNAME
+                      ,CV.UNIT_PRICE AS UNITPRICE
+                      ,CV.ITEM_TYPE AS ITEMTYPE
+                      ,CV.ITEM_TYPE_NAME AS ITEMTYPENAME
+                      ,CV.FLAG_DATE AS FLAGDATE
+                      ,CV.TRANS_DATE AS TRANSDATE
+                      ,SUM(CV.TRANS_QTY) AS TRANSQTY
+                      ,CV.CONFIRM_YN AS CONFIRMYN
+                      ,DECODE(CV.CONFIRM_YN, 'Y', CV.CONFIRM_DATE) AS CONFIRMDATE
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.CONFIRM_QTY)) AS CONFIRMQTY
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.SUPPLY_PRICE)) AS TRANSSUPPLYPRICE
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.ADDITIONAL_TAX)) AS TRANSADDITIONALTAX
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.TOTAL)) AS TRANSAMOUNT
+                  FROM CB_TRANS_CONFIRM_V CV
+                 WHERE CV.ORG_ID = $ORGID$
+                   AND CV.COMPANY_ID = $COMPANYID$
+                 GROUP BY CV.ORG_ID, CV.COMPANY_ID, CV.TRANS_DATE, CV.CUSTOMER_CODE, CV.CUSTOMER_NAME
+                         ,CV.ITEM_CODE, CV.ORDER_NAME, CV.ITEM_NAME,CV.ITEM_STANDARD, CV.CONFIRM_DATE
+                         ,CV.MATERIAL_TYPE, CV.UOM, CV.UOM_NAME, CV.ITEM_TYPE, CV.ITEM_TYPE_NAME
+                         ,CV.TRANS_DATE, CV.UNIT_PRICE, CV.CONFIRM_YN, CV.FLAG_DATE
+                 UNION ALL
+                SELECT CV.ORG_ID AS ORGID
+                      ,CV.COMPANY_ID AS COMPANYID
+                      ,CV.CUSTOMER_CODE AS CUSTOMERCODE
+                      ,CV.CUSTOMER_NAME AS CUSTOMERNAME
+                      ,CV.ITEM_CODE AS ITEMCODE
+                      ,CV.ORDER_NAME AS ORDERNAME
+                      ,CV.ITEM_NAME AS ITEMNAME
+                      ,CV.ITEM_STANDARD AS ITEMSTANDARD
+                      ,CV.MATERIAL_TYPE AS MATERIALTYPE
+                      ,CV.UOM AS UOM
+                      ,CV.UOM_NAME AS UOMNAME
+                      ,CV.UNIT_PRICE AS UNITPRICE
+                      ,CV.ITEM_TYPE AS ITEMTYPE
+                      ,CV.ITEM_TYPE_NAME AS ITEMTYPENAME
+                      ,CV.FLAG_DATE AS FLAGDATE
+                      ,CV.TRANS_DATE AS TRANSDATE
+                      ,SUM(CV.TRANS_QTY) AS TRANSQTY
+                      ,CV.CONFIRM_YN AS CONFIRMYN
+                      ,DECODE(CV.CONFIRM_YN, 'Y', CV.CONFIRM_DATE) AS CONFIRMDATE
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.CONFIRM_QTY)) AS CONFIRMQTY
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.SUPPLY_PRICE)) AS TRANSSUPPLYPRICE
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.ADDITIONAL_TAX)) AS TRANSADDITIONALTAX
+                      ,DECODE(CV.CONFIRM_YN, 'Y', SUM(CV.TOTAL)) AS TRANSAMOUNT
+                  FROM CB_OUT_TRANS_CONFIRM_V CV
+                 WHERE CV.ORG_ID = $ORGID$
+                   AND CV.COMPANY_ID = $COMPANYID$
+                 GROUP BY CV.ORG_ID, CV.COMPANY_ID, CV.TRANS_DATE, CV.CUSTOMER_CODE, CV.CUSTOMER_NAME
+                         ,CV.ITEM_CODE, CV.ORDER_NAME, CV.ITEM_NAME,CV.ITEM_STANDARD, CV.CONFIRM_DATE
+                         ,CV.MATERIAL_TYPE, CV.UOM, CV.UOM_NAME, CV.ITEM_TYPE, CV.ITEM_TYPE_NAME
+                         ,CV.TRANS_DATE, CV.UNIT_PRICE, CV.CONFIRM_YN, CV.FLAG_DATE) AA
+      </sql>
+      
+      <sql id="cost.std.polistdetail.sql-where">
+         WHERE AA.ORGID = $ORGID$
+           AND AA.COMPANYID = $COMPANYID$
+           AND AA.CONFIRMYN = DECODE((SELECT NVL(SUM(A.CONFIRMQTY), 0)
+                                        FROM (SELECT SUM(CV.CONFIRM_QTY) AS CONFIRMQTY
+                                                FROM CB_TRANS_CONFIRM_V CV
+                                                WHERE CV.ORG_ID = $ORGID$
+                                                 AND CV.COMPANY_ID = $COMPANYID$
+                                                 AND CV.CONFIRM_YN = 'Y'
+                                                 AND CV.CUSTOMER_CODE = #CUSTOMERCODE#
+                                                 AND CV.FLAG_DATE BETWEEN TRUNC(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD'), 'MM')
+                                                 AND LAST_DAY(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD'))
+                                                UNION ALL
+                                              SELECT SUM(CV.CONFIRM_QTY) AS CONFIRMQTY
+                                                FROM CB_OUT_TRANS_CONFIRM_V CV
+                                               WHERE CV.ORG_ID = $ORGID$
+                                                 AND CV.COMPANY_ID = $COMPANYID$
+                                                 AND CV.CONFIRM_YN = 'Y'
+                                                 AND CV.CUSTOMER_CODE = #CUSTOMERCODE#
+                                                 AND CV.FLAG_DATE BETWEEN TRUNC(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD'), 'MM')
+                                                 AND LAST_DAY(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD')))A), 0, 'N', 'Y')
+           AND AA.CUSTOMERCODE = #CUSTOMERCODE#
+           AND AA.FLAGDATE BETWEEN TRUNC(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD'), 'MM')
+           AND LAST_DAY(TO_DATE(#TRXDATEFROM#, 'YYYY-MM-DD'))
+         ORDER BY AA.ORGID, AA.COMPANYID, AA.CUSTOMERCODE, AA.TRANSDATE, AA.ITEMCODE
+      </sql>
+      
+      <select id="cost.std.polistdetail.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        <include refid="cost.std.polistdetail.sql-select" />
+        <include refid="cost.std.polistdetail.sql-where" />
+      </select>
+      
+      <select id="cost.std.polistdetail.count" parameterClass="java.util.Map"
+          resultClass="java.lang.Integer">
+          SELECT COUNT(*) FROM (
+              <include refid="cost.std.polistdetail.sql-select" />
+              <include refid="cost.std.polistdetail.sql-where" />
+          )
+      </select>
+    
+	    <!-- 거래처별 매출 집계 조회 시작 -->
+	    <sql id="cost.std.sales.list.total.sql-select">
+	         SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE) AS RN
+	                ,CC.ORG_ID AS ORGID
+	                ,CC.COMPANY_ID AS COMPANYID
+	                ,CC.LICENSE_NO AS LICENSENO
+	                ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+	                ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+	                ,TMP.SEARCH_YEAR AS SEARCHYEAR
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '01') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH01
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '02') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH02
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '03') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH03
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '04') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH04
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '05') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH05
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '06') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH06
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '07') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH07
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '08') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH08
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '09') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH09
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '10') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH10
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '11') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH11
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND CONCAT(TMP.SEARCH_YEAR, '-' || '12') = TO_CHAR(TD.END_DATE, 'YYYY-MM')), 0) AS MONTH12
+	                ,NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND TMP.SEARCH_YEAR = TO_CHAR(TD.END_DATE, 'YYYY')), 0) AS TOTALMONTH
+	        FROM CB_CUSTOMER CC
+	                ,(SELECT #SEARCHYEAR# AS SEARCH_YEAR
+	                    FROM DUAL) TMP
+	    </sql>
+	    
+	    <sql id="cost.std.sales.list.total.sql-where">
+	        WHERE CC.CUSTOMER_CODE <![CDATA[ <> ]]> '9999999999'
+	           AND CC.CUSTOMER_TYPE IN ('A', 'S')
+	           AND CC.USE_YN = 'Y'
+	           AND NVL((SELECT SUM(TD.SUPPLY_PRICE /*+ TD.ADDITIONAL_TAX*/)
+	                        FROM CB_TRADE_H TH
+	                            ,CB_TRADE_D TD
+	                       WHERE TH.ORG_ID = TD.ORG_ID
+	                         AND TH.COMPANY_ID = TD.COMPANY_ID
+	                         AND TH.TRADE_NO = TD.TRADE_NO
+	                         AND TD.ORG_ID = CC.ORG_ID
+	                         AND TD.COMPANY_ID = CC.COMPANY_ID
+	                         AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	                         AND TMP.SEARCH_YEAR = TO_CHAR(TD.END_DATE, 'YYYY')), 0) <![CDATA[ > ]]> 0 
+	    <isNotEmpty property="ORGID" prepend="AND">
+	        CC.ORG_ID = #ORGID#
+	    </isNotEmpty>
+	    <isNotEmpty property="COMPANYID" prepend="AND">
+	        CC.COMPANY_ID = #COMPANYID#
+	    </isNotEmpty>
+	    <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+	        CC.CUSTOMER_CODE IN ($CUSTOMERCODE$)
+	    </isNotEmpty>
+	         ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME, CC.CUSTOMER_CODE
+	    </sql>
+	    
+	    <select id="cost.std.sales.list.total.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+	      <include refid="cost.std.sales.list.total.sql-select" />
+	      <include refid="cost.std.sales.list.total.sql-where" />
+	    </select>
+	    
+	    <select id="cost.std.sales.list.total.count" parameterClass="java.util.Map"
+	        resultClass="java.lang.Integer">
+	        SELECT COUNT(*) FROM (
+	            <include refid="cost.std.sales.list.total.sql-select" />
+	            <include refid="cost.std.sales.list.total.sql-where" />
+	        )
+	    </select>
+	    <!-- 거래처별 매출 집계 조회 끝 -->
+	    
+    
+      <!-- 거래처별 매입 집계 조회 시작 -->
+      <sql id="cost.std.po.list.total.sql-select">
+			SELECT RANK() OVER(ORDER BY AL.ORGID, AL.COMPANYID, CC.CUSTOMER_TYPE DESC, CC.CUSTOMER_CODE) AS RN
+			      ,AL.ORGID AS ORGID
+			      ,AL.COMPANYID AS COMPANYID
+			      ,AL.CUSTOMERCODE AS CUSTOMERCODE
+			      ,AL.CUSTOMERNAME AS CUSTOMERNAME
+			      ,CC.LICENSE_NO AS LICENSENO
+			      ,CC.CUSTOMER_TYPE AS CUSTOMERTYPE
+			      ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE SC.ORG_ID = CC.ORG_ID
+			           AND SC.COMPANY_ID = CC.COMPANY_ID
+			           AND SC.BIG_CODE = 'CMM'
+			           AND SC.MIDDLE_CODE = 'CUSTOMER_TYPE'
+			           AND SC.SMALL_CODE = CC.CUSTOMER_TYPE) AS CUSTOMERTYPENAME
+			      ,AL.MONTH01 AS MONTH01
+			      ,AL.MONTH02 AS MONTH02
+			      ,AL.MONTH03 AS MONTH03
+			      ,AL.MONTH04 AS MONTH04
+			      ,AL.MONTH05 AS MONTH05
+			      ,AL.MONTH06 AS MONTH06
+			      ,AL.MONTH07 AS MONTH07
+			      ,AL.MONTH08 AS MONTH08
+			      ,AL.MONTH09 AS MONTH09
+			      ,AL.MONTH10 AS MONTH10
+			      ,AL.MONTH11 AS MONTH11
+			      ,AL.MONTH12 AS MONTH12
+            ,AL.TOTALMONTH AS TOTALMONTH
+			  FROM (SELECT AA.ORGID AS ORGID
+			              ,AA.COMPANYID AS COMPANYID
+			              ,AA.CUSTOMERCODE AS CUSTOMERCODE
+			              ,AA.CUSTOMERNAME AS CUSTOMERNAME
+			              ,SUM(AA.MONTH01) AS MONTH01
+			              ,SUM(AA.MONTH02) AS MONTH02
+			              ,SUM(AA.MONTH03) AS MONTH03
+			              ,SUM(AA.MONTH04) AS MONTH04
+			              ,SUM(AA.MONTH05) AS MONTH05
+			              ,SUM(AA.MONTH06) AS MONTH06
+			              ,SUM(AA.MONTH07) AS MONTH07
+			              ,SUM(AA.MONTH08) AS MONTH08
+			              ,SUM(AA.MONTH09) AS MONTH09
+			              ,SUM(AA.MONTH10) AS MONTH10
+			              ,SUM(AA.MONTH11) AS MONTH11
+			              ,SUM(AA.MONTH12) AS MONTH12
+                    ,SUM(AA.TOTALMONTH) AS TOTALMONTH
+			          FROM (SELECT TC.ORG_ID AS ORGID
+			                      ,TC.COMPANY_ID AS COMPANYID
+			                      ,TC.CUSTOMER_CODE AS CUSTOMERCODE
+			                      ,TC.CUSTOMER_NAME AS CUSTOMERNAME
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '01', SUM(TC.TOTAL), 0) AS MONTH01
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '02', SUM(TC.TOTAL), 0) AS MONTH02
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '03', SUM(TC.TOTAL), 0) AS MONTH03
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '04', SUM(TC.TOTAL), 0) AS MONTH04
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '05', SUM(TC.TOTAL), 0) AS MONTH05
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '06', SUM(TC.TOTAL), 0) AS MONTH06
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '07', SUM(TC.TOTAL), 0) AS MONTH07
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '08', SUM(TC.TOTAL), 0) AS MONTH08
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '09', SUM(TC.TOTAL), 0) AS MONTH09
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '10', SUM(TC.TOTAL), 0) AS MONTH10
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '11', SUM(TC.TOTAL), 0) AS MONTH11
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '12', SUM(TC.TOTAL), 0) AS MONTH12
+                            ,SUM(TC.TOTAL) AS TOTALMONTH
+			                  FROM CB_TRANS_CONFIRM_V TC
+			                 WHERE TC.CONFIRM_YN = 'Y'
+                         AND TC.ORG_ID = #ORGID#
+                         AND TC.COMPANY_ID = #COMPANYID#
+			                   AND TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'YYYY') = #SEARCHYEAR#
+			                 GROUP BY TC.ORG_ID, TC.COMPANY_ID, TC.CUSTOMER_CODE, TC.CUSTOMER_NAME
+			                         ,TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'))AA
+			         WHERE 1=1
+			         GROUP BY AA.ORGID, AA.COMPANYID, AA.CUSTOMERCODE, AA.CUSTOMERNAME
+			         UNION ALL
+			        SELECT AA.ORGID AS ORGID
+			              ,AA.COMPANYID AS COMPANYID
+			              ,AA.CUSTOMERCODE AS CUSTOMERCODE
+			              ,AA.CUSTOMERNAME AS CUSTOMERNAME
+			              ,SUM(AA.MONTH01) AS MONTH01
+			              ,SUM(AA.MONTH02) AS MONTH02
+			              ,SUM(AA.MONTH03) AS MONTH03
+			              ,SUM(AA.MONTH04) AS MONTH04
+			              ,SUM(AA.MONTH05) AS MONTH05
+			              ,SUM(AA.MONTH06) AS MONTH06
+			              ,SUM(AA.MONTH07) AS MONTH07
+			              ,SUM(AA.MONTH08) AS MONTH08
+			              ,SUM(AA.MONTH09) AS MONTH09
+			              ,SUM(AA.MONTH10) AS MONTH10
+			              ,SUM(AA.MONTH11) AS MONTH11
+			              ,SUM(AA.MONTH12) AS MONTH12
+			              ,SUM(AA.TOTALMONTH) AS TOTALMONTH
+			          FROM (SELECT TC.ORG_ID AS ORGID
+			                      ,TC.COMPANY_ID AS COMPANYID
+			                      ,TC.CUSTOMER_CODE AS CUSTOMERCODE
+			                      ,TC.CUSTOMER_NAME AS CUSTOMERNAME
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '01', SUM(TC.TOTAL), 0) AS MONTH01
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '02', SUM(TC.TOTAL), 0) AS MONTH02
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '03', SUM(TC.TOTAL), 0) AS MONTH03
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '04', SUM(TC.TOTAL), 0) AS MONTH04
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '05', SUM(TC.TOTAL), 0) AS MONTH05
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '06', SUM(TC.TOTAL), 0) AS MONTH06
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '07', SUM(TC.TOTAL), 0) AS MONTH07
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '08', SUM(TC.TOTAL), 0) AS MONTH08
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '09', SUM(TC.TOTAL), 0) AS MONTH09
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '10', SUM(TC.TOTAL), 0) AS MONTH10
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '11', SUM(TC.TOTAL), 0) AS MONTH11
+			                      ,DECODE(TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'), '12', SUM(TC.TOTAL), 0) AS MONTH12
+                            ,SUM(TC.TOTAL) AS TOTALMONTH
+			                  FROM CB_OUT_TRANS_CONFIRM_V TC
+			                 WHERE TC.CONFIRM_YN = 'Y'
+			                   AND TC.ORG_ID = #ORGID#
+			                   AND TC.COMPANY_ID = #COMPANYID#
+			                   AND TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'YYYY') = #SEARCHYEAR#
+			                 GROUP BY TC.ORG_ID, TC.COMPANY_ID, TC.CUSTOMER_CODE, TC.CUSTOMER_NAME
+			                         ,TO_CHAR(TO_DATE(TC.CONFIRM_DATE, 'YYYY-MM-DD'), 'MM'))AA
+			         WHERE 1=1
+			         GROUP BY AA.ORGID, AA.COMPANYID, AA.CUSTOMERCODE, AA.CUSTOMERNAME)AL
+			     ,CB_CUSTOMER CC
+      </sql>
+      
+      <sql id="cost.std.po.list.total.sql-where">
+       WHERE AL.ORGID = CC.ORG_ID
+         AND AL.COMPANYID = CC.COMPANY_ID
+         AND AL.CUSTOMERCODE = CC.CUSTOMER_CODE
+      <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          AL.CUSTOMERCODE IN ($CUSTOMERCODE$)
+      </isNotEmpty>
+       ORDER BY AL.ORGID, AL.COMPANYID, CC.CUSTOMER_TYPE DESC, CC.CUSTOMER_CODE
+      </sql>
+      
+      <select id="cost.std.po.list.total.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        <include refid="cost.std.po.list.total.sql-select" />
+        <include refid="cost.std.po.list.total.sql-where" />
+      </select>
+      
+      <select id="cost.std.po.list.total.count" parameterClass="java.util.Map"
+          resultClass="java.lang.Integer">
+          SELECT COUNT(*) FROM (
+              <include refid="cost.std.po.list.total.sql-select" />
+              <include refid="cost.std.po.list.total.sql-where" />
+          )
+      </select>
+      <!-- 거래처별 매입 집계 조회 끝 -->
+      
+<!--       매입현황 회계 I/F 시작 -->
+<sql id="cost.std.poiflist.sql-select">
+SELECT RANK() OVER(ORDER BY AA.INDT, AA.INSQ, AA.LNSQ) AS RN
+	      ,AA.ATTRCD /* 증빙구분 */
+	      ,AA.COCD /* 회사 코드 */
+	      ,AA.INDT /* 거래일자 */
+	      ,AA.INSQ /*거래순번 */
+	      ,AA.LNSQ /*분개순번 */
+	      ,AA.DIVCD /* 회계 단위 */
+	      ,AA.DRCRFG /* 차대구분 */
+	      ,AA.ACCTCD /* 계정 코드 */
+	      ,AA.REGNB /* 거래처 사업자번호 */
+	      
+	      ,AA.ACCTAM /* 금액 */
+	      ,AA.RMKDC /* 적요 */
+	      ,AA.CTDEPT /* 사용부서코드 */
+	      ,AA.CTAM /* 공급가액 */
+	      ,AA.CTDEAL /* 세무구분 */
+	      ,AA.NONSUBTY /* 사유구분 */
+	      ,AA.FRDT /*신고기준일 */
+	      ,AA.JEONJAYN /* 전자세금계산서여부 */
+	      ,AA.CTNB /* 관리번호 */
+	      ,AA.CTQT /* 환율 */
+	      
+	      ,AA.DUMMY1 /* 환종 */
+	      ,AA.DUMMY2 /* 외화금액 */
+	FROM (
+	(
+	SELECT  '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	                 FROM CB_SMALL_CODE SC
+	                WHERE SC.ORG_ID = TC.ORG_ID
+	                  AND SC.COMPANY_ID = TC.COMPANY_ID
+	                  AND SC.BIG_CODE = 'OM'
+	                  AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	                  AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,1 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'OM'
+	           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	           AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14900')  AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14900') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.SUPPLY_PRICE AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14900') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	
+     AND TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+	UNION ALL
+	
+	SELECT  '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	                 FROM CB_SMALL_CODE SC
+	                WHERE SC.ORG_ID = TC.ORG_ID
+	                  AND SC.COMPANY_ID = TC.COMPANY_ID
+	                  AND SC.BIG_CODE = 'OM'
+	                  AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	                  AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,2 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'OM'
+	           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	           AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500')  AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	
+     AND TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+	UNION ALL 
+	
+	SELECT  '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	                 FROM CB_SMALL_CODE SC
+	                WHERE SC.ORG_ID = TC.ORG_ID
+	                  AND SC.COMPANY_ID = TC.COMPANY_ID
+	                  AND SC.BIG_CODE = 'OM'
+	                  AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	                  AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,3 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'OM'
+	           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	           AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100')  AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.SUPPLY_PRICE+TC.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	   
+  AND     TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+	   )
+	UNION ALL
+	(
+	SELECT '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,1 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14700') AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14700') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.SUPPLY_PRICE AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '14700') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_OUT_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	   AND TC.CONFIRM_YN = 'N'
+	
+    AND TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+	UNION ALL
+	
+	SELECT '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,2 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500') AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '13500') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_OUT_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	   AND TC.CONFIRM_YN = 'N'
+	   
+     AND TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+	UNION ALL
+	
+	SELECT '' AS ATTRCD /* 증빙구분 */
+	      ,NVL((SELECT SC.ATTRIBUTE2
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS COCD /* 회사 코드 */
+	      ,TC.TRANS_DATE AS INDT /* 거래일자 */
+	      ,ROW_NUMBER() OVER(PARTITION BY TC.TRANS_DATE ORDER BY TC.TRANS_DATE ) AS INSQ /*거래순번 */
+	      ,3 AS LNSQ /*분개순번 */
+	      ,NVL((SELECT SC.ATTRIBUTE3
+	         FROM CB_SMALL_CODE SC
+	        WHERE SC.ORG_ID = TC.ORG_ID
+	          AND SC.COMPANY_ID = TC.COMPANY_ID
+	          AND SC.BIG_CODE = 'OM'
+	          AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+	          AND SC.SMALL_CODE = TC.PURCHASE_GUBUN),1000) AS DIVCD /* 회계 단위 */
+	      ,(SELECT SC.ATTRIBUTE3
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100') AS DRCRFG /* 차대구분 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100') AS ACCTCD /* 계정 코드 */
+	      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+	      ,TC.SUPPLY_PRICE+TC.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+	      ,(SELECT SC.ATTRIBUTE1
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUNT'
+	           AND SC.SMALL_CODE = '25100') AS RMKDC /* 적요 */
+	      ,(SELECT SC.SMALL_CODE
+	          FROM CB_SMALL_CODE SC
+	         WHERE SC.ORG_ID = TC.ORG_ID
+	           AND SC.COMPANY_ID = TC.COMPANY_ID
+	           AND SC.BIG_CODE = 'CMM'
+	           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+	           AND SC.ATTRIBUTE2 = 'Y'
+	           AND SC.SMALL_CODE = '0002') AS CTDEPT /* 사용부서코드 */
+	      ,'' AS CTAM /* 공급가액 */
+	      ,'' AS CTDEAL /* 세무구분 */
+	      ,'' AS NONSUBTY /* 사유구분 */
+	      ,'' AS FRDT /*신고기준일 */
+	      ,'' AS JEONJAYN /* 전자세금계산서여부 */
+	      ,'' AS CTNB /* 관리번호 */
+	      ,'' AS CTQT /* 환율 */
+	      ,'' AS DUMMY1 /* 환종 */
+	      ,'' AS DUMMY2 /* 외화금액 */
+	      ,TRANS_DATE1
+	      ,TC.CUSTOMER_CODE AS TRCD
+	  FROM CB_OUT_TRANS_CONFIRM_V TC
+	      ,CB_CUSTOMER CC
+	 WHERE TC.ORG_ID = CC.ORG_ID
+	   AND TC.COMPANY_ID = CC.COMPANY_ID
+	   AND TC.CUSTOMER_CODE = CC.CUSTOMER_CODE
+	   AND TC.CONFIRM_YN = 'N'
+	   
+	  AND TC.TRANS_DATE1 BETWEEN TRUNC(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'),'MM')  AND LAST_DAY(TO_DATE(#SEARCHDATE#,'YYYY-MM-DD'))
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TC.CUSTOMER_CODE= #CUSTOMERCODE#
+            </isNotEmpty>
+            )
+	   ) AA
+      </sql>
+      
+      <sql id="cost.std.poiflist.sql-where">
+     WHERE 1=1
+      </sql>
+      
+      <select id="cost.std.poiflist.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        <include refid="cost.std.poiflist.sql-select" />
+        <include refid="cost.std.poiflist.sql-where" />
+      </select>
+
+<!--       매입현황 회계 I/F 끝 -->
+
+<!--       매출현황 회계 I/F 시작 -->
+<sql id="cost.std.salesiflist.sql-select">
+     SELECT RANK() OVER(ORDER BY INDT, INSQ, LNSQ) AS RN
+				      ,ATTRCD
+				      ,COCD
+				      ,INDT
+				      ,INSQ
+				      ,LNSQ
+				      ,DIVCD
+				      ,DRCRFG
+				      ,ACCTCD
+				      ,REGNB
+				      ,ACCTAM
+				      ,RMKDC
+				      ,CTDEPT
+				      ,CTAM
+				      ,CTDEAL
+				      ,NONSUBTY
+				      ,FRDT
+				      ,JEONJAYN
+				      ,CTNB
+				      ,CTQT
+				      ,DUMMY1
+				      ,DUMMY2
+				
+				 FROM
+				(SELECT '' AS ATTRCD /* 증빙구분 */
+				      ,(SELECT SC.ATTRIBUTE2
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS COCD /* 회사 코드 */
+				      ,TO_CHAR(TH.TRADE_DATE,'YYYY-MM-DD') AS INDT /* 거래일자 */
+				      ,ROW_NUMBER() OVER(PARTITION BY TH.TRADE_DATE ORDER BY TH.TRADE_DATE )  AS INSQ /*거래순번 */
+				      ,1 AS LNSQ /*분개라인순번 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS DIVCD /* 회계 단위 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '10800') AS DRCRFG /* 차대구분 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '10800') AS ACCTCD /* 계정 코드 */
+				      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+				      ,SD.SUPPLY_PRICE+SD.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+				      ,(SELECT SC.ATTRIBUTE1
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '10800') AS RMKDC /* 적요 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+				           AND SC.ATTRIBUTE1 = 'Y'
+				           AND SC.SMALL_CODE = '0002')  AS CTDEPT /* 사용부서코드 */
+				      ,'' AS CTAM /* 공급가액 */
+				      ,'' AS CTDEAL /* 세무구분 */
+				      ,'' AS NONSUBTY /* 사유구분 */
+				      ,'' AS FRDT /*신고기준일 */
+				      ,'1' AS JEONJAYN /* 전자세금계산서여부 */
+				      ,'' AS CTNB /* 관리번호 */
+				      ,'' AS CTQT /* 환율 */
+				      ,'' AS DUMMY1 /* 환종 */
+				      ,'' AS DUMMY2 /* 외화금액 */
+				            ,SD.CUSTOMER_CODE AS CUSTOMERCODE
+				  FROM CB_TRADE_H TH
+				      ,CB_TRADE_D TD
+				      ,CB_SHIPPING_D_POST_V SD
+				      ,CB_CUSTOMER CC
+				      WHERE TH.ORG_ID = TD.ORG_ID
+				   AND TH.COMPANY_ID = TD.COMPANY_ID
+				   AND TH.TRADE_NO = TD.TRADE_NO
+				   AND TD.ORG_ID = SD.ORG_ID
+				   AND TD.COMPANY_ID = SD.COMPANY_ID
+				   AND TD.SHIP_NO = SD.SHIP_NO
+				   AND TD.SHIP_SEQ = SD.SHIP_SEQ
+				   AND SD.ORG_ID = CC.ORG_ID
+				   AND SD.COMPANY_ID = CC.COMPANY_ID
+				   AND SD.CUSTOMER_CODE = CC.CUSTOMER_CODE
+				   
+            AND TRADE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              SD.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+            
+				   UNION ALL
+				   SELECT '' AS ATTRCD /* 증빙구분 */
+				      ,(SELECT SC.ATTRIBUTE2
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS COCD /* 회사 코드 */
+				      ,TO_CHAR(TH.TRADE_DATE,'YYYY-MM-DD') AS INDT /* 거래일자 */
+				      ,ROW_NUMBER() OVER(PARTITION BY TH.TRADE_DATE ORDER BY TH.TRADE_DATE )  AS INSQ /*거래순번 */
+				      ,2 AS LNSQ /*분개라인순번 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS DIVCD /* 회계 단위 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '40400') AS DRCRFG /* 차대구분 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '40400') AS ACCTCD /* 계정 코드 */
+				      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+				      ,SD.SUPPLY_PRICE AS ACCTAM /* 금액 */
+				      ,(SELECT SC.ATTRIBUTE1
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '40400') AS RMKDC /* 적요 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+				           AND SC.ATTRIBUTE1 = 'Y'
+				           AND SC.SMALL_CODE = '0002')  AS CTDEPT /* 사용부서코드 */
+				      ,'' AS CTAM /* 공급가액 */
+				      ,'' AS CTDEAL /* 세무구분 */
+				      ,'' AS NONSUBTY /* 사유구분 */
+				      ,'' AS FRDT /*신고기준일 */
+				      ,'1' AS JEONJAYN /* 전자세금계산서여부 */
+				      ,'' AS CTNB /* 관리번호 */
+				      ,'' AS CTQT /* 환율 */
+				      ,'' AS DUMMY1 /* 환종 */
+				      ,'' AS DUMMY2 /* 외화금액 */
+				      ,SD.CUSTOMER_CODE AS CUSTOMERCODE
+				  FROM CB_TRADE_H TH
+				      ,CB_TRADE_D TD
+				      ,CB_SHIPPING_D_POST_V SD
+				      ,CB_CUSTOMER CC
+				      WHERE TH.ORG_ID = TD.ORG_ID
+				   AND TH.COMPANY_ID = TD.COMPANY_ID
+				   AND TH.TRADE_NO = TD.TRADE_NO
+				   AND TD.ORG_ID = SD.ORG_ID
+				   AND TD.COMPANY_ID = SD.COMPANY_ID
+				   AND TD.SHIP_NO = SD.SHIP_NO
+				   AND TD.SHIP_SEQ = SD.SHIP_SEQ
+				   AND SD.ORG_ID = CC.ORG_ID
+				   AND SD.COMPANY_ID = CC.COMPANY_ID
+				   AND SD.CUSTOMER_CODE = CC.CUSTOMER_CODE
+				   
+            AND TRADE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              SD.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+				   UNION ALL
+				   SELECT '' AS ATTRCD /* 증빙구분 */
+				      ,(SELECT SC.ATTRIBUTE2
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS COCD /* 회사 코드 */
+				      ,TO_CHAR(TH.TRADE_DATE,'YYYY-MM-DD') AS INDT /* 거래일자 */
+				      ,ROW_NUMBER() OVER(PARTITION BY TH.TRADE_DATE ORDER BY TH.TRADE_DATE )  AS INSQ /*거래순번 */
+				      ,3 AS LNSQ /*분개라인순번 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'OM'
+				           AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+				           AND SC.SMALL_CODE = SD.SHIP_GUBUN) AS DIVCD /* 회계 단위 */
+				      ,(SELECT SC.ATTRIBUTE3
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '25500') AS DRCRFG /* 차대구분 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '25500') AS ACCTCD /* 계정 코드 */
+				      ,CC.LICENSE_NO AS REGNB /* 거래처 사업자번호 */
+				      ,SD.ADDITIONAL_TAX AS ACCTAM /* 금액 */
+				      ,(SELECT SC.ATTRIBUTE1
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUNT'
+				           AND SC.ATTRIBUTE4 = 1
+				           AND SC.SMALL_CODE = '25500') AS RMKDC /* 적요 */
+				      ,(SELECT SC.SMALL_CODE
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = SD.ORG_ID
+				           AND SC.COMPANY_ID = SD.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ACCOUT_DEPT'
+				           AND SC.ATTRIBUTE1 = 'Y'
+				           AND SC.SMALL_CODE = '0002')  AS CTDEPT /* 사용부서코드 */
+				      ,'' AS CTAM /* 공급가액 */
+				      ,'' AS CTDEAL /* 세무구분 */
+				      ,'' AS NONSUBTY /* 사유구분 */
+				      ,'' AS FRDT /*신고기준일 */
+				      ,'1' AS JEONJAYN /* 전자세금계산서여부 */
+				      ,'' AS CTNB /* 관리번호 */
+				      ,'' AS CTQT /* 환율 */
+				      ,'' AS DUMMY1 /* 환종 */
+				      ,'' AS DUMMY2 /* 외화금액 */
+				      ,SD.CUSTOMER_CODE AS CUSTOMERCODE
+				  FROM CB_TRADE_H TH
+				      ,CB_TRADE_D TD
+				      ,CB_SHIPPING_D_POST_V SD
+				      ,CB_CUSTOMER CC
+				      WHERE TH.ORG_ID = TD.ORG_ID
+				   AND TH.COMPANY_ID = TD.COMPANY_ID
+				   AND TH.TRADE_NO = TD.TRADE_NO
+				   AND TD.ORG_ID = SD.ORG_ID
+				   AND TD.COMPANY_ID = SD.COMPANY_ID
+				   AND TD.SHIP_NO = SD.SHIP_NO
+				   AND TD.SHIP_SEQ = SD.SHIP_SEQ
+				   AND SD.ORG_ID = CC.ORG_ID
+				   AND SD.COMPANY_ID = CC.COMPANY_ID
+				   AND SD.CUSTOMER_CODE = CC.CUSTOMER_CODE
+				   
+            AND TRADE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              SD.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+		  		   )
+      </sql>
+      
+      <sql id="cost.std.salesiflist.sql-where">
+			
+            ORDER BY INDT, INSQ, LNSQ
+      </sql>
+      
+      <select id="cost.std.salesiflist.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        <include refid="cost.std.salesiflist.sql-select" />
+        <include refid="cost.std.salesiflist.sql-where" />
+      </select>
+
+<!--       매출현황 회계 I/F 끝 -->
+</sqlMap>

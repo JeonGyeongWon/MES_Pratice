@@ -1,0 +1,1399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SalesPurchaseResultReport_Sub3" language="groovy" pageWidth="862" pageHeight="324" whenNoDataType="AllSectionsNoDetail" columnWidth="862" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isFloatColumnFooter="true" uuid="3a4a0ae2-6970-407d-b478-5d088a434564">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String"/>
+	<parameter name="COMPANYID" class="java.lang.String"/>
+	<parameter name="SEARCHDATE" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT *
+  FROM (SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                                                                     ,CC.COMPANY_ID
+                                                                                                     ,CC.CUSTOMER_CODE
+                                                                                                     ,TMP.SEARCH_TO
+                                                                                                     ,'O') DESC, CC.CUSTOMER_NAME) AS RN
+              ,CC.ORG_ID AS ORGID
+              ,CC.COMPANY_ID AS COMPANYID
+              ,TO_CHAR(TMP.SEARCH_TO, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_TO, 'MM') || '월' AS SUBTITLE
+              ,TO_CHAR(TMP.SEARCH_NEXT, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_NEXT, 'MM') || '월' AS SUBTITLENEXT
+              ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+              ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+              ,CB_COST_PKG.CB_EXPECT_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') AS VALUE1
+              ,CB_COST_PKG.CB_REAL_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                    ,CC.COMPANY_ID
+                                                    ,CC.CUSTOMER_CODE
+                                                    ,TMP.SEARCH_TO
+                                                    ,'O') AS VALUE2
+              ,CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') AS VALUE3
+              ,CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') -
+               CB_COST_PKG.CB_REAL_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                    ,CC.COMPANY_ID
+                                                    ,CC.CUSTOMER_CODE
+                                                    ,TMP.SEARCH_TO
+                                                    ,'O') AS VALUE4
+              ,CB_COST_PKG.CB_EXPECT_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_NEXT
+                                                      ,'O') AS VALUE5
+          FROM CB_CUSTOMER CC
+              ,(SELECT $P{ORGID} AS ORG_ID
+                      ,$P{COMPANYID} AS COMPANY_ID
+                      ,TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'MM') AS SEARCH_FROM
+                      ,TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD') AS SEARCH_TO
+                      ,LAST_DAY(ADD_MONTHS(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 1)) AS SEARCH_NEXT
+                  FROM DUAL) TMP
+         WHERE 1=1
+           AND CC.ORG_ID = TMP.ORG_ID
+           AND CC.COMPANY_ID = TMP.COMPANY_ID
+           AND CC.CUSTOMER_TYPE = 'O'
+           /*AND (CC.CUSTOMER_CODE IN (SELECT RC.CUSTOMER_CODE_OUT
+                                       FROM CB_ROUTING_CONTROL RC
+                                           ,CB_WORK_ORDER WO
+                                      WHERE 1=1
+                                        AND RC.ORG_ID = WO.ORG_ID (+)
+                                        AND RC.COMPANY_ID = WO.COMPANY_ID (+)
+                                        AND RC.ITEM_CODE = WO.ITEM_CODE (+)
+                                        AND RC.ROUTING_ID = WO.ROUTING_CODE (+)
+                                        AND RC.ORG_ID = TMP.ORG_ID
+                                        AND RC.COMPANY_ID = TMP.COMPANY_ID
+                                        AND WO.WORK_STATUS <> 'CANCEL'
+                                        AND (WO.OUTSIDE_ORDER_GUBUN = 'Y'
+                                        AND RC.OUTSIDE_ORDER_GUBUN = 'N')
+                                        \*AND WO.WORK_PLAN_START_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO*\
+                                     )
+           )*/
+           AND CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') > (SELECT SC.SMALL_NAME
+                                                                           FROM CB_SMALL_CODE SC
+                                                                          WHERE 1=1
+                                                                            AND SC.ORG_ID = CC.ORG_ID
+                                                                            AND SC.COMPANY_ID = CC.COMPANY_ID
+                                                                            AND SC.BIG_CODE = 'CMM'
+                                                                            AND SC.MIDDLE_CODE = 'STANDARD_AMOUNT'
+                                                                            AND SC.SMALL_CODE = 'O')
+         ORDER BY CC.ORG_ID, CC.COMPANY_ID, CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                                                   ,CC.COMPANY_ID
+                                                                                   ,CC.CUSTOMER_CODE
+                                                                                   ,TMP.SEARCH_TO
+                                                                                   ,'O') DESC, CC.CUSTOMER_NAME
+         )
+ WHERE 1=1
+   AND RN BETWEEN 1 AND 11
+ UNION ALL
+SELECT 999 AS RN
+      ,MAX(ORGID) AS ORGID
+      ,MAX(COMPANYID) AS COMPANYID
+      ,TO_CHAR(TMP.SEARCH_TO, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_TO, 'MM') || '월' AS SUBTITLE
+      ,TO_CHAR(TMP.SEARCH_NEXT, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_NEXT, 'MM') || '월' AS SUBTITLENEXT
+      ,NULL AS CUSTOMERCODE
+      ,'외주기타' AS CUSTOMERNAME
+      ,NVL(SUM(VALUE1), 0) AS VALUE1
+      ,NVL(SUM(VALUE2), 0) AS VALUE2
+      ,NVL(SUM(VALUE3), 0) AS VALUE3
+      ,NVL(SUM(VALUE4), 0) AS VALUE4
+      ,NVL(SUM(VALUE5), 0) AS VALUE5
+  FROM (SELECT RANK() OVER(ORDER BY CC.ORG_ID, CC.COMPANY_ID, CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                                                                     ,CC.COMPANY_ID
+                                                                                                     ,CC.CUSTOMER_CODE
+                                                                                                     ,TMP.SEARCH_TO
+                                                                                                     ,'O') DESC, CC.CUSTOMER_NAME) AS RN
+              ,CC.ORG_ID AS ORGID
+              ,CC.COMPANY_ID AS COMPANYID
+              ,TO_CHAR(TMP.SEARCH_TO, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_TO, 'MM') || '월' AS SUBTITLE
+              ,TO_CHAR(TMP.SEARCH_NEXT, 'YYYY') || '년 ' || TO_CHAR(TMP.SEARCH_NEXT, 'MM') || '월' AS SUBTITLENEXT
+              ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+              ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+              ,CB_COST_PKG.CB_EXPECT_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') AS VALUE1
+              ,CB_COST_PKG.CB_REAL_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                    ,CC.COMPANY_ID
+                                                    ,CC.CUSTOMER_CODE
+                                                    ,TMP.SEARCH_TO
+                                                    ,'O') AS VALUE2
+              ,CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') AS VALUE3
+              ,CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') -
+               CB_COST_PKG.CB_REAL_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                    ,CC.COMPANY_ID
+                                                    ,CC.CUSTOMER_CODE
+                                                    ,TMP.SEARCH_TO
+                                                    ,'O') AS VALUE4
+              ,CB_COST_PKG.CB_EXPECT_PURCHASE_PLAN_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_NEXT
+                                                      ,'O') AS VALUE5
+          FROM CB_CUSTOMER CC
+              ,(SELECT $P{ORGID} AS ORG_ID
+                      ,$P{COMPANYID} AS COMPANY_ID
+                      ,TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'MM') AS SEARCH_FROM
+                      ,TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD') AS SEARCH_TO
+                      ,LAST_DAY(ADD_MONTHS(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 1)) AS SEARCH_NEXT
+                  FROM DUAL) TMP
+         WHERE 1=1
+           AND CC.ORG_ID = TMP.ORG_ID
+           AND CC.COMPANY_ID = TMP.COMPANY_ID
+           AND CC.CUSTOMER_TYPE = 'O'
+           /*AND (CC.CUSTOMER_CODE IN (SELECT RC.CUSTOMER_CODE_OUT
+                                       FROM CB_ROUTING_CONTROL RC
+                                           ,CB_WORK_ORDER WO
+                                      WHERE 1=1
+                                        AND RC.ORG_ID = WO.ORG_ID (+)
+                                        AND RC.COMPANY_ID = WO.COMPANY_ID (+)
+                                        AND RC.ITEM_CODE = WO.ITEM_CODE (+)
+                                        AND RC.ROUTING_ID = WO.ROUTING_CODE (+)
+                                        AND RC.ORG_ID = TMP.ORG_ID
+                                        AND RC.COMPANY_ID = TMP.COMPANY_ID
+                                        AND WO.WORK_STATUS <> 'CANCEL'
+                                        AND (WO.OUTSIDE_ORDER_GUBUN = 'Y'
+                                        AND RC.OUTSIDE_ORDER_GUBUN = 'N')
+                                        \*AND WO.WORK_PLAN_START_DATE BETWEEN TMP.SEARCH_FROM AND TMP.SEARCH_TO*\
+                                     )
+           )*/
+           AND CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                      ,CC.COMPANY_ID
+                                                      ,CC.CUSTOMER_CODE
+                                                      ,TMP.SEARCH_TO
+                                                      ,'O') < (SELECT SC.SMALL_NAME
+                                                                           FROM CB_SMALL_CODE SC
+                                                                          WHERE 1=1
+                                                                            AND SC.ORG_ID = CC.ORG_ID
+                                                                            AND SC.COMPANY_ID = CC.COMPANY_ID
+                                                                            AND SC.BIG_CODE = 'CMM'
+                                                                            AND SC.MIDDLE_CODE = 'STANDARD_AMOUNT'
+                                                                            AND SC.SMALL_CODE = 'O')
+         ORDER BY CC.ORG_ID, CC.COMPANY_ID, CB_COST_PKG.CB_REAL_PURCHASE_RESULT_FNC(CC.ORG_ID
+                                                                                   ,CC.COMPANY_ID
+                                                                                   ,CC.CUSTOMER_CODE
+                                                                                   ,TMP.SEARCH_TO
+                                                                                   ,'O') DESC, CC.CUSTOMER_NAME
+         )
+      ,(SELECT $P{ORGID} AS ORG_ID
+              ,$P{COMPANYID} AS COMPANY_ID
+              ,TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'MM') AS SEARCH_FROM
+              ,TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD') AS SEARCH_TO
+              ,LAST_DAY(ADD_MONTHS(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 1)) AS SEARCH_NEXT
+          FROM DUAL) TMP
+ WHERE 1=1
+   /*AND RN > 11*/]]>
+	</queryString>
+	<field name="RN" class="java.math.BigDecimal"/>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="SUBTITLE" class="java.lang.String"/>
+	<field name="SUBTITLENEXT" class="java.lang.String"/>
+	<field name="CUSTOMERCODE" class="java.lang.String"/>
+	<field name="CUSTOMERNAME" class="java.lang.String"/>
+	<field name="VALUE1" class="java.math.BigDecimal"/>
+	<field name="VALUE2" class="java.math.BigDecimal"/>
+	<field name="VALUE3" class="java.math.BigDecimal"/>
+	<field name="VALUE4" class="java.math.BigDecimal"/>
+	<field name="VALUE5" class="java.math.BigDecimal"/>
+	<variable name="VALUE1_1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{VALUE1}]]></variableExpression>
+	</variable>
+	<variable name="VALUE2_1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{VALUE2}]]></variableExpression>
+	</variable>
+	<variable name="VALUE3_1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{VALUE3}]]></variableExpression>
+	</variable>
+	<variable name="VALUE4_1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{VALUE4}]]></variableExpression>
+	</variable>
+	<variable name="VALUE5_1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{VALUE5}]]></variableExpression>
+	</variable>
+	<background>
+		<band height="324" splitType="Stretch">
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="0" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2f83773e-f466-440d-baeb-74fb5a363ecc"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="0" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2fedf13f-5a7f-4bfd-b630-425f0b4f2c94"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="0" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="4f37c08a-2507-48c4-bfea-1e0c3795668b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="0" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="67861bfc-d8db-46da-b9b9-caf47fd03e83"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="0" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="426e8b2d-b49b-41af-abee-c9cfdc6edff9"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="0" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="20671d43-720b-4525-89da-99ad15a3e805"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="108" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="1b92eae9-4536-4c59-9895-4599a709453b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="108" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="e0cf7fe4-e837-4f80-9587-8d5cdd494ad8"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="108" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="a64dc9c6-a0e8-421f-bb5c-357734717c1d"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="108" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="b9516aec-ada6-465b-a106-b3e507ed6eeb"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="108" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="1da711c0-51c2-443a-ab49-61805f216902"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="108" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="91257e52-6ea5-4fc3-b360-fb7749e9d682"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="135" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="95a9f619-9e33-4c46-8f7b-40527ac0b079"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="135" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="7b26f777-5dcc-42bc-8015-0595830ee7ff"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="135" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="c5dae4c2-de45-420b-a8d6-c7728fa5eea4"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="135" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="91c44854-6a9c-49ec-8d43-e7ba1eeb4a90"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="135" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="56ee7d07-88eb-4ebd-a98d-30e2aeb91f5b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="135" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="8c372255-e040-40a3-8217-c1cdd13101d1"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="162" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="70cf41d8-eca4-4ea5-a729-0ca3f8c6a236"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="162" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="4a8a690d-dd3c-4497-80e9-80c8bc1e5877"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="162" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="06feea02-0bc8-44b7-813d-477cd9058122"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="162" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="a8ca196f-17a1-476f-adc2-45ceec95de20"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="162" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="3dd616e7-99f6-4351-a0a3-2f555603f42c"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="162" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="870f376f-bfe6-42dc-8193-1c0bc12ea8a0"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="189" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="92ccf2f2-660c-4257-9df4-179d22a57696"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="189" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f4f92a5c-37ae-46ce-a438-9d5af041a186"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="189" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f8681295-6f23-4498-b309-015d0b2d7156"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="189" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0e6e27dd-853b-4461-9f88-48596ee27010"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="189" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="3ef6a796-82aa-4793-8723-c9fa9cad7d5e"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="189" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="54b3cfd5-7511-48e1-8028-47782fabdc94"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="216" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="9d72171b-7b4b-41da-92e1-d5e02195331b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="216" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2d2af7ca-3c57-49f5-b1f7-6f3776474d70"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="216" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="6841c36a-4ed0-4bdc-8f7d-68786a2d435f"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="216" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f81b5439-6849-46ff-84ef-2892990ea4a9"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="216" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0c94f9ec-d325-4025-af83-7bab0760906d"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="216" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="07ac7c5b-ef42-42b4-ad0f-6f97a15511cd"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="243" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="d15b9293-5ca5-413c-a785-de6f817d0e58"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="243" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0c2c67c6-873b-4433-b49d-3a2168e59b39"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="243" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="8a84808d-3cfd-4f65-aa13-41758a046412"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="243" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="4cefdff8-cb75-49e4-8834-fc6d474e2234"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="243" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="5028779e-f1eb-4428-904d-0eac84466620"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="243" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f9bebd4d-2822-4c94-a6a6-b6a5bb67c021"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="270" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="9e289bec-531b-4ad3-bede-2f1823c706b8"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="270" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="69e06497-2341-453f-9fb7-0fe41d2eee29"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="270" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="9d260ec0-d9c6-4b86-ba43-8c43b0b076fa"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="270" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0296c56d-309c-4358-b336-5c7df576f114"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="270" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="3aac539e-5f82-4363-b618-43156df20aa5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="270" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="23bfde9b-e9e0-4339-966e-8e6a15a3753f"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="297" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="37e895b1-caf3-4655-b6f1-d3d92140a587"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="297" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="b65e72e5-91d5-4302-bd4f-5a5be6e4a089"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="297" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="34aa2159-f13c-4864-9677-e3c874b67c91"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="297" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="ab84b774-c9cf-4bd4-b85d-97fa981ff38e"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="297" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="b6f025f2-eb38-481c-b33b-1be4930a66eb"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="297" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2ea5cd25-ab84-4819-ab4a-03cd6452709c"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="27" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f5dce9c1-b65b-43c2-81ae-31fe797f3aff"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="27" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="41208ab1-26ca-4a82-883f-03000d62baa4"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="27" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2b8a3a8e-4529-4237-b533-ed8586b7eae0"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="27" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="edcb26e7-f132-43f7-b059-220d5682f5ed"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="27" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="8bb17ca7-66e4-4e6e-9c11-a3407f584df5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="27" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="e490b8b2-3fb6-4bff-a202-9bbc50e39f6d"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="54" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="d28c181b-12ac-46c6-b405-e2ca812d11ed"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="54" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f4f99df4-99c3-4967-bfab-80c0214da400"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="54" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2e11e9ca-3798-464a-b0aa-6123f60ec7ac"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="54" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="ff851d01-91ad-47f6-bca1-2a0f4303c9f2"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="54" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="750c678f-0016-49cc-a73b-ed46553da7f5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="54" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="bda89784-3d18-47f6-a1b3-9714c63b4943"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="81" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="50bbe304-74b1-4814-a9e3-30eb09ac4e79"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="81" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="1f2d20bc-0372-424f-b1d6-c65cfb2bb589"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="81" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="a55e7f1c-a3ac-4e4f-8518-56adaff9f6a2"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="81" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="f99ad35f-6fd9-4719-a542-2f575a9c13cc"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="81" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="d9fe1283-200c-4f33-8282-c8701d515293"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="81" width="108" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0084aca0-e6b6-4e08-a102-ef50e1f7804e"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<detail>
+		<band height="27" splitType="Stretch">
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="636" y="0" width="10" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="22ea2d61-57f1-45e0-98c0-4e6545d85107"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="852" y="0" width="10" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="45139e7c-119a-4e46-93a5-e5e0096c9714"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="3.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="754" y="0" width="98" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="92f17ac3-5733-4674-ac6d-57bc832e259e"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{VALUE5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="528" y="0" width="10" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="710d55b5-64db-45be-bd3b-4389abb1ef56"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="420" y="0" width="10" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="9064682d-ffa0-4b62-80a2-0011ffbf262d"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="322" y="0" width="98" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="94ff95e1-37d9-4438-b93c-52a5fc9fba0b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{VALUE1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="430" y="0" width="98" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="67595f74-a5da-49a0-aeb4-1fef7a2cb515"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{VALUE2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="744" y="0" width="10" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="349170af-a240-4001-8fcd-f62ebbe1c38e"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="0" y="0" width="322" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="0a2d253d-d67b-40c8-a9b0-399fc074dfd5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="3.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CUSTOMERNAME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="646" y="0" width="98" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="6d37ff0b-92d5-47be-b2c0-e2c7469b731f"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{VALUE4}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="538" y="0" width="98" height="27" forecolor="#000000" backcolor="#FFFFFF" uuid="2496c6ad-9444-4ae1-a681-ce03f60fbeb6"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="14" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{VALUE3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

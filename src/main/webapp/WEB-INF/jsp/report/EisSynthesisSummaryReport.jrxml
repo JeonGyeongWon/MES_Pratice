@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EisSynthesisSummaryReport" language="groovy" pageWidth="1754" pageHeight="1240" orientation="Landscape" columnWidth="1714" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="25" uuid="07ad84de-e27d-4012-8ef4-74c1a6761235">
+	<property name="ireport.zoom" value="0.564473930053779"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHYEAR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\WEB-INF\\jsp\\report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata1" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="SUBDIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata2" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata3" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata4" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT '매출 및 매입현황 종합요약' AS TITLE
+,GUBUN1
+      ,(CASE WHEN A.GUBUN1 = 1 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매출'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '(원)'
+                     ELSE
+                       NULL
+                     END)
+             WHEN A.GUBUN1 = 2 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매입'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '(원)'
+                     ELSE
+                       NULL
+                     END)
+             WHEN A.GUBUN1 = 3 THEN
+               (CASE WHEN A.GUBUN2 = 1 THEN
+                       '매입'
+                     WHEN A.GUBUN2 = 2 THEN
+                       '비율(%)'
+                     ELSE
+                       NULL
+                     END)
+             ELSE
+               NULL
+             END) AS GUBUN1NAME
+      ,GUBUN2
+      ,GUBUN2NAME
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-2
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-1
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,NULL
+                                     ,GUBUN1
+                                     ,GUBUN2) AS TOTAL
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'01'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON01
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'02'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON02
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'03'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON03
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'04'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON04
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'05'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON05
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'06'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON06
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'07'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON07
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'08'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON08
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'09'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON09
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'10'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON10
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'11'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON11
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,'12'
+                                     ,GUBUN1
+                                     ,GUBUN2) AS MON12
+  FROM (
+        SELECT (CASE WHEN LEVEL BETWEEN 1 AND 2 THEN
+                       1
+                     WHEN LEVEL BETWEEN 3 AND 4 THEN
+                       2
+                     WHEN LEVEL BETWEEN 5 AND 6 THEN
+                       3
+                     ELSE
+                       NULL
+                     END) AS GUBUN1
+              ,(CASE WHEN MOD(LEVEL, 2) = 0 THEN
+                       2
+                     ELSE
+                       1
+                     END) AS GUBUN2
+              ,(CASE WHEN MOD(LEVEL, 2) = 0 THEN
+                       '실적'
+                     ELSE
+                       '계획'
+                     END) AS GUBUN2NAME
+              ,1 AS ORG_ID
+              ,1 AS COMPANY_ID
+              ,2021 AS SEARCH_YEAR
+          FROM DUAL
+        CONNECT BY LEVEL <= 6
+        ) A]]>
+	</queryString>
+	<field name="TITLE" class="java.lang.String"/>
+	<field name="GUBUN1" class="java.math.BigDecimal"/>
+	<field name="GUBUN1NAME" class="java.lang.String"/>
+	<field name="GUBUN2" class="java.math.BigDecimal"/>
+	<field name="GUBUN2NAME" class="java.lang.String"/>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="SEARCHYEAR" class="java.math.BigDecimal"/>
+	<field name="PRE2AMOUNT" class="java.math.BigDecimal"/>
+	<field name="PREAMOUNT" class="java.math.BigDecimal"/>
+	<field name="TOTAL" class="java.math.BigDecimal"/>
+	<field name="MON01" class="java.math.BigDecimal"/>
+	<field name="MON02" class="java.math.BigDecimal"/>
+	<field name="MON03" class="java.math.BigDecimal"/>
+	<field name="MON04" class="java.math.BigDecimal"/>
+	<field name="MON05" class="java.math.BigDecimal"/>
+	<field name="MON06" class="java.math.BigDecimal"/>
+	<field name="MON07" class="java.math.BigDecimal"/>
+	<field name="MON08" class="java.math.BigDecimal"/>
+	<field name="MON09" class="java.math.BigDecimal"/>
+	<field name="MON10" class="java.math.BigDecimal"/>
+	<field name="MON11" class="java.math.BigDecimal"/>
+	<field name="MON12" class="java.math.BigDecimal"/>
+	<background>
+		<band height="189"/>
+	</background>
+	<title>
+		<band height="127">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="1354" height="127" isPrintWhenDetailOverflows="true" uuid="14d1fe41-2501-433f-9073-9e6224ead070"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="34" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TITLE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1474" y="0" width="120" height="27" uuid="41c76fd0-6a7d-48b8-8122-494415d6cd11"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[검  토]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1594" y="0" width="120" height="27" uuid="97588229-1ec0-4bae-a1b5-92731a1d7296"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[승 인]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1594" y="27" width="120" height="100" uuid="1164a2b3-edf7-41d2-829e-8409d74b1403"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1474" y="27" width="120" height="100" uuid="0af1366e-0240-4c13-b4db-98041b8db265"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1354" y="0" width="120" height="27" uuid="80f0a9c9-3102-4db9-a09e-39cef39ba68a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[작  성]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1354" y="27" width="120" height="100" uuid="1ed8eca9-f406-453f-a4aa-b903bd3b764a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<image>
+				<reportElement x="0" y="1" width="207" height="126" uuid="0d7c9bc0-a635-4259-8ce0-d902234d4069"/>
+				<imageExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\images\\favicon.png"]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageFooter>
+		<band height="1058">
+			<subreport>
+				<reportElement x="0" y="16" width="1714" height="490" uuid="e436b042-40df-44e4-abea-79d29f30bc0a"/>
+				<subreportParameter name="ORGID"/>
+				<subreportParameter name="COMPANYID"/>
+				<subreportParameter name="SEARCHYEAR"/>
+				<dataSourceExpression><![CDATA[$P{subdata1}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisSynthesisSummaryReport_Sub1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="1164" y="521" width="550" height="537" uuid="222a8674-5477-4e64-bd5a-f26af4616d79"/>
+				<dataSourceExpression><![CDATA[$P{subdata4}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisSynthesisSummaryReport_Sub4.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="521" width="550" height="537" uuid="b2b010bf-82fc-4faa-85a1-f6ef54bb6cda"/>
+				<dataSourceExpression><![CDATA[$P{subdata2}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisSynthesisSummaryReport_Sub2.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="582" y="521" width="550" height="537" uuid="d8231649-3969-48b1-ae4a-7d1c31ffd38c"/>
+				<dataSourceExpression><![CDATA[$P{subdata3}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisSynthesisSummaryReport_Sub3.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageFooter>
+</jasperReport>

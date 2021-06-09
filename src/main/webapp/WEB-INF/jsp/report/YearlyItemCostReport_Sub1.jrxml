@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="YearlyItemCostReport_Sub1" language="groovy" pageWidth="1724" pageHeight="440" orientation="Landscape" columnWidth="1724" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="3ba41e73-9a0d-4a6e-b264-95fdd98f6b62">
+	<property name="ireport.zoom" value="0.6209213230591554"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHYEAR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT SHIPPING_ITEM_GROUP AS ITEM,
+       SUM(TOTALPRODUCT) AS TOTAL
+  FROM(
+         SELECT RANK()OVER(PARTITION BY CSR.ORG_ID ,CSR.COMPANY_ID,CSR.SHIPPING_ITEM_GROUP  ORDER BY CSR.ORG_ID ,CSR.COMPANY_ID,CSR.SHIPPING_ITEM_GROUP ,CSR.CUSTOMER_NAME) AS RN
+                ,CSR.ORG_ID
+                ,CSR.COMPANY_ID
+                ,CSR.SHIPPING_ITEM_GROUP
+                ,CSR.CUSTOMER_NAME
+                ,SUM(CSR.TRADE_AMOUNT) AS TOTALPRODUCT
+           FROM CB_COST_SALES_REPORT_V CSR
+          WHERE 1=1
+            AND CSR.ORG_ID = $P{ORGID}
+            AND CSR.COMPANY_ID = $P{COMPANYID}
+           AND TO_CHAR(CSR.END_DATE,'YYYY') = $P{SEARCHYEAR}
+       GROUP BY CSR.ORG_ID, COMPANY_ID, CSR.SHIPPING_ITEM_GROUP,CUSTOMER_CODE,CUSTOMER_NAME
+
+       )
+  GROUP BY ORG_ID, COMPANY_ID, SHIPPING_ITEM_GROUP]]>
+	</queryString>
+	<field name="ITEM" class="java.lang.String"/>
+	<field name="TOTAL" class="java.math.BigDecimal"/>
+	<summary>
+		<band height="440" splitType="Stretch">
+			<lineChart>
+				<chart isShowLegend="false">
+					<reportElement x="0" y="0" width="1724" height="440" uuid="7889d8ee-426d-4391-856f-d9774a49214f"/>
+					<box>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<chartTitle>
+						<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend position="Top">
+						<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[""]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{ITEM}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{TOTAL}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+		</band>
+	</summary>
+</jasperReport>

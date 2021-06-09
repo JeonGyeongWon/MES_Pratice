@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="prod.tool">
+
+    <parameterMap class="java.util.Map" id="procToolStatusParams">
+        <parameter property="ORGID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="OUTNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="OUTSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="prod.tool.out..status.update.proc.call.Procedure" parameterClass="java.util.Map"  parameterMap="procToolStatusParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_MFG_PKG.CB_TOOL_OUT_STATUS_U( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+     <!-- 치공구 반출 Header 조회 -->
+    <sql id="prod.tool.out.header.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, OUT_NO DESC) AS RN
+					      ,ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,OUT_NO AS OUTNO
+					      ,OUT_DATE AS OUTDATE
+					      ,CUSTOMER_CODE AS CUSTOMERCODE
+					      ,CUSTOMER_NAME AS CUSTOMERNAME
+					      ,OUT_PERSON AS OUTPERSON
+					      ,OUT_KR_NAME AS OUTKRNAME
+					      ,OUT_STATUS AS OUTSTATUS
+					      ,OUT_STATUS_NAME AS OUTSTATUSNAME
+					      ,ORDER_NAME AS ORDERNAME
+					      ,ITEM_NAME AS ITEMNAME
+					      ,TOTAL_QTY AS TOTALQTY
+					      ,REMARKS AS REMARKS
+			  FROM CB_TOOL_OUT_H_V TH
+    </sql>
+
+    <sql id="prod.tool.out.header.list.sql-where">
+       WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+           ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+           COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHTO">
+           <isNotEmpty property="SEARCHFROM" prepend="AND">
+              OUT_DATE1 BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isNotEmpty>
+           <isEmpty property="SEARCHFROM" prepend="AND">
+              OUT_DATE1 = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="OUTNO" prepend="AND">
+            OUT_NO = #OUTNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            OUT_NO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="keyword" prepend="AND">
+            OUT_NO LIKE '%' || #keyword# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+		         (TH.ORG_ID , TH.COMPANY_ID ,TH.OUT_NO ) IN (SELECT RD.ORG_ID , RD.COMPANY_ID , RD.OUT_NO
+												                                                  FROM CB_TOOL_OUT_D_V RD
+												                                                 WHERE 1=1
+		        <isNotEmpty property="ORGID" prepend="AND">
+		          RD.ORG_ID = #ORGID#
+		        </isNotEmpty>
+		        <isNotEmpty property="COMPANYID" prepend="AND">
+		          RD.COMPANY_ID = #COMPANYID#
+		        </isNotEmpty>
+		         <isNotEmpty property="ITEMCODE" prepend="AND">
+		            RD.ITEM_CODE LIKE '%'|| #ITEMCODE# ||'%'
+		         </isNotEmpty>
+		         <isNotEmpty property="ITEMNAME" prepend="AND">
+		            RD.ITEM_NAME LIKE '%'|| #ITEMNAME# ||'%'
+		         </isNotEmpty>
+		         <isNotEmpty property="ORDERNAME" prepend="AND">
+		            RD.ORDER_NAME LIKE '%'|| #ORDERNAME# ||'%'
+		         </isNotEmpty>
+		           )
+		      </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, OUT_NO DESC
+    </sql>
+
+    <select id="prod.tool.out.header.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.out.header.list.sql-select" />
+        <include refid="prod.tool.out.header.list.sql-where" />
+    </select>
+
+    <select id="prod.tool.out.header.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.tool.out.header.list.sql-select" />
+            <include refid="prod.tool.out.header.list.sql-where" />
+        ) TOT
+    </select>
+
+    <select id="prod.tool.out.header.first.select" parameterClass="java.util.Map"
+            resultClass="java.util.HashMap">
+            SELECT ORGID, COMPANYID, OUTNO
+              FROM (
+              <include refid="prod.tool.out.header.list.sql-select" />
+              <include refid="prod.tool.out.header.list.sql-where" />
+            )
+            WHERE 1=1
+              AND RN = 1
+     </select>
+
+    <!-- 치공구 반출 Detail 조회 -->
+    <sql id="prod.tool.out.detail.list.sql-select">
+        SELECT ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,OUT_NO AS OUTNO
+					      ,OUT_SEQ AS OUTSEQ
+					      ,ITEM_CODE AS ITEMCODE
+					      ,ORDER_NAME AS ORDERNAME
+					      ,ITEM_NAME AS ITEMNAME
+					      ,ITEM_STANDARD AS ITEMSTANDARD
+					      ,UOM_NAME AS UOMNAME
+					      ,QTY AS QTY
+					      ,REMARKS AS REMARKS
+			  FROM CB_TOOL_OUT_D_V TD
+    </sql>
+
+    <sql id="prod.tool.out.detail.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTNO" prepend="AND">
+          OUT_NO = #OUTNO#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEM_CODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEM_NAME LIKE #ITEMNAME# || '%'
+         </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, OUT_NO, OUT_SEQ
+    </sql>
+
+    <select id="prod.tool.out.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.out.detail.list.sql-select" />
+        <include refid="prod.tool.out.detail.list.sql-where" />
+    </select>
+
+    <select id="prod.tool.out.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.tool.out.detail.list.sql-select" />
+            <include refid="prod.tool.out.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="prod.tool.new.outno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #FIRSTWORD# || TO_CHAR(TO_DATE(#OutDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS OUTNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(OUT_NO), -3)), 0) AS NUM 
+                    FROM CB_TOOL_OUT_H
+                  WHERE 1 = 1
+                     AND ORG_ID =  #searchOrgId#
+                     AND COMPANY_ID  =  #searchCompanyId#
+                     AND OUT_NO LIKE #FIRSTWORD# || TO_CHAR(TO_DATE(#OutDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="prod.tool.out.header.list.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TOOL_OUT_H
+              ( ORG_ID
+               ,COMPANY_ID
+               ,OUT_NO
+               ,OUT_DATE
+               ,CUSTOMER_CODE
+               ,OUT_PERSON
+        ]]>
+        <isNotEmpty property="OutStatus" prepend=",">
+               OUT_STATUS
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+               ,#searchCompanyId#
+               ,#OUTNO#
+               ,TO_DATE(#OutDate#, 'YYYY-MM-DD')
+               ,#CustomerCode#
+               ,#OutPerson#
+        ]]>
+        <isNotEmpty property="OutStatus" prepend=",">
+               #OutStatus#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <insert id="prod.tool.out.detail.list.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TOOL_OUT_D
+              ( ORG_ID
+               ,COMPANY_ID
+               ,OUT_NO
+               ,OUT_SEQ
+               ,ITEM_CODE
+               ,QTY
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+               ,#COMPANYID#
+               ,#OUTNO#
+               ,#OUTSEQ#
+               ,#ITEMCODE#
+               ,$QTY$
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="prod.tool.out.header.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TOOL_OUT_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , OUT_DATE = TO_DATE(#OutDate#, 'YYYY-MM-DD')
+               , CUSTOMER_CODE = #CustomerCode#
+               , OUT_PERSON = #OutPerson#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND OUT_NO = #OutNo#
+        ]]>
+    </update>
+    
+    <delete id="prod.tool.out.header.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TOOL_OUT_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND OUT_NO = #OutNo#
+    </delete>
+    
+    <sql id="prod.tool.out.detail.find.sql-select">
+        SELECT COUNT(TD.OUT_NO) AS COUNT
+          FROM CB_TOOL_OUT_H TH, CB_TOOL_OUT_D TD
+    </sql>
+
+    <sql id="prod.tool.out.detail.find.sql-where">
+         WHERE 1 = 1
+           AND TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.OUT_NO = TD.OUT_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          TD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          TD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTNO" prepend="AND">
+          TD.OUT_NO = #OUTNO#
+        </isNotEmpty>
+        <isNotEmpty property="OUTSEQ" prepend="AND">
+          TD.OUT_SEQ = #OUTSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.tool.out.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.out.detail.find.sql-select" />
+        <include refid="prod.tool.out.detail.find.sql-where" />
+    </select>
+    
+    <update id="prod.tool.out.detail.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TOOL_OUT_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , ITEM_CODE = #ITEMCODE#
+               , QTY = $QTY$
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND OUT_NO = #OUTNO#
+          AND OUT_SEQ = $OUTSEQ$
+        ]]>
+    </update>
+    
+    <delete id="prod.tool.out.detail.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TOOL_OUT_D
+         WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND OUT_NO = #OUTNO#
+          AND OUT_SEQ = $OUTSEQ$
+    </delete>
+    
+    
+    <!-- 치공구 반입 Header 조회 -->
+    <sql id="prod.tool.in.header.list.sql-select">
+         SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, IN_NO DESC) AS RN
+                ,ORG_ID AS ORGID
+                ,COMPANY_ID AS COMPANYID
+                ,IN_NO AS INNO
+                ,IN_DATE AS INDATE
+                ,CUSTOMER_CODE AS CUSTOMERCODE
+                ,CUSTOMER_NAME AS CUSTOMERNAME
+                ,IN_PERSON AS INPERSON
+                ,IN_KR_NAME AS INKRNAME
+                ,ORDER_NAME AS ORDERNAME
+                ,ITEM_NAME AS ITEMNAME
+                ,TOTAL_QTY AS TOTALQTY
+                ,REMARKS AS REMARKS
+        FROM CB_TOOL_IN_H_V TH
+    </sql>
+
+    <sql id="prod.tool.in.header.list.sql-where">
+       WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+           ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+           COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHTO">
+           <isNotEmpty property="SEARCHFROM" prepend="AND">
+              IN_DATE1 BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isNotEmpty>
+           <isEmpty property="SEARCHFROM" prepend="AND">
+              IN_DATE1 = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="INNO" prepend="AND">
+            IN_NO = #INNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            IN_NO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="keyword" prepend="AND">
+            IN_NO LIKE '%' || #keyword# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+             (TH.ORG_ID , TH.COMPANY_ID ,TH.IN_NO ) IN (SELECT RD.ORG_ID , RD.COMPANY_ID , RD.IN_NO
+                                                                          FROM CB_TOOL_IN_D_V RD
+                                                                         WHERE 1=1
+            <isNotEmpty property="ORGID" prepend="AND">
+              RD.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              RD.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+             <isNotEmpty property="ITEMCODE" prepend="AND">
+                RD.ITEM_CODE LIKE '%'|| #ITEMCODE# ||'%'
+             </isNotEmpty>
+             <isNotEmpty property="ITEMNAME" prepend="AND">
+                RD.ITEM_NAME LIKE '%'|| #ITEMNAME# ||'%'
+             </isNotEmpty>
+             <isNotEmpty property="ORDERNAME" prepend="AND">
+                RD.ORDER_NAME LIKE '%'|| #ORDERNAME# ||'%'
+             </isNotEmpty>
+               )
+          </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, IN_NO DESC
+    </sql>
+
+    <select id="prod.tool.in.header.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.in.header.list.sql-select" />
+        <include refid="prod.tool.in.header.list.sql-where" />
+    </select>
+
+    <select id="prod.tool.in.header.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.tool.in.header.list.sql-select" />
+            <include refid="prod.tool.in.header.list.sql-where" />
+        ) TOT
+    </select>
+
+    <select id="prod.tool.header.first.select" parameterClass="java.util.Map"
+            resultClass="java.util.HashMap">
+            SELECT ORGID, COMPANYID, INNO
+              FROM (
+              <include refid="prod.tool.in.header.list.sql-select" />
+              <include refid="prod.tool.in.header.list.sql-where" />
+            )
+            WHERE 1=1
+              AND RN = 1
+     </select>
+    
+    <!-- 치공구 반입 Detail 조회 -->
+    <sql id="prod.tool.in.detail.list.sql-select">
+        SELECT ORG_ID AS ORGID
+                ,COMPANY_ID AS COMPANYID
+                ,IN_NO AS INNO
+                ,IN_SEQ AS INSEQ
+                ,ITEM_CODE AS ITEMCODE
+                ,ORDER_NAME AS ORDERNAME
+                ,ITEM_NAME AS ITEMNAME
+                ,ITEM_STANDARD AS ITEMSTANDARD
+                ,UOM_NAME AS UOMNAME
+              ,OUT_QTY AS OUTQTY
+                ,QTY AS QTY
+              ,TOOL_STATUS AS TOOLSTATUS
+              ,TOOL_STATUS_NAME AS TOOLSTATUSNAME
+              ,OUT_NO AS OUTNO
+              ,OUT_SEQ AS OUTSEQ
+                ,REMARKS AS REMARKS
+        FROM CB_TOOL_IN_D_V TD
+    </sql>
+
+    <sql id="prod.tool.in.detail.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="INNO" prepend="AND">
+          IN_NO = #INNO#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEM_CODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEM_NAME LIKE #ITEMNAME# || '%'
+         </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, IN_NO, IN_SEQ
+    </sql>
+
+    <select id="prod.tool.in.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.in.detail.list.sql-select" />
+        <include refid="prod.tool.in.detail.list.sql-where" />
+    </select>
+
+    <select id="prod.tool.in.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.tool.in.detail.list.sql-select" />
+            <include refid="prod.tool.in.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="prod.tool.new.inno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #FIRSTWORD# || TO_CHAR(TO_DATE(#InDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS INNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(IN_NO), -3)), 0) AS NUM 
+                    FROM CB_TOOL_IN_H
+                  WHERE 1 = 1
+                     AND ORG_ID =  #searchOrgId#
+                     AND COMPANY_ID  =  #searchCompanyId#
+                     AND IN_NO LIKE #FIRSTWORD# || TO_CHAR(TO_DATE(#InDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="prod.tool.in.header.list.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TOOL_IN_H
+              ( ORG_ID
+               ,COMPANY_ID
+               ,IN_NO
+               ,IN_DATE
+               ,CUSTOMER_CODE
+               ,IN_PERSON
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+               ,#searchCompanyId#
+               ,#INNO#
+               ,TO_DATE(#InDate#, 'YYYY-MM-DD')
+               ,#CustomerCode#
+               ,#InPerson#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <insert id="prod.tool.in.detail.list.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TOOL_IN_D
+              ( ORG_ID
+               ,COMPANY_ID
+               ,IN_NO
+               ,IN_SEQ
+               ,ITEM_CODE
+               ,QTY
+         ,OUT_NO
+         ,OUT_SEQ
+        ]]>
+        <isNotEmpty property="TOOLSTATUS" prepend=",">
+               TOOL_STATUS
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+               ,#COMPANYID#
+               ,#INNO#
+               ,#INSEQ#
+               ,#ITEMCODE#
+               ,$QTY$
+         ,#OUTNO#
+         ,#OUTSEQ#
+        ]]>
+        <isNotEmpty property="TOOLSTATUS" prepend=",">
+              #TOOLSTATUS#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="prod.tool.in.header.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TOOL_IN_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , IN_DATE = TO_DATE(#InDate#, 'YYYY-MM-DD')
+               , CUSTOMER_CODE = #CustomerCode#
+               , IN_PERSON = #InPerson#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND IN_NO = #InNo#
+        ]]>
+    </update>
+    
+    <delete id="prod.tool.in.header.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TOOL_IN_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND IN_NO = #InNo#
+    </delete>
+    
+    <sql id="prod.tool.in.detail.find.sql-select">
+        SELECT COUNT(TD.IN_NO) AS COUNT
+          FROM CB_TOOL_IN_H TH, CB_TOOL_IN_D TD
+    </sql>
+
+    <sql id="prod.tool.in.detail.find.sql-where">
+         WHERE 1 = 1
+           AND TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.IN_NO = TD.IN_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          TD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          TD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="INNO" prepend="AND">
+          TD.IN_NO = #INNO#
+        </isNotEmpty>
+        <isNotEmpty property="INSEQ" prepend="AND">
+          TD.IN_SEQ = #INSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.tool.in.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.in.detail.find.sql-select" />
+        <include refid="prod.tool.in.detail.find.sql-where" />
+    </select>
+    
+    <update id="prod.tool.in.detail.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TOOL_IN_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , ITEM_CODE = #ITEMCODE#
+               , QTY = $QTY$
+         , TOOL_STATUS = #TOOLSTATUS#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND IN_NO = #INNO#
+          AND IN_SEQ = $INSEQ$
+        ]]>
+    </update>
+    
+    <delete id="prod.tool.in.detail.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TOOL_IN_D
+         WHERE 1=1
+          AND ORG_ID =  #ORGID#
+          AND COMPANY_ID  =  #COMPANYID#
+          AND IN_NO = #INNO#
+          AND IN_SEQ = $INSEQ$
+    </delete>
+    
+    
+     <!-- 치공구 반출/회수 현황 조회 -->
+    <sql id="prod.tool.in.out.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, OUT_DATE1, OUT_NO, OUT_SEQ) AS RN
+				      ,ORG_ID AS ORGID
+				      ,COMPANY_ID AS COMPANYID
+				      ,OUT_NO AS OUTNO
+				      ,OUT_SEQ AS OUTSEQ
+				      ,OUT_DATE AS OUTDATE
+				      ,OUT_CUSTOMER_CODE AS OUTCUSTOMERCODE
+				      ,OUT_CUSTOMER_NAME AS OUTCUSTOMERNAME
+				      ,OUT_PERSON AS OUTPERSON
+				      ,OUT_KR_NAME AS OUTKRNAME
+				      ,OUT_STATUS AS OUTSTATUS
+				      ,OUT_STATUS_NAME AS OUTSTATUSNAME
+				      ,ITEM_CODE AS ITEMCODE
+				      ,ORDER_NAME AS ORDERNAME
+				      ,ITEM_NAME AS ITEMNAME
+				      ,ITEM_STANDARD AS ITEMSTANDARD
+				      ,UOM_NAME AS UOMNAME
+				      ,OUT_QTY AS OUTQTY
+				      ,OUT_REMARKS AS OUTREMARKS
+              ,TOOL_STATUS AS TOOLSTATUS
+              ,TOOL_STATUS_NAME AS TOOLSTATUSNAME
+				      ,IN_DATE AS INDATE
+				      ,IN_QTY AS INQTY
+				      ,IN_REMARKS AS INREMARKS
+		  FROM CB_TOOL_IN_OUT_V
+    </sql>
+
+    <sql id="prod.tool.in.out.list.sql-where">
+       WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+           ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+           COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHDATE" prepend="AND">
+              TO_DATE(#SEARCHDATE#, 'YYYY-MM-DD') BETWEEN OUT_DATE1 AND NVL(IN_DATE1, TO_DATE('4999-12-31', 'YYYY-MM-DD'))
+         </isNotEmpty>
+         <isNotEmpty property="TOOLSTATUS" prepend="AND">
+            TOOL_STATUS = #TOOLSTATUS#
+         </isNotEmpty>
+				 <isNotEmpty property="OUTCUSTOMERCODE" prepend="AND">
+				    OUT_CUSTOMER_CODE = #OUTCUSTOMERCODE#
+				 </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+        </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, OUT_DATE1, OUT_NO, OUT_SEQ
+    </sql>
+
+    <select id="prod.tool.in.out.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.tool.in.out.list.sql-select" />
+        <include refid="prod.tool.in.out.list.sql-where" />
+    </select>
+
+    <select id="prod.tool.in.out.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.tool.in.out.list.sql-select" />
+            <include refid="prod.tool.in.out.list.sql-where" />
+        ) TOT
+    </select>
+    
+</sqlMap>

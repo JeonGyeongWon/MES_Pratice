@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StockAmountReport" language="groovy" pageWidth="1754" pageHeight="1240" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1724" leftMargin="15" rightMargin="15" topMargin="30" bottomMargin="25" isSummaryWithPageHeaderAndFooter="true" isFloatColumnFooter="true" uuid="8c98aff1-eea1-42f9-8a1a-f1f6b9464139">
+	<property name="ireport.zoom" value="0.4132231404958677"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHDATE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBDIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata1" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata2" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT $P{ORGID} AS ORGID
+      ,$P{COMPANYID} AS COMPANYID
+      ,TO_CHAR(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'YYYY') AS SEARCHYEAR
+  FROM DUAL]]>
+	</queryString>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.lang.String"/>
+	<field name="SEARCHYEAR" class="java.lang.String"/>
+	<summary>
+		<band height="1185">
+			<subreport>
+				<reportElement x="0" y="0" width="1724" height="1005" uuid="0d35fb57-3a58-4dca-86c9-fcf21cb5a166"/>
+				<subreportParameter name="SEARCHDATE">
+					<subreportParameterExpression><![CDATA[$P{SEARCHDATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$P{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$P{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata1}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "StockAmountReport_Sub1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="1025" width="1724" height="160" uuid="e1c3134a-10d5-477c-a922-9ddfde6422ac"/>
+				<subreportParameter name="SEARCHDATE">
+					<subreportParameterExpression><![CDATA[$P{SEARCHDATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$P{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$P{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata2}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "StockAmountReport_Sub2.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</summary>
+</jasperReport>

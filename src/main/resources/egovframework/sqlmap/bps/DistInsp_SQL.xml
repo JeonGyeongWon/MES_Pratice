@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dist">
+
+    <!-- Dummy Lov 시작 -->
+    <sql id="dist.insp.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM,
+                  TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="dist.insp.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="dist.insp.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.insp.dummy.month.sql-select" />
+        <include refid="dist.insp.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+
+    <sql id="dist.insp.list.sql-select">
+        SELECT RANK() OVER(ORDER BY INSPECTIONPLANNO DESC) AS RN
+                ,ORGID
+								,COMPANYID
+								,INSPECTIONPLANNO
+								,INSPECTIONDATE
+								,CHECKQTY
+								,CHECKYN
+								,CHECKYNNAME
+								,PASSQTY
+								,FAILQTY
+								,FAILTYPE
+								,NONCHECKQTY
+								,REMARKS
+								,CUSTOMERLOT
+								,TRANSNO
+								,TRANSSEQ
+								,TRANSNOSEQ
+								,TRANSDATE
+								,CUSTOMERCODE
+								,CUSTOMERNAME
+								,TAXDIV
+								,TRANSDIV
+								,TRANSDIVNAME
+								,INSPYN
+								,LOTNO
+								,LOTYN
+								,TRADEDATE
+								,TRANSPERSON
+								,ITEMCODE
+								,ITEMNAME
+								,ORDERNAME
+								,UOM
+								,UOMNAME
+								,MODEL
+								,MODELNAME
+								,TRANSQTY
+								,RETURNQTY
+                ,PERSON_ID AS PERSONID
+                ,KR_NAME AS KRNAME
+                ,ITEMSTANDARD
+                ,MATERIALTYPE
+        FROM CB_INSP_H_V CIH
+    </sql>
+
+    <sql id="dist.insp.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          CIH.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CIH.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="INSPTO">
+             <isNotEmpty property="INSPFROM" prepend="AND">
+                TO_DATE(INSPECTIONDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#INSPFROM#,'YYYY-MM-DD')  AND TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="INSPFROM" prepend="AND">
+                TO_DATE(INSPECTIONDATE,'YYYY-MM-DD')  = TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="TRANSTO">
+             <isNotEmpty property="TRANSFROM" prepend="AND">
+                TO_DATE(TRANSDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#TRANSFROM#,'YYYY-MM-DD')  AND TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="TRANSFROM" prepend="AND">
+                TO_DATE(TRANSDATE,'YYYY-MM-DD') = TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="TRANSNO" prepend="AND">
+            TRANSNO = #TRANSNO#
+         </isNotEmpty>
+         <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+            INSPECTIONPLANNO = #INSPECTIONPLANNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            INSPECTIONPLANNO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CIH.CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="TRANSDIV" prepend="AND">
+            TRANSDIV = #TRANSDIV#
+         </isNotEmpty>
+         <isNotEmpty property="CHECKYN" prepend="AND">
+            CHECKYN = #CHECKYN#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEMCODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEMNAME LIKE #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            ORDERNAME LIKE #ORDERNAME# || '%'
+         </isNotEmpty>
+    </sql>
+
+    <select id="dist.insp.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.insp.list.sql-select" />
+        <include refid="dist.insp.list.sql-where" />
+    </select>
+
+    <select id="dist.insp.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.insp.list.sql-select" />
+            <include refid="dist.insp.list.sql-where" />
+        ) TOT
+    </select>
+
+    <sql id="dist.insp.detaillist.sql-select">
+        SELECT RANK() OVER(ORDER BY INSPECTIONPLANNO ,INSPECTIONSEQ ) AS RN
+                ,ORGID
+								,COMPANYID
+								,INSPECTIONPLANNO
+								,INSPECTIONSEQ
+								,CHECKSEQ
+								,ITEMCODE
+								,ITEMNAME
+								,ORDERNAME
+                ,CHECKBIG
+                ,CHECKBIGNAME
+                ,CHECKMIDDLE
+                ,CHECKMIDDLENAME
+                ,CHECKSMALL
+                ,CHECKSMALLNAME
+                ,CHECKUOM
+                ,UOMNAME
+                ,UOM
+                ,CHECKSTANDARD
+                ,STANDARDVALUE
+                ,MAXVALUE
+                ,MINVALUE
+                ,CHECKQTY
+								,CHECKRESULT1
+								,CHECKRESULT2
+								,CHECKRESULT3
+								,CHECKRESULT4
+								,CHECKRESULT5
+								,CHECKYN
+								,CHECKYNNAME
+								,REMARKS
+								,CHECKMANAGE
+								,PERSONID
+								,KRNAME
+								,MANAGEEMPLOYEE
+								,MANAGEEMPLOYEENAME
+          FROM CB_INSP_D_V CID
+    </sql>
+
+    <sql id="dist.insp.detaillist.sql-where">
+         WHERE INSPECTIONPLANNO = #INSPECTIONPLANNO#
+       <isNotEmpty property="ORGID" prepend="AND">
+          CID.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CID.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.insp.detaillist.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.insp.detaillist.sql-select" />
+        <include refid="dist.insp.detaillist.sql-where" />
+    </select>
+
+    <select id="dist.insp.detaillist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.insp.detaillist.sql-select" />
+            <include refid="dist.insp.detaillist.sql-where" />
+        ) TOT
+    </select>
+
+
+    <select id="dist.new.inspno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'I' || TO_CHAR(TO_DATE(#InspDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS INSPECTIONPLANNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(INSPECTION_PLAN_NO), -3)), 0)  AS NUM 
+                  FROM CB_INSPECTION_H
+                 WHERE 1 = 1
+                   AND INSPECTION_PLAN_NO LIKE 'I' || TO_CHAR(TO_DATE(#InspDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+
+
+   <sql id="dist.insp.detail.find.sql-select">
+        SELECT COUNT(PD.INSPECTION_PLAN_NO) AS COUNT
+          FROM CB_INSPECTION_H PH, CB_INSPECTION_D PD
+    </sql>
+
+    <sql id="dist.insp.detail.find.sql-where">
+         WHERE 1 = 1
+           AND PH.INSPECTION_PLAN_NO = PD.INSPECTION_PLAN_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+          PD.INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONSEQ" prepend="AND">
+          PD.INSPECTION_SEQ = #INSPECTIONSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.insp.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="dist.insp.detail.find.sql-select" />
+        <include refid="dist.insp.detail.find.sql-where" />
+    </select>
+     
+<!--     입하등록 상세 화면에서 마스터 정보 insert -->
+    <insert id="dist.insp.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_INSPECTION_H
+              (INSPECTION_PLAN_NO
+               ,INSPECTION_DATE
+               ,TRANS_NO
+               ,TRANS_SEQ
+               ,CHECK_QTY
+               ,PASS_QTY
+               ,FAIL_QTY
+               ,CHECK_YN
+        ]]>
+        <isNotEmpty property="CustomerLot" prepend=",">
+               CUSTOMER_LOT
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#INSPECTIONPLANNO#
+               ,TO_DATE(#InspDate#, 'YYYY-MM-DD')
+               ,#TransNo#
+               ,#TransSeq#
+               ,#CheckQty#
+               ,#PassQty#
+               ,#FailQty#
+               ,#CheckYn#
+        ]]>
+        <isNotEmpty property="CustomerLot" prepend=",">
+              #CustomerLot#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+
+<!-- 입하등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="dist.insp.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_INSPECTION_D
+              (INSPECTION_PLAN_NO
+               ,INSPECTION_SEQ
+               ,CHECK_SEQ
+               ,ITEM_CODE
+               ,CHECK_RESULT1
+               ,CHECK_RESULT2
+               ,CHECK_RESULT3
+               ,CHECK_RESULT4
+               ,CHECK_RESULT5
+               ,CHECK_YN
+               ,ORG_ID
+               ,COMPANY_ID
+               ,PERSON_ID
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#INSPECTIONPLANNO#
+               ,$INSPECTIONSEQ$
+               ,#CHECKSEQ#
+               ,#ITEMCODE#
+               ,#CHECKRESULT1#
+               ,#CHECKRESULT2#
+               ,#CHECKRESULT3#
+               ,#CHECKRESULT4#
+               ,#CHECKRESULT5#
+               ,#CHECKYN#
+               ,#ORGID#
+               ,#COMPANYID#
+               ,#PERSONID#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+
+ 
+    <update id="dist.insp.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_INSPECTION_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , INSPECTION_DATE = TO_DATE(#InspDate#, 'YYYY-MM-DD')
+               , TRANS_NO = #TransNo#
+               , TRANS_SEQ = #TransSeq#
+               , CHECK_QTY = #CheckQty#
+               , PASS_QTY = #PassQty#
+               , FAIL_QTY = #FailQty#
+               , CHECK_YN = #CheckYn#
+        ]]>
+        <isNotEmpty property="CustomerLot" prepend=",">
+            CUSTOMER_LOT = #CustomerLot#
+        </isNotEmpty>
+        <isEmpty property="CustomerLot" prepend=",">
+            CUSTOMER_LOT = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #InspNo#
+        ]]>
+    </update>
+
+ 
+   <update id="dist.insp.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_INSPECTION_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , CHECK_SEQ = #CHECKSEQ#
+               , ITEM_CODE = #ITEMCODE#
+               , CHECK_RESULT1 = #CHECKRESULT1#
+               , CHECK_RESULT2 = #CHECKRESULT2#
+               , CHECK_RESULT3 = #CHECKRESULT3#
+               , CHECK_RESULT4 = #CHECKRESULT4#
+               , CHECK_RESULT5 = #CHECKRESULT5#
+               , CHECK_YN = #CHECKYN#
+               , PERSON_ID = #PERSONID#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+          AND INSPECTION_SEQ = $INSPECTIONSEQ$
+        ]]>
+    </update>       
+
+   <delete id="dist.insp.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_INSPECTION_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #InspNo#
+    </delete>
+    
+    <delete id="dist.insp.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_INSPECTION_D
+         WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+          AND INSPECTION_SEQ = $INSPECTIONSEQ$
+    </delete>
+    
+    <delete id="dist.insp.detail.all.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_INSPECTION_D
+         WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId#
+          AND INSPECTION_PLAN_NO = #InspNo#
+    </delete>
+
+   <!-- 2016.12.22 검사번호 LIST Lov -->
+    <sql id="dist.insp.inspno.list.lov.sql-select">
+        SELECT CIH.INSPECTION_PLAN_NO AS INSPECTIONPLANNO,
+               TO_CHAR(CIH.INSPECTION_DATE, 'YYYY-MM-DD') AS INSPECTIONDATE,
+               CHECK_YN AS CHECKYN
+               ,(SELECT SC.SMALL_NAME
+				          FROM CB_SMALL_CODE SC
+				         WHERE 1 = 1
+				           AND SC.ORG_ID = CIH.ORG_ID
+				           AND SC.COMPANY_ID = CIH.COMPANY_ID
+				           AND SC.BIG_CODE = 'QM'
+				           AND SC.MIDDLE_CODE = 'CHECK_YN'
+				           AND SC.SMALL_CODE =CIH.CHECK_YN
+				           ) AS CHECKYNNAME
+          FROM CB_INSPECTION_H CIH
+    </sql>
+
+    <sql id="dist.insp.inspno.list.lov.sql-where">
+         WHERE 1 = 1
+             <isNotEmpty property="ORGID" prepend="AND">
+                    CIH.ORG_ID = #ORGID#
+             </isNotEmpty>
+             <isNotEmpty property="COMPANYID" prepend="AND">
+                    CIH.COMPANY_ID = #COMPANYID#
+             </isNotEmpty>
+             <isNotEmpty property="INSPTO">
+             <isNotEmpty property="INSPFROM" prepend="AND">
+                INSPECTION_DATE BETWEEN TO_DATE(#INSPFROM#,'YYYY-MM-DD') AND TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="INSPFROM" prepend="AND">
+                INSPECTION_DATE = TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="INSPECTIONPLANNO" prepend="AND">
+            CIH.INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+        </isNotEmpty>
+        <isNotEmpty property="keyword" prepend="AND">
+            <isNotEqual property="keyword" compareValue="%">
+                CIH.INSPECTION_PLAN_NO LIKE  #keyword# || '%'
+            </isNotEqual>
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.insp.inspno.list.lov.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+            <include refid="dist.insp.inspno.list.lov.sql-select" />
+            <include refid="dist.insp.inspno.list.lov.sql-where" />
+            ORDER BY  CIH.INSPECTION_PLAN_NO, CIH.INSPECTION_DATE
+    </select>
+
+    <select id="dist.insp.inspno.list.lov.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.insp.inspno.list.lov.sql-select" />
+            <include refid="dist.insp.inspno.list.lov.sql-where" />
+            ORDER BY    CIH.INSPECTION_PLAN_NO, CIH.INSPECTION_DATE
+        ) TOT
+    </select>
+    
+  <!-- 2016.12.23 입고검사 상세화면에서 입고검사 LIST // POPUP LIST  시작-->
+    <sql id="dist.insp.inspno.list.pop.sql-select">
+        SELECT  RANK() OVER(ORDER BY  IM.TRANSNO,TRANSSEQ
+                                 ) AS RN
+				         ,TRANSNO
+				         ,TRANSSEQ
+                 ,TRANSDATE
+                 ,CUSTOMERCODE
+                 ,CUSTOMERNAME
+                 ,TRADEDATE
+                 ,ITEMCODE
+                 ,ITEMNAME
+                 ,ORDERNAME
+                 ,TRANSQTY
+                 ,INSPQTY AS CONFIRMQTY
+                 ,DUEQTY AS CHECKQTY
+                 ,INSPYN
+                 ,LOTYN
+                 ,TRANSDIV
+                 ,TRANSDIVNAME
+                 ,UOM
+                 ,UOMNAME
+                 ,ORGID
+                 ,COMPANYID
+                 ,MODEL
+                ,MODELNAME
+                ,CUSTOMERLOT
+                ,ITEMSTANDARD
+                ,MATERIALTYPE
+          FROM CB_TRANS_DETAIL_V IM
+    </sql>
+    
+    <sql id="dist.insp.inspno.list.pop.sql-where">
+         WHERE 1 = 1
+            AND TRANSDIV = 'A'
+            AND INSPYN = 'Y'
+<!--             AND TRANSFINISHYN = 'Y' -->
+            AND DUEQTY > 0
+            AND TRANSQTY - INSPQTY > 0
+        <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+             <isNotEmpty property="TRANSTO">
+             <isNotEmpty property="TRANSFROM" prepend="AND">
+                TO_DATE(TRANSDATE,'YYYY-MM-DD') BETWEEN TO_DATE(#TRANSFROM#,'YYYY-MM-DD') AND TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="TRANSFROM" prepend="AND">
+                TO_DATE(TRANSDATE,'YYYY-MM-DD') = TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="TRANSNO" prepend="AND">
+            TRANSNO LIKE '%' || #TRANSNO# || '%'
+        </isNotEmpty>
+       <isNotEmpty property="ITEMTYPE" prepend="AND">
+            IM.ITEMTYPE = #ITEMTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEMCODE LIKE  '%' || #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="MODELNAME" prepend="AND">
+            IM.MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+            IM.ITEMSTANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+        </isNotEmpty>
+            ORDER BY TRANSNO,TRANSSEQ
+    </sql>
+
+    <select id="dist.insp.inspno.list.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="dist.insp.inspno.list.pop.sql-select" />
+            <include refid="dist.insp.inspno.list.pop.sql-where" />
+    </select>
+    
+    <select id="dist.insp.inspno.list.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.insp.inspno.list.pop.sql-select" />
+            <include refid="dist.insp.inspno.list.pop.sql-where" />
+        ) TOT
+    </select>
+  <!-- 2016.12.23 입고검사 상세화면에서 입고검사 LIST // POPUP LIST  긑-->
+  
+  <!-- 2016.12.23 입고검사 상세화면에서 아이템별 품질 기준 마스터 LIST // POPUP LIST  시작-->
+    <sql id="dist.insp.inspno.list.popcheck.sql-select">
+        SELECT  RANK() OVER(ORDER BY  CHECK_SEQ
+                                 ) AS RN
+                 ,CHECK_SEQ AS CHECKSEQ
+                 ,ITEM_CODE AS ITEMCODE
+                 ,CHECK_BIG
+                 ,CRC.CHECK_BIG AS CHECKBIG
+					       ,(SELECT BIG_NAME
+					         FROM CB_CHECK_BIG_CODE CCB
+					        WHERE 1 = 1
+					          AND CCB.ORG_ID = CRC.ORG_ID
+					          AND CCB.COMPANY_ID = CRC.COMPANY_ID
+					          AND CCB.BIG_CODE = CRC.CHECK_BIG
+					       ) AS CHECKBIGNAME
+					       ,CRC.CHECK_MIDDLE AS CHECKMIDDLE
+					       ,(SELECT MIDDLE_NAME
+					         FROM CB_CHECK_MIDDLE_CODE CCM
+					        WHERE 1 = 1
+					          AND CCM.ORG_ID = CRC.ORG_ID
+					          AND CCM.COMPANY_ID = CRC.COMPANY_ID
+					          AND CCM.BIG_CODE = CRC.CHECK_BIG
+					          AND CCM.MIDDLE_CODE = CRC.CHECK_MIDDLE
+					       ) AS CHECKMIDDLENAME
+					       ,CRC.CHECK_SMALL AS CHECKSMALL
+					       ,(SELECT SMALL_NAME
+					         FROM CB_CHECK_SMALL_CODE CCS
+					        WHERE 1 = 1
+					          AND CCS.ORG_ID = CRC.ORG_ID
+					          AND CCS.COMPANY_ID = CRC.COMPANY_ID
+					          AND CCS.BIG_CODE = CRC.CHECK_BIG
+					          AND CCS.MIDDLE_CODE = CRC.CHECK_MIDDLE
+					          AND CCS.SMALL_CODE = CRC.CHECK_SMALL
+					       ) AS CHECKSMALLNAME
+					       ,CRC.CHECK_UOM AS CHECKUOM
+					       ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE 1 = 1
+					           AND SC.ORG_ID = CRC.ORG_ID
+					           AND SC.COMPANY_ID = CRC.COMPANY_ID
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'UOM'
+					           AND SC.SMALL_CODE =CRC.CHECK_UOM
+					           ) AS CHECKUOMNAME
+					       ,CRC.STANDARD_VALUE AS STANDARDVALUE
+					       ,CRC.MAX_VALUE AS MAXVALUE
+					       ,CRC.MIN_VALUE AS MINVALUE
+					       ,CRC.CHECK_QTY AS CHECKQTY
+					       ,CRC.CHECK_STANDARD AS CHECKSTANDARD
+					       ,TO_CHAR(CRC.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+					       ,TO_CHAR(CRC.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+          FROM CB_CHECK_MASTER CRC
+    </sql>
+    
+    <sql id="dist.insp.inspno.list.popcheck.sql-where">
+         WHERE 1 = 1
+            AND CHECK_BIG = 'I'
+            AND SYSDATE BETWEEN NVL(CRC.EFFECTIVE_START_DATE,TO_DATE('2016-01-01','YYYY-MM-DD')) AND NVL(CRC.EFFECTIVE_END_DATE,TO_DATE('4999-12-31','YYYY-MM-DD'))
+        <isNotEmpty property="ORGID" prepend="AND">
+            CRC.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            CRC.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            CRC.ITEM_CODE =   #ITEMCODE#
+        </isNotEmpty>
+    </sql>
+
+    <select id="dist.insp.inspno.list.popcheck.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="dist.insp.inspno.list.popcheck.sql-select" />
+            <include refid="dist.insp.inspno.list.popcheck.sql-where" />
+            ORDER BY CHECK_SEQ
+        <!-- <isNotEmpty property="GROUPBY">
+            ) A
+           GROUP BY A.ITEMNAME 
+        </isNotEmpty> -->
+    </select>
+    
+    <select id="dist.insp.inspno.list.popcheck.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="dist.insp.inspno.list.popcheck.sql-select" />
+            <include refid="dist.insp.inspno.list.popcheck.sql-where" />
+            ORDER BY CHECK_SEQ
+        ) TOT
+    </select>
+  <!-- 2016.12.23 입고검사 상세화면에서 아이템별 품질 기준 마스터 LIST // POPUP LIST  긑-->
+
+</sqlMap>

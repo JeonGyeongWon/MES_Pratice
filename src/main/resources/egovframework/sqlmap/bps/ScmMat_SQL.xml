@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="scmmat">
+
+	  <sql id="scm.mat.dummy.month.sql-select">
+      SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS DATEFROM
+               ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+               ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+               ,TO_CHAR(SYSDATE,'YYYY-MM') AS DATEMONTH
+        FROM DUAL
+	  </sql>
+	
+	  <sql id="scm.mat.dummy.month.sql-where">
+	       WHERE 1 = 1
+	  </sql>
+	
+	  <select id="scm.mat.dummy.month.select" parameterClass="java.util.Map"
+	      resultClass="java.util.HashMap">
+	      <include refid="scm.mat.dummy.month.sql-select" />
+	      <include refid="scm.mat.dummy.month.sql-where" />
+	  </select>
+	  
+	  <!-- 자재입고예정일 등록 시작 -->
+    <sql id="scm.search.customid.sql-select">
+			SELECT USER_ID AS VALUE
+			      ,USER_NM AS LABEL
+			  FROM (SELECT ROWNUM RNUM, ALL_LIST.*
+			          FROM (SELECT A.USER_ID,
+			                       A.USER_NM,
+			                       A.GROUP_ID,
+			                       A.MBER_TY_CODE,
+			                       (SELECT CODE_NM
+			                          FROM LETTCCMMNDETAILCODE
+			                         WHERE CODE_ID = 'COM012'
+			                           AND CODE = A.MBER_TY_CODE
+			                           AND USE_AT = 'Y') AS MBER_TY_NM,
+			                       B.AUTHOR_CODE,
+			                       (CASE
+			                         WHEN B.SCRTY_DTRMN_TRGET_ID IS NULL THEN
+			                          'N'
+			                         ELSE
+			                          'Y'
+			                       END) AS REG_YN,
+			                       ESNTL_ID
+			                  FROM (SELECT MBER_ID USER_ID,
+			                               MBER_NM USER_NM,
+			                               GROUP_ID,
+			                               'USR01' MBER_TY_CODE,
+			                               ESNTL_ID
+			                          FROM LETTNGNRLMBER
+			                        UNION ALL
+			                        SELECT ENTRPRS_MBER_ID USER_ID,
+			                               CMPNY_NM USER_NM,
+			                               GROUP_ID,
+			                               'USR02' MBER_TY_CODE,
+			                               ESNTL_ID
+			                          FROM LETTNENTRPRSMBER
+			                        UNION ALL
+			                        SELECT EMPLYR_ID USER_ID,
+			                               USER_NM USER_NM,
+			                               GROUP_ID,
+			                               'USR03' MBER_TY_CODE,
+			                               ESNTL_ID
+			                          FROM LETTNEMPLYRINFO) A
+			                  LEFT OUTER JOIN LETTNEMPLYRSCRTYESTBS B
+			                    ON A.ESNTL_ID = B.SCRTY_DTRMN_TRGET_ID
+			                 WHERE 1 = 1) ALL_LIST)
+    </sql>
+  
+    <sql id="scm.search.customid.sql-where">
+       WHERE 1=1
+         AND AUTHOR_CODE IN ('ROLE_SCM_R', 'ROLE_SCM', 'ROLE_SCM_A')
+         AND USER_ID = #ROLEUSER#
+         AND ROWNUM = 1
+    </sql>
+  
+    <select id="scm.search.customid.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.search.customid.sql-select" />
+        <include refid="scm.search.customid.sql-where" />
+    </select>
+</sqlMap>

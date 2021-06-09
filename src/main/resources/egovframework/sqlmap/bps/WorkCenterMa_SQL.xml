@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="workcenter">
+    <parameterMap class="java.util.Map" id="procWorkcenterParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="WORKCENTERCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="EQSETUP" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="EQSETUPOLD" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="workcenter.manage.call.Procedure" parameterClass="java.util.Map"  parameterMap="procWorkcenterParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_WORK_CENTER_PKG.CB_WORK_CENTER_MANAGE( ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+  <sql id="workcenter.list.sql-select">
+  <![CDATA[
+  SELECT RANK() OVER(ORDER BY WC.SEQ) AS RN
+		      ,WC.ORG_ID AS ORGID
+		      ,WC.COMPANY_ID AS COMPANYID
+		      ,WC.WORK_CENTER_CODE AS WORKCENTERCODE
+		      ,WC.WORK_CENTER_NAME AS WORKCENTERNAME
+		      ,WC.USE_YN AS USEYN
+		      ,WC.MODEL_STANDARD AS MODELSTANDARD
+		      ,WC.MAKE AS MAKE
+		      ,WC.MAKE_NO AS MAKENO
+		      ,TO_CHAR(WC.MAKE_DATE, 'YYYY-MM-DD') AS MAKEDATE
+		      ,TO_CHAR(WC.BUY_DATE, 'YYYY-MM-DD') AS BUYDATE
+		      ,WC.BUY_AMOUNT AS BUYAMOUNT
+		      ,WC.DEPT_CODE AS DEPTCODE
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(WC.ORG_ID
+		                                                  ,WC.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'DEPT_CODE'
+		                                                  ,WC.DEPT_CODE
+		                                                  ,'LABEL') AS DEPTNAME
+		      ,WC.WORK_DEPT AS WORKDEPT
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(WC.ORG_ID
+		                                                  ,WC.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'WORK_DEPT'
+		                                                  ,WC.WORK_DEPT
+		                                                  ,'LABEL') AS WORKDEPTNAME
+		      ,WC.ROUTING_CODE AS ROUTINGCODE
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(WC.ORG_ID
+		                                                  ,WC.COMPANY_ID
+		                                                  ,'MFG'
+		                                                  ,'ROUTING_GROUP'
+		                                                  ,WC.ROUTING_CODE
+		                                                  ,'LABEL') AS ROUTINGNAME
+		      ,WC.EQ_SETUP AS EQSETUP
+          ,WC.EQ_SETUP AS EQSETUPOLD
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(WC.ORG_ID
+		                                                  ,WC.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'EQ_SETUP'
+		                                                  ,WC.EQ_SETUP
+		                                                  ,'LABEL') AS EQSETUPNAME
+		      ,WC.SEQ AS SEQ
+		      ,WC.EXCEPT_YN AS EXCEPTYN
+		      ,WC.WORK_CENTER_CODE_IF AS WORKCENTERCODEIF
+		      ,TO_CHAR(WC.GRADE_CHECK_DATE, 'YYYY-MM-DD') AS GRADECHECKDATE
+		      ,WC.MANAGE_GRADE AS MANAGEGRADE
+		      ,TO_CHAR(WC.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+		      ,TO_CHAR(WC.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+  FROM CB_WORK_CENTER WC
+  ]]>
+  </sql>
+
+  <sql id="workcenter.list.sql-where">
+    WHERE 1=1
+    <isNotEmpty property="ORGID" prepend="AND">
+        ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        WC.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERNAME" prepend="AND">
+        WC.WORK_CENTER_NAME LIKE '%' || #WORKCENTERNAME# || '%'
+    </isNotEmpty>
+    <isNotEmpty property="keyword" prepend="AND">
+        WC.WORK_CENTER_NAME LIKE '%' || #keyword# || '%'
+    </isNotEmpty>
+  </sql>
+
+  <select id="workcenter.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+     <include refid="workcenter.list.sql-select" />
+     <include refid="workcenter.list.sql-where" />
+  </select>
+  
+  <select id="workcenter.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*)  FROM (
+      <include refid="workcenter.list.sql-select" />
+      <include refid="workcenter.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <insert id="workcenter.list.insert" parameterClass="java.util.Map">
+  <![CDATA[
+    INSERT INTO CB_WORK_CENTER (
+		   ORG_ID
+		  ,COMPANY_ID
+		  ,WORK_CENTER_CODE
+		  ,WORK_CENTER_NAME
+		  ,USE_YN
+		  ,MODEL_STANDARD
+		  ,MAKE
+		  ,MAKE_NO
+		  ,MAKE_DATE
+		  ,BUY_DATE
+		  ,BUY_AMOUNT
+		  ,DEPT_CODE
+		  ,WORK_DEPT
+		  ,ROUTING_CODE
+		  ,EQ_SETUP
+		  ,SEQ
+		  ,EXCEPT_YN
+		  ,WORK_CENTER_CODE_IF
+		  ,GRADE_CHECK_DATE
+		  ,MANAGE_GRADE
+		  ,EFFECTIVE_START_DATE
+		  ,EFFECTIVE_END_DATE
+		  ,CREATED_BY
+		  ,CREATION_DATE
+		  ,LAST_UPDATED_BY
+		  ,LAST_UPDATE_DATE
+		) VALUES (
+		   $ORGID$
+		  ,$COMPANYID$
+		  ,#WORKCENTERCODE#
+		  ,#WORKCENTERNAME#
+		  ,#USEYN#
+		  ,#MODELSTANDARD#
+		  ,#MAKE#
+		  ,#MAKENO#
+		  ,TO_DATE(#MAKEDATE#, 'YYYY-MM-DD')
+		  ,TO_DATE(#BUYDATE#, 'YYYY-MM-DD')
+		  ,#BUYAMOUNT#
+		  ,#DEPTCODE#
+		  ,#WORKDEPT#
+		  ,#ROUTINGCODE#
+		  ,#EQSETUP#
+		  ,#SEQ#
+		  ,#EXCEPTYN#
+		  ,#WORKCENTERCODEIF#
+		  ,TO_DATE(#GRADECHECKDATE#, 'YYYY-MM-DD')
+		  ,#MANAGEGRADE#
+      ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+      ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+		  ,#REGISTID#
+		  ,SYSDATE
+		  ,#REGISTID#
+		  ,SYSDATE
+		)
+  ]]>
+  </insert>
+    
+  <update id="workcenter.list.update" parameterClass="java.util.Map">
+  <![CDATA[
+    UPDATE CB_WORK_CENTER
+			   SET LAST_UPDATED_BY      = #UPDATEID#
+			      ,LAST_UPDATE_DATE     = SYSDATE
+			       
+			      ,WORK_CENTER_NAME     = #WORKCENTERNAME#
+			      ,USE_YN               = #USEYN#
+			      ,MODEL_STANDARD       = #MODELSTANDARD#
+			      ,MAKE                 = #MAKE#
+			      ,MAKE_NO              = #MAKENO#
+			      ,MAKE_DATE            = TO_DATE(#MAKEDATE#, 'YYYY-MM-DD')
+			      ,BUY_DATE             = TO_DATE(#BUYDATE#, 'YYYY-MM-DD')
+			      ,BUY_AMOUNT           = #BUYAMOUNT#
+			      ,DEPT_CODE            = #DEPTCODE#
+			      ,WORK_DEPT            = #WORKDEPT#
+			      ,ROUTING_CODE         = #ROUTINGCODE#
+			      ,EQ_SETUP             = #EQSETUP#
+			      ,SEQ                  = #SEQ#
+			      ,EXCEPT_YN            = #EXCEPTYN#
+			      ,WORK_CENTER_CODE_IF            = #WORKCENTERCODEIF#
+			      ,GRADE_CHECK_DATE     = TO_DATE(#GRADECHECKDATE#, 'YYYY-MM-DD')
+			      ,MANAGE_GRADE         = #MANAGEGRADE#
+			      ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+			      ,EFFECTIVE_END_DATE   = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+		 WHERE ORG_ID = $ORGID$
+	 	    AND COMPANY_ID = $COMPANYID$
+		    AND WORK_CENTER_CODE = #WORKCENTERCODE#
+  ]]>
+  </update>
+    
+  <delete id="workcenter.list.delete" parameterClass="java.util.Map">
+     DELETE FROM CB_WORK_CENTER
+     WHERE ORG_ID = $ORGID$
+        AND COMPANY_ID = $COMPANYID$
+        AND WORK_CENTER_CODE = #WORKCENTERCODE#
+  </delete>
+    
+  <sql id="workcenter.repair.sql-select">
+  <![CDATA[
+  SELECT RANK() OVER(ORDER BY CR.WORK_CENTER_CODE, CR.REPAIR_DATE, CR.SEQ_NO) AS RN
+		      ,CR.ORG_ID AS ORGID
+		      ,CR.COMPANY_ID AS COMPANYID
+		      ,CR.SEQ_NO AS SEQNO
+		      ,CR.WORK_CENTER_CODE AS WORKCENTERCODE
+		      ,TO_CHAR(CR.REPAIR_DATE, 'YYYY-MM-DD') AS REPAIRDATE
+		      ,CR.REASON AS REASON
+		      ,CR.REPAIR_CENTER_NAME AS REPAIRCENTERNAME
+		      ,CR.REPAIR_COST AS REPAIRCOST
+		      ,CR.DETAIL_REASON AS DETAILREASON
+		      ,CR.REMARKS AS REMARKS
+  FROM CB_WORK_CENTER_REPAIR CR
+  ]]>
+  </sql>
+
+  <sql id="workcenter.repair.sql-where">
+    WHERE 1=1
+    <isNotEmpty property="ORGID" prepend="AND">
+        CR.ORG_ID = $ORGID$
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+        CR.COMPANY_ID = $COMPANYID$
+    </isNotEmpty>
+    <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+        CR.WORK_CENTER_CODE = #WORKCENTERCODE#
+    </isNotEmpty>
+  </sql>
+
+  <select id="workcenter.repair.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="workcenter.repair.sql-select" />
+    <include refid="workcenter.repair.sql-where" />
+  </select>
+  
+  <select id="workcenter.repair.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*)  FROM (
+      <include refid="workcenter.repair.sql-select" />
+      <include refid="workcenter.repair.sql-where" />
+    ) TOT
+  </select>
+  
+  <insert id="workcenter.repair.insert" parameterClass="java.util.Map">
+  <![CDATA[
+  INSERT INTO CB_WORK_CENTER_REPAIR (
+      ORG_ID
+		 ,COMPANY_ID
+		 ,SEQ_NO
+		 ,WORK_CENTER_CODE
+		 ,REPAIR_DATE
+		 ,REASON
+     ,REPAIR_CENTER_NAME
+     ,REPAIR_COST
+		 ,DETAIL_REASON
+		 ,REMARKS
+		 ,CREATED_BY
+		 ,CREATION_DATE
+		 ,LAST_UPDATED_BY
+		 ,LAST_UPDATE_DATE
+  ) VALUES (
+      $ORGID$
+     ,$COMPANYID$
+     ,(SELECT NVL(MAX(SEQ_NO),0) + 1
+        FROM CB_WORK_CENTER_REPAIR)
+     ,#WORKCENTERCODE#
+     ,TO_DATE(#REPAIRDATE#, 'YYYY-MM-DD')
+     ,#REASON#
+     ,#REPAIRCENTERNAME#
+     ,#REPAIRCOST#
+     ,#DETAILREASON#
+     ,#REMARKS#
+     ,#REGISTID#
+     ,SYSDATE
+     ,#REGISTID#
+     ,SYSDATE
+  )
+  ]]>
+  </insert>
+    
+  <update id="workcenter.repair.update" parameterClass="java.util.Map">
+   UPDATE CB_WORK_CENTER_REPAIR
+        SET LAST_UPDATED_BY  = #UPDATEID#
+            , LAST_UPDATE_DATE = SYSDATE
+            
+            , WORK_CENTER_CODE = #WORKCENTERCODE#
+            , REPAIR_DATE = TO_DATE(#REPAIRDATE#, 'YYYY-MM-DD')
+            , REASON = #REASON#
+            , REPAIR_CENTER_NAME = #REPAIRCENTERNAME#
+            , REPAIR_COST = $REPAIRCOST$
+            , DETAIL_REASON = #DETAILREASON#
+            , REMARKS = #REMARKS#
+    WHERE ORG_ID = $ORGID$
+       AND COMPANY_ID = $COMPANYID$
+       AND WORK_CENTER_CODE = #WORKCENTERCODE#
+       AND SEQ_NO = #SEQNO#
+  </update>
+    
+  <delete id="workcenter.repair.delete" parameterClass="java.util.Map">
+    DELETE FROM CB_WORK_CENTER_REPAIR
+    WHERE ORG_ID = $ORGID$
+       AND COMPANY_ID = $COMPANYID$
+       AND WORK_CENTER_CODE = #WORKCENTERCODE#
+       AND SEQ_NO = #SEQNO#
+  </delete>
+    
+  <sql id="workcenter.interface.list.sql_select">
+	    SELECT RN 
+		      ,ORGID
+		      ,COMPANYID
+		      ,SEQ
+		      ,STARTTIME
+		      ,QTY 
+		  FROM (
+		       SELECT RANK()OVER(ORDER BY WOI.ORG_ID,WOI.COMPANY_ID, WOI.START_TIME DESC) AS RN 
+		            ,WOI.ORG_ID AS ORGID
+		            ,WOI.COMPANY_ID AS COMPANYID
+		            ,WOI.SEQ
+		            ,TO_CHAR(WOI.START_TIME,'YYYY-MM-DD HH24:MI:SS') AS STARTTIME
+		            ,WOI.QTY
+		        FROM SJT_IF.CB_WORK_ORDER_IF WOI
+		       WHERE 1 = 1
+		        <isNotEmpty property="ORGID" prepend="AND">
+				        WOI.ORG_ID = $ORGID$
+				    </isNotEmpty>
+				    <isNotEmpty property="COMPANYID" prepend="AND">
+				        WOI.COMPANY_ID = $COMPANYID$
+				    </isNotEmpty>
+				    <isNotEmpty property="EQUIPMENTCODE" prepend="AND">
+				       WOI.EQUIPMENT_CODE = #EQUIPMENTCODE#
+				    </isNotEmpty> 
+        
+		       )
+		 WHERE RN <![CDATA[<=]]> 20    
+  </sql>
+
+  <sql id="workcenter.interface.list.sql_where">
+   ORDER BY ORGID,COMPANYID, STARTTIME DESC   
+  </sql>
+
+  <select id="workcenter.interface.list.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+    <include refid="workcenter.interface.list.sql_select" />
+    <include refid="workcenter.interface.list.sql_where" />
+  </select>
+  
+  <select id="workcenter.interface.list.count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    SELECT COUNT(*)  FROM (
+      <include refid="workcenter.interface.list.sql_select" />
+      <include refid="workcenter.interface.list.sql_where" />
+    ) TOT
+  </select>
+</sqlMap>

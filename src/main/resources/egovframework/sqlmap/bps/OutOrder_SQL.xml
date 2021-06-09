@@ -1,0 +1,1096 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="outorder">
+
+  <parameterMap class="java.util.Map" id="procOutMatPutParams">
+      <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="WORKORDERID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="WORKORDERSEQ" jdbcType="VARCHAR" javaType="java.lang.Integer" mode="IN"/>
+      <parameter property="ORDERQTY" jdbcType="VARCHAR" javaType="java.lang.Integer" mode="IN"/>
+      <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+      <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+  </parameterMap>
+
+  <parameterMap class="java.util.Map" id="procOutMatOutParams">
+      <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="WORKORDERID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="WORKORDERSEQ" jdbcType="VARCHAR" javaType="java.lang.Integer" mode="IN"/>
+      <parameter property="ORDERQTY" jdbcType="VARCHAR" javaType="java.lang.Integer" mode="IN"/>
+      <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+      <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+      <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+  </parameterMap>
+
+  <procedure id="OutMatPutCreate.call.Procedure" parameterClass="java.util.Map"  parameterMap="procOutMatPutParams" resultClass="java.util.HashMap" >
+  <![CDATA[
+     {call CB_OUTSIDE_ORDER_PKG.CB_OUT_MAT_PUT( ?, ?, ?, ?, ?, ?, ?, ? ) }
+     ]]>
+  </procedure>
+  
+  <procedure id="OutMatOutCreate.call.Procedure" parameterClass="java.util.Map"  parameterMap="procOutMatOutParams" resultClass="java.util.HashMap" >
+  <![CDATA[
+     {call CB_OUTSIDE_ORDER_PKG.CB_OUT_MAT_OUT( ?, ?, ?, ?, ?, ?, ?, ? ) }
+     ]]>
+  </procedure>
+
+  <sql id="prod.outorder.master.list.select">
+    SELECT  RANK() OVER(ORDER BY H.ORG_ID, H.COMPANY_ID, H.OUT_PO_NO DESC ) AS RN
+            ,H.ORG_ID        AS ORGID
+            ,H.COMPANY_ID    AS COMPANYID
+            ,H.OUT_PO_NO     AS OUTPONO
+            ,TO_CHAR(H.OUT_PO_DATE,'YYYY-MM-DD')   AS OUTPODATE
+            ,H.CUSTOMER_CODE AS CUSTOMERCODE
+            ,(SELECT C.CUSTOMER_NAME
+                FROM CB_CUSTOMER C
+               WHERE C.ORG_ID = H.ORG_ID
+                 AND C.COMPANY_ID = H.COMPANY_ID
+                 AND C.CUSTOMER_CODE = H.CUSTOMER_CODE) AS CUSTOMERNAME
+            ,H.OUT_PO_PERSON AS OUTPOPERSON
+            ,(SELECT V.KR_NAME
+                FROM CB_HUMANRESOURCE_MANAGER_V V
+               WHERE V.ORG_ID = H.ORG_ID
+                 AND V.COMPANY_ID = H.COMPANY_ID
+                 AND V.EMPLOYEE_NUMBER = H.OUT_PO_PERSON
+                 AND H.OUT_PO_DATE BETWEEN V.EFFECTIVE_START_DATE AND V.EFFECTIVE_END_DATE) AS OUTPOPERSONNAME
+            ,H.MOD_QTY AS MODQTY
+            ,H.OUT_PO_STATUS AS OUTPOSTATUS
+            ,(SELECT C.SMALL_NAME
+                FROM CB_SMALL_CODE C
+               WHERE C.ORG_ID = H.ORG_ID
+                 AND C.COMPANY_ID = H.COMPANY_ID
+                 AND C.BIG_CODE = 'MAT'
+                 AND C.MIDDLE_CODE = 'STATUS_CODE' 
+                 AND C.SMALL_CODE = H.OUT_PO_STATUS) AS OUTPOSTATUSNAME
+            ,(SELECT I.ITEM_CODE
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) AS ITEMCODE
+            ,(SELECT I.ORDER_NAME
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) AS ORDERNAME
+            ,(SELECT I.ITEM_NAME
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) AS ITEMNAME
+                                                  
+            ,(SELECT I.MODEL_NAME
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER_V I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) AS MODELNAME
+            ,(SELECT I.ITEM_STANDARD_DETAIL
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) AS ITEMSTANDARDDETAIL
+            ,(SELECT SUM(D.ORDER_QTY)
+                FROM CB_OUT_ORDER_D D
+               WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO) AS ORDERQTY
+            ,(SELECT SUM(D.ADDITIONAL_TAX + D.SUPPLY_PRICE)
+                FROM CB_OUT_ORDER_D D
+               WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO) AS TOTAL
+            ,H.REMARKS
+        FROM CB_OUT_ORDER_H H
+    </sql>
+    
+    <sql id="prod.outorder.master.list.where">
+         WHERE ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+         <isEmpty property="GUBUN" prepend="AND">
+            OUT_PO_DATE BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD')  AND TO_DATE(#POTO#,'YYYY-MM-DD')
+         </isEmpty>
+         <isNotEmpty property="keyword" prepend="AND">
+          OUT_PO_NO LIKE '%' || #keyword# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="OUTPONO" prepend="AND">
+          OUT_PO_NO = #OUTPONO#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+          OUT_PO_NO IN (SELECT TD.OUT_PO_NO
+                                   FROM CB_OUT_ORDER_D TD
+                                  WHERE TD.ORG_ID = H.ORG_ID
+                                     AND TD.COMPANY_ID = H.COMPANY_ID
+                                     AND TD.ITEM_CODE = #ITEMCODE#)
+        </isNotEmpty>
+        <isNotEmpty property="CARTYPENAME" prepend="AND">
+          (SELECT I.CAR_TYPE_NAME
+               FROM CB_OUT_ORDER_D D
+                       ,CB_ITEM_MASTER_V I
+              WHERE D.ORG_ID = H.ORG_ID
+                 AND D.COMPANY_ID = H.COMPANY_ID
+                 AND D.OUT_PO_NO = H.OUT_PO_NO
+                 AND I.ITEM_CODE = D.ITEM_CODE
+                 AND D.OUT_PO_SEQ = (SELECT MIN(CD.OUT_PO_SEQ)
+                                                FROM CB_OUT_ORDER_D CD
+                                               WHERE CD.ORG_ID = H.ORG_ID
+                                                  AND CD.COMPANY_ID = H.COMPANY_ID
+                                                  AND CD.OUT_PO_NO = H.OUT_PO_NO)) LIKE '%'||#CARTYPENAME#||'%'
+        </isNotEmpty>
+        <isNotEmpty property="POSTATUS" prepend="AND">
+          OUT_PO_STATUS = #POSTATUS#
+        </isNotEmpty>
+    </sql>
+         
+    <select id="prod.outorder.master.list" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+          SELECT *
+           FROM (
+                    <include refid="prod.outorder.master.list.select" />
+                    <include refid="prod.outorder.master.list.where" />
+                    )
+    </select>
+    
+    <select id="prod.outorder.master.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer" remapResults="true">
+          SELECT COUNT(*)
+           FROM (
+                    <include refid="prod.outorder.master.list.select" />
+                    <include refid="prod.outorder.master.list.where" />
+                    )
+    </select>
+    
+    <sql id="prod.outorder.detail.list.select">
+         SELECT RANK() OVER(ORDER BY D.ORG_ID, D.COMPANY_ID, D.OUT_PO_NO DESC, D.OUT_PO_SEQ ) AS RN
+                  ,D.ORG_ID AS ORGID
+                  ,D.COMPANY_ID AS COMPANYID
+                  ,D.OUT_PO_NO AS OUTPONO
+                  ,D.OUT_PO_SEQ AS OUTPOSEQ
+                  ,TO_CHAR((SELECT H.OUT_PO_DATE
+                              FROM CB_OUT_ORDER_H H
+                             WHERE H.ORG_ID = D.ORG_ID
+                               AND H.COMPANY_ID = D.COMPANY_ID
+                               AND H.OUT_PO_NO = D.OUT_PO_NO), 'YYYY-MM-DD') AS OUTPODATE
+                  ,(SELECT H.CUSTOMER_CODE
+                      FROM CB_OUT_ORDER_H H
+                     WHERE H.ORG_ID = D.ORG_ID
+                       AND H.COMPANY_ID = D.COMPANY_ID
+                       AND H.OUT_PO_NO = D.OUT_PO_NO) AS CUSTOMERCODE
+                  ,(SELECT (SELECT CC.CUSTOMER_NAME
+                              FROM CB_CUSTOMER CC
+                             WHERE CC.ORG_ID = H.ORG_ID
+                               AND CC.COMPANY_ID = H.COMPANY_ID
+                               AND CC.CUSTOMER_CODE = H.CUSTOMER_CODE)
+                      FROM CB_OUT_ORDER_H H
+                     WHERE H.ORG_ID = D.ORG_ID
+                       AND H.COMPANY_ID = D.COMPANY_ID
+                       AND H.OUT_PO_NO = D.OUT_PO_NO) AS CUSTOMERNAME
+                  ,(SELECT H.OUT_PO_STATUS
+                      FROM CB_OUT_ORDER_H H
+                     WHERE H.ORG_ID = D.ORG_ID
+                       AND H.COMPANY_ID = D.COMPANY_ID
+                       AND H.OUT_PO_NO = D.OUT_PO_NO) AS OUTPOSTATUS
+                  ,(SELECT (SELECT SC.SMALL_NAME
+                              FROM CB_SMALL_CODE SC
+                             WHERE SC.ORG_ID = H.ORG_ID
+                               AND SC.COMPANY_ID = H.COMPANY_ID
+                               AND SC.BIG_CODE = 'MAT'
+                               AND SC.MIDDLE_CODE = 'STATUS_CODE'
+                               AND SC.SMALL_CODE = H.OUT_PO_STATUS)
+                      FROM CB_OUT_ORDER_H H
+                     WHERE H.ORG_ID = D.ORG_ID
+                       AND H.COMPANY_ID = D.COMPANY_ID
+                       AND H.OUT_PO_NO = D.OUT_PO_NO) AS OUTPOSTATUSNAME
+                  ,I.ITEM_CODE AS ITEMCODE
+                  ,I.ORDER_NAME AS ORDERNAME
+                  ,I.ITEM_NAME AS ITEMNAME
+                  ,I.CAR_TYPE AS MODEL
+                  ,I.MODEL_NAME AS MODELNAME
+                  ,I.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                  ,I.MATERIAL_TYPE AS MATERIALTYPE
+                  ,I.UOM AS UOM
+                  ,I.UOM_NAME AS UOMNAME
+                  ,D.WORK_ORDER_ID AS WORKORDERID
+                  ,D.WORK_ORDER_SEQ AS WORKORDERSEQ
+                  ,D.ROUTING_NO AS ROUTINGNO
+                  ,DECODE(D.WORK_ORDER_ID
+                            ,NULL, (SELECT SC.SMALL_NAME
+                                       FROM CB_SMALL_CODE SC
+                                      WHERE SC.ORG_ID = D.ORG_ID
+                                        AND SC.COMPANY_ID = D.COMPANY_ID
+                                        AND SC.BIG_CODE = 'MFG'
+                                        AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                                        AND SC.SMALL_CODE = D.ROUTING_NO)
+                            ,(SELECT ROUTINGNAME
+					                      FROM CB_WORK_ORDER_LIST_V V
+					                     WHERE V.ORGID = D.ORG_ID
+					                       AND V.COMPANYID = D.COMPANY_ID
+					                       AND V.WORKORDERID = D.WORK_ORDER_ID
+					                       AND V.WORKORDERSEQ = D.WORK_ORDER_SEQ)) AS ROUTINGNAME
+                  ,D.ORDER_QTY AS ORDERQTY
+                  ,(SELECT SUM(TD.TRANS_QTY)
+                     FROM CB_OUT_TRANS_D TD
+                    WHERE D.ORG_ID = TD.ORG_ID
+                      AND D.COMPANY_ID = TD.COMPANY_ID
+                      AND D.OUT_PO_NO = TD.OUT_PO_NO
+                      AND D.OUT_PO_SEQ = TD.OUT_PO_SEQ) AS TRANSQTY
+                  ,D.UNIT_PRICE AS UNITPRICE
+                  ,D.SUPPLY_PRICE AS SUPPLYPRICE
+                  ,D.ADDITIONAL_TAX AS ADDITIONALTAX
+                  ,D.SUPPLY_PRICE + D.ADDITIONAL_TAX AS TOTAL
+                  ,TO_CHAR(D.DUE_DATE,'YYYY-MM-DD') AS DUEDATE
+                  ,D.REMARKS
+                  ,NVL(D.ORDER_FINISH_YN,'N') AS ORDERFINISHYN
+                  ,DECODE(D.ORDER_FINISH_YN, 'Y', '완료', 'N', '미완료', '미완료') AS ORDERFINISHYNNAME
+                  ,(SELECT WO.WORK_STATUS
+                    FROM CB_WORK_ORDER WO
+                   WHERE D.ORG_ID = WO.ORG_ID
+                     AND D.COMPANY_ID = WO.COMPANY_ID
+                     AND D.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                     AND D.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ) AS WORKSTATUS
+                  ,D.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+        FROM CB_OUT_ORDER_D D
+               ,CB_ITEM_MASTER_V I
+    </sql>
+    
+    <sql id="prod.outorder.detail.list.where">
+         WHERE D.ORG_ID = I.ORG_ID
+            AND D.COMPANY_ID = I.COMPANY_ID
+            AND D.ITEM_CODE = I.ITEM_CODE
+            AND D.ORG_ID = #ORGID#
+            AND D.COMPANY_ID = #COMPANYID#
+            AND D.OUT_PO_NO = #OUTPONO#
+    </sql>
+         
+    <select id="prod.outorder.detail.list" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+          <include refid="prod.outorder.detail.list.select" />
+          <include refid="prod.outorder.detail.list.where" />
+    </select>
+    
+    <select id="prod.outorder.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer" remapResults="true">
+          SELECT COUNT(*)
+           FROM (
+		          <include refid="prod.outorder.detail.list.select" />
+		          <include refid="prod.outorder.detail.list.where" />
+                    )
+    </select>
+    
+    <sql id="prod.outorder.detail.list.excel.select">
+         SELECT RANK() OVER(ORDER BY D.ORG_ID, D.COMPANY_ID, D.OUT_PO_NO DESC,D.OUT_PO_SEQ ) AS RN
+                  ,D.ORG_ID AS ORGID
+                  ,D.COMPANY_ID AS COMPANYID
+                  ,D.OUT_PO_NO AS OUTPONO
+                  ,D.OUT_PO_SEQ AS OUTPOSEQ
+                  ,TO_CHAR(H.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE
+                  ,H.CUSTOMER_CODE AS CUSTOMERCODE
+                  ,(SELECT CC.CUSTOMER_NAME
+                      FROM CB_CUSTOMER CC
+                     WHERE CC.ORG_ID = H.ORG_ID
+                       AND CC.COMPANY_ID = H.COMPANY_ID
+                       AND CC.CUSTOMER_CODE = H.CUSTOMER_CODE) AS CUSTOMERNAME
+                  ,H.OUT_PO_STATUS AS OUTPOSTATUS
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE SC.ORG_ID = H.ORG_ID
+                       AND SC.COMPANY_ID = H.COMPANY_ID
+                       AND SC.BIG_CODE = 'MAT'
+                       AND SC.MIDDLE_CODE = 'STATUS_CODE'
+                       AND SC.SMALL_CODE = H.OUT_PO_STATUS) AS OUTPOSTATUSNAME
+                  ,I.ITEM_CODE AS ITEMCODE
+                  ,I.ORDER_NAME AS ORDERNAME
+                  ,I.ITEM_NAME AS ITEMNAME
+                  ,I.MODEL AS MODEL
+                  ,I.MODEL_NAME AS MODELNAME
+                  ,I.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                  ,I.MATERIAL_TYPE AS MATERIALTYPE
+                  ,I.UOM AS UOM
+                  ,I.UOM_NAME AS UOMNAME
+                  ,D.WORK_ORDER_ID AS WORKORDERID
+                  ,D.WORK_ORDER_SEQ AS WORKORDERSEQ
+                  ,(SELECT ROUTINGNAME
+                      FROM CB_WORK_ORDER_LIST_V V
+                     WHERE V.ORGID = D.ORG_ID
+                       AND V.COMPANYID = D.COMPANY_ID
+                       AND V.WORKORDERID = D.WORK_ORDER_ID
+                       AND V.WORKORDERSEQ = D.WORK_ORDER_SEQ) AS ROUTINGNAME
+                  ,D.ORDER_QTY AS ORDERQTY
+                  ,(SELECT SUM(TD.TRANS_QTY)
+                     FROM CB_OUT_TRANS_D TD
+                    WHERE D.ORG_ID = TD.ORG_ID
+                      AND D.COMPANY_ID = TD.COMPANY_ID
+                      AND D.OUT_PO_NO = TD.OUT_PO_NO
+                      AND D.OUT_PO_SEQ = TD.OUT_PO_SEQ) AS TRANSQTY
+                  ,D.UNIT_PRICE AS UNITPRICE
+                  ,D.SUPPLY_PRICE AS SUPPLYPRICE
+                  ,D.ADDITIONAL_TAX AS ADDITIONALTAX
+                  ,D.SUPPLY_PRICE + D.ADDITIONAL_TAX AS TOTAL
+                  ,TO_CHAR(D.DUE_DATE,'YYYY-MM-DD') AS DUEDATE
+                  ,D.REMARKS
+                  ,NVL(D.ORDER_FINISH_YN,'N') AS ORDERFINISHYN
+                  ,DECODE(D.ORDER_FINISH_YN, 'Y', '완료', 'N', '미완료', '미완료') AS ORDERFINISHYNNAME
+                  ,(SELECT WO.WORK_STATUS
+                    FROM CB_WORK_ORDER WO
+                   WHERE D.ORG_ID = WO.ORG_ID
+                     AND D.COMPANY_ID = WO.COMPANY_ID
+                     AND D.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                     AND D.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ
+                 ) AS WORKSTATUS
+        FROM CB_OUT_ORDER_H H
+               ,CB_OUT_ORDER_D D
+               ,CB_ITEM_MASTER_V I
+    </sql>
+    
+    <sql id="prod.outorder.detail.list.excel.where">
+         WHERE H.ORG_ID = D.ORG_ID (+)
+            AND H.COMPANY_ID = D.COMPANY_ID (+)
+            AND H.OUT_PO_NO = D.OUT_PO_NO (+)
+            AND D.ORG_ID = I.ORG_ID
+            AND D.COMPANY_ID = I.COMPANY_ID
+            AND D.ITEM_CODE = I.ITEM_CODE
+            AND D.ORG_ID = #ORGID#
+            AND D.COMPANY_ID = #COMPANYID#
+            AND H.OUT_PO_DATE BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD')  AND TO_DATE(#POTO#,'YYYY-MM-DD')
+         <isNotEmpty property="keyword" prepend="AND">
+          H.OUT_PO_NO LIKE '%' || #keyword# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="OUTPONO" prepend="AND">
+          H.OUT_PO_NO = #OUTPONO#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          H.CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              H.OUT_PO_NO IN (SELECT TD.OUT_PO_NO
+                                       FROM CB_OUT_ORDER_D TD
+                                      WHERE TD.ORG_ID = H.ORG_ID
+                                         AND TD.COMPANY_ID = H.COMPANY_ID
+                                         AND TD.ITEM_CODE = #ITEMCODE#)
+            </isNotEmpty>
+        <isNotEmpty property="POSTATUS" prepend="AND">
+          H.OUT_PO_STATUS = #POSTATUS#
+        </isNotEmpty>
+    </sql>
+         
+    <select id="prod.outorder.detail.excel.list" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+          <include refid="prod.outorder.detail.list.excel.select" />
+          <include refid="prod.outorder.detail.list.excel.where" />
+    </select>
+    
+    <select id="prod.outorder.detail.excel.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer" remapResults="true">
+          SELECT COUNT(*)
+           FROM (
+              <include refid="prod.outorder.detail.list.excel.select" />
+              <include refid="prod.outorder.detail.list.excel.where" />
+                    )
+    </select>
+    
+    <!-- Dummy Lov 시작 -->
+    <sql id="prod.outorder.dummy.month.sql-select">
+       SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM,
+                 TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+        FROM DUAL
+    </sql>
+
+    <sql id="prod.outorder.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="prod.outorder.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.outorder.dummy.month.sql-select" />
+        <include refid="prod.outorder.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+    
+    <!-- 외주발주 대기리스트 조회 -->
+    <sql id="prod.outorder.list.pop.sql-select">
+			SELECT RANK() OVER(ORDER BY WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ) AS RN
+			      ,WO.ORG_ID AS ORGID
+			      ,WO.COMPANY_ID AS COMPANYID
+			      ,WO.ITEM_CODE AS ITEMCODE
+			      ,IM.ORDER_NAME AS ORDERNAME
+			      ,IM.ITEM_NAME AS ITEMNAME
+			      ,IM.CAR_TYPE_NAME AS MODELNAME
+			      ,IM.CAR_TYPE AS MODEL
+			      ,IM.MATERIAL_TYPE AS MATERIALTYPE
+			      ,IM.UOM AS UOM
+			      ,IM.UOM_NAME AS UOMNAME
+			      ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+			      ,WO.WORK_ORDER_ID AS WORKORDERID
+			      ,WO.WORK_ORDER_SEQ AS WORKORDERSEQ
+            ,WO.WORK_STATUS AS WORKSTATUS
+			      ,RC.ROUTING_NO AS ROUTINGNO
+			      ,WO.ROUTING_CODE AS ROUTINGCODE
+            ,NVL(WO.INSPECTION_YN, 'Y') AS INSPECTIONYN
+			      ,(SELECT SC.SMALL_NAME
+			          FROM CB_SMALL_CODE SC
+			         WHERE SC.ORG_ID = RC.ORG_ID
+			           AND SC.COMPANY_ID = RC.COMPANY_ID
+			           AND SC.BIG_CODE = 'MFG'
+			           AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+			           AND SC.SMALL_CODE = RC.ROUTING_NO) AS ROUTINGNAME
+			      ,NVL((SELECT NVL(SUM(WOD.QTY), 0)
+			          FROM CB_WORK_ORDER_D WOD
+			         WHERE WOD.ORG_ID = WO.ORG_ID
+			           AND WOD.COMPANY_ID = WO.COMPANY_ID
+			           AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+			           AND WOD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) AS IMPORTQTY
+			      ,WO.WORK_ORDER_QTY AS WORKORDERQTY      
+			      ,NVL((SELECT SUM(OD.ORDER_QTY)
+			              FROM CB_OUT_ORDER_D OD
+			             WHERE OD.ORG_ID = WO.ORG_ID
+			               AND OD.COMPANY_ID = WO.COMPANY_ID
+			               AND OD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+			               AND OD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) AS ORDERQTY
+			      ,WO.WORK_ORDER_QTY - NVL((SELECT SUM(OD.ORDER_QTY)
+									                                   FROM CB_OUT_ORDER_D OD
+									                                  WHERE OD.ORG_ID = WO.ORG_ID
+									                                    AND OD.COMPANY_ID = WO.COMPANY_ID
+									                                    AND OD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+									                                    AND OD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) AS FINISHQTY
+			      /*,NVL((SELECT NVL(SUM(WOD.QTY), 0)
+			          FROM CB_WORK_ORDER_D WOD
+			         WHERE WOD.ORG_ID = WO.ORG_ID
+			           AND WOD.COMPANY_ID = WO.COMPANY_ID
+			           AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+			           AND WOD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) - NVL((SELECT SUM(OD.ORDER_QTY)
+			                                                                    FROM CB_OUT_ORDER_D OD
+			                                                                   WHERE OD.ORG_ID = WO.ORG_ID
+			                                                                     AND OD.COMPANY_ID = WO.COMPANY_ID
+			                                                                     AND OD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+			                                                                     AND OD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) AS FINISHQTY*/
+			      ,WO.CUSTOMER_CODE_OUT AS CUSTOMERCODEOUT
+			      ,(SELECT CC.CUSTOMER_NAME
+			          FROM CB_CUSTOMER CC
+			         WHERE CC.ORG_ID = WO.ORG_ID
+			           AND CC.COMPANY_ID = WO.COMPANY_ID
+			           AND CC.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT) AS CUSTOMERNAMEOUT
+      ,DECODE(NVL((SELECT MAX(OD.UNIT_PRICE)
+                     FROM CB_OUT_ORDER_H OH
+                         ,CB_OUT_ORDER_D OD
+                    WHERE OH.ORG_ID = OD.ORG_ID
+                      AND OH.COMPANY_ID = OD.COMPANY_ID
+                      AND OH.OUT_PO_NO = OD.OUT_PO_NO
+                      AND OD.ORG_ID = WO.ORG_ID
+                      AND OD.COMPANY_ID = WO.COMPANY_ID
+                      AND OD.ITEM_CODE = WO.ITEM_CODE
+                      AND OH.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT
+                      AND OH.OUT_PO_DATE = (SELECT MAX(OH1.OUT_PO_DATE)
+                                              FROM CB_OUT_ORDER_H OH1
+                                                  ,CB_OUT_ORDER_D OD1
+                                             WHERE OH1.ORG_ID = OD1.ORG_ID
+                                               AND OH1.COMPANY_ID = OD1.COMPANY_ID
+                                               AND OH1.OUT_PO_NO = OD1.OUT_PO_NO
+                                               AND OD1.ORG_ID = WO.ORG_ID
+                                               AND OD1.COMPANY_ID = WO.COMPANY_ID
+                                               AND OH1.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT
+                                               AND OD1.ITEM_CODE = WO.ITEM_CODE)), 0), 0, RC.CONVERSION_COST, NVL((SELECT MAX(OD.UNIT_PRICE)
+                                                                                                                     FROM CB_OUT_ORDER_H OH
+                                                                                                                         ,CB_OUT_ORDER_D OD
+                                                                                                                    WHERE OH.ORG_ID = OD.ORG_ID
+                                                                                                                      AND OH.COMPANY_ID = OD.COMPANY_ID
+                                                                                                                      AND OH.OUT_PO_NO = OD.OUT_PO_NO
+                                                                                                                      AND OD.ORG_ID = WO.ORG_ID
+                                                                                                                      AND OD.COMPANY_ID = WO.COMPANY_ID
+                                                                                                                      AND OD.ITEM_CODE = WO.ITEM_CODE
+                                                                                                                      AND OH.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT
+                                                                                                                      AND OH.OUT_PO_DATE = (SELECT MAX(OH1.OUT_PO_DATE)
+                                                                                                                                              FROM CB_OUT_ORDER_H OH1
+                                                                                                                                                  ,CB_OUT_ORDER_D OD1
+                                                                                                                                             WHERE OH1.ORG_ID = OD1.ORG_ID
+                                                                                                                                               AND OH1.COMPANY_ID = OD1.COMPANY_ID
+                                                                                                                                               AND OH1.OUT_PO_NO = OD1.OUT_PO_NO
+                                                                                                                                               AND OD1.ORG_ID = WO.ORG_ID
+                                                                                                                                               AND OD1.COMPANY_ID = WO.COMPANY_ID
+                                                                                                                                               AND OH1.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT
+                                                                                                                                               AND OD1.ITEM_CODE = WO.ITEM_CODE)), 0)) AS CONVERSIONCOST
+			  FROM CB_WORK_ORDER_HEADER OH
+			      ,CB_WORK_ORDER WO
+			      ,CB_ROUTING_CONTROL RC
+			      ,CB_ITEM_MASTER_V IM
+    </sql>
+
+    <sql id="prod.outorder.list.pop.sql-where">
+    <![CDATA[
+       WHERE OH.ORG_ID = WO.ORG_ID
+         AND OH.COMPANY_ID = WO.COMPANY_ID
+         AND OH.WORK_ORDER_ID = WO.WORK_ORDER_ID
+         AND WO.ORG_ID = IM.ORG_ID
+         AND WO.COMPANY_ID = IM.COMPANY_ID
+         AND WO.ITEM_CODE = IM.ITEM_CODE
+         AND RC.ORG_ID = WO.ORG_ID
+         AND RC.COMPANY_ID = WO.COMPANY_ID
+         AND RC.ITEM_CODE = WO.ITEM_CODE
+         AND RC.ROUTING_ID = WO.ROUTING_CODE
+         AND WO.WORK_STATUS NOT IN ('STAND BY', 'CANCEL', 'END', 'COMPLETE')
+         AND WO.OUTSIDE_ORDER_GUBUN = 'Y'
+         AND WO.WORK_ORDER_QTY > NVL((SELECT SUM(OD.ORDER_QTY)
+                                        FROM CB_OUT_ORDER_D OD
+                                       WHERE OD.ORG_ID = WO.ORG_ID
+                                         AND OD.COMPANY_ID = WO.COMPANY_ID
+                                         AND OD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                                         AND OD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0)
+       AND OH.WORK_PLAN_START_DATE > TO_DATE('2020-09-30','YYYY-MM-DD')
+     ]]>                       
+<!--          아래는 양품수량(작업수량)이 0 이상일 경우 -->
+         /*AND (NVL((SELECT NVL(SUM(WOD.QTY), 0)
+                FROM CB_WORK_ORDER_D WOD
+               WHERE WOD.ORG_ID = WO.ORG_ID
+                 AND WOD.COMPANY_ID = WO.COMPANY_ID
+                 AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                 AND WOD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0) - NVL((SELECT SUM(OD.ORDER_QTY)
+                                                                          FROM CB_OUT_ORDER_D OD
+                                                                         WHERE OD.ORG_ID = WO.ORG_ID
+                                                                           AND OD.COMPANY_ID = WO.COMPANY_ID
+                                                                           AND OD.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                                                                           AND OD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ), 0)) > 0*/
+        <isNotEmpty property="ORGID" prepend="AND">
+            WO.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            WO.COMPANY_ID  = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERID" prepend="AND">
+            WO.WORK_ORDER_ID  = #WORKORDERID#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEM_CODE LIKE #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CARTYPENAME" prepend="AND">
+            IM.CAR_TYPE_NAME LIKE '%' || #CARTYPENAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+            IM.ITEM_STANDARD_DETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODEOUT" prepend="AND">
+            WO.CUSTOMER_CODE_OUT LIKE #CUSTOMERCODEOUT# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODEOUTNAME" prepend="AND">
+            (SELECT CC.CUSTOMER_NAME
+			          FROM CB_CUSTOMER CC
+			         WHERE CC.ORG_ID = WO.ORG_ID
+			           AND CC.COMPANY_ID = WO.COMPANY_ID
+			           AND CC.CUSTOMER_CODE = WO.CUSTOMER_CODE_OUT) LIKE '%' || #CUSTOMERCODEOUTNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ROUTINGNAME" prepend="AND">
+							(SELECT SC.SMALL_NAME
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = RC.ORG_ID
+				           AND SC.COMPANY_ID = RC.COMPANY_ID
+				           AND SC.BIG_CODE = 'MFG'
+				           AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+				           AND SC.SMALL_CODE = RC.ROUTING_NO) LIKE '%' || #ROUTINGNAME# || '%'
+        </isNotEmpty>
+        
+        ORDER BY WO.ORG_ID, WO.COMPANY_ID, WO.WORK_ORDER_ID, WO.WORK_ORDER_SEQ
+    </sql>
+
+    <select id="prod.outorder.list.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+                  <include refid="prod.outorder.list.pop.sql-select" />
+                  <include refid="prod.outorder.list.pop.sql-where" />
+    </select>
+
+    <select id="prod.outorder.list.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.outorder.list.pop.sql-select" />
+            <include refid="prod.outorder.list.pop.sql-where" />
+        ) TOT
+    </select>
+    <!-- 외주발주 대기리스트 조회 끝 -->
+    
+    
+    <!-- 외주발주번호 채번 -->
+    <select id="prod.outorder.new.outpono.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'OP' || TO_CHAR(TO_DATE(#PoDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+					       (CASE
+					          WHEN NUM BETWEEN 0 AND 8 THEN
+					           TO_CHAR('00')
+					          WHEN NUM BETWEEN 9 AND 98 THEN
+					           TO_CHAR('0')
+					          ELSE
+					           TO_CHAR('')
+					        END) || TO_NUMBER(NUM + 1) AS OUTPONO
+					 FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(OUT_PO_NO), -3)), 0) AS NUM 
+			 	 	           FROM CB_OUT_ORDER_H
+			 		          WHERE 1 = 1
+					             AND OUT_PO_NO LIKE 'OP' || TO_CHAR(TO_DATE(#PoDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    <!-- 외주발주번호 채번 끝 -->
+    
+    <!--     외주발주등록 상세 화면에서 마스터 정보 isnert -->
+    <insert id="prod.outorder.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_OUT_ORDER_H
+              ( OUT_PO_NO
+               ,OUT_PO_DATE
+        ]]>
+        <isNotEmpty property="PoPerson" prepend=",">
+               OUT_PO_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="ModQty" prepend=",">
+               MOD_QTY
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="PoStatus" prepend=",">
+               OUT_PO_STATUS
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#OUTPONO#
+               ,TO_DATE(#PoDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="PoPerson" prepend=",">
+               #PoPerson#
+        </isNotEmpty>
+        <isNotEmpty property="ModQty" prepend=",">
+               #ModQty#
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="PoStatus" prepend=",">
+               #PoStatus#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+    <!--     외주발주등록 상세 화면에서 마스터 정보 isnert 끝  -->
+    
+    <!-- 외주발주등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="prod.outorder.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_OUT_ORDER_D
+              (  OUT_PO_NO
+		            ,OUT_PO_SEQ
+		            ,ORG_ID
+		            ,COMPANY_ID
+		            ,ITEM_CODE
+		            ,WORK_ORDER_ID
+		            ,WORK_ORDER_SEQ
+		            ,ORDER_QTY
+		            ,UNIT_PRICE
+		            ,SUPPLY_PRICE
+		            ,ADDITIONAL_TAX
+		            ,DUE_DATE
+		            ,SCM_INSPECTION_YN
+        ]]>
+        <isNotEmpty property="ROUTINGNO" prepend=",">
+               ROUTING_NO
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+                ,CREATION_DATE
+                ,CREATED_BY
+                ,LAST_UPDATE_DATE
+                ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #OUTPONO#
+               ,$OUTPOSEQ$
+               ,#ORGID#
+               ,#COMPANYID#
+               ,#ITEMCODE#
+               ,#WORKORDERID#
+               ,#WORKORDERSEQ#
+               ,$ORDERQTY$
+               ,$UNITPRICE$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+               ,#SCMINSPECTIONYN#               
+        ]]>
+        <isNotEmpty property="ROUTINGNO" prepend=",">
+              #ROUTINGNO#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 외주발주등록 상세 화면에서 그리드 정보 insert 끝 -->
+    
+    <!-- 외주발주등록 상세 화면에서 Header 정보 update  -->
+     <update id="prod.outorder.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_ORDER_H
+             SET  OUT_PO_DATE = TO_DATE(#PoDate#, 'YYYY-MM-DD')
+                   ,MOD_QTY = #ModQty#
+                   ,OUT_PO_STATUS = #PoStatus#
+                   ,REMARKS = #Remarks#
+                   
+                   ,LAST_UPDATED_BY = #UPDATEID#
+                   ,LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="PoPerson" prepend=",">
+            OUT_PO_PERSON = #PoPerson#
+        </isNotEmpty>
+        <isEmpty property="PoPerson" prepend=",">
+            OUT_PO_PERSON = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE OUT_PO_NO    = #PoNo#
+          AND ORG_ID          =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+        ]]>
+    </update>
+    <!-- 외주발주등록 상세 화면에서 Header 정보 update 끝 -->
+    
+    <sql id="prod.outorder.detail.find.sql-select">
+        SELECT COUNT(PD.OUT_PO_NO) AS COUNT
+          FROM CB_OUT_ORDER_H PH, CB_OUT_ORDER_D PD
+    </sql>
+
+    <sql id="prod.outorder.detail.find.sql-where">
+         WHERE PH.OUT_PO_NO = PD.OUT_PO_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTPONO" prepend="AND">
+          PD.OUT_PO_NO = #OUTPONO#
+        </isNotEmpty>
+        <isNotEmpty property="OUTPOSEQ" prepend="AND">
+          PD.OUT_PO_SEQ = #OUTPOSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.outorder.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.outorder.detail.find.sql-select" />
+        <include refid="prod.outorder.detail.find.sql-where" />
+    </select>
+    
+    <!-- 외주발주등록 상세 화면에서 Detail 정보 update -->
+   <update id="prod.outorder.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+         UPDATE CB_OUT_ORDER_D
+						   SET ORDER_QTY             = $ORDERQTY$
+						       , UNIT_PRICE             = $UNITPRICE$
+						       , SUPPLY_PRICE           = $SUPPLYPRICE$
+						       , ADDITIONAL_TAX      = $ADDITIONALTAX$
+						       , DUE_DATE               = TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+						       , LAST_UPDATED_BY     = #UPDATEID#
+						       , LAST_UPDATE_DATE    = SYSDATE
+						       , SCM_INSPECTION_YN  = #SCMINSPECTIONYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND OUT_PO_NO = #OUTPONO#
+          AND OUT_PO_SEQ = $OUTPOSEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+        ]]>
+    </update>
+    <!-- 외주발주등록 상세 화면에서 Detail 정보 update 끝 -->
+    
+    <!-- 외주발주등록 상세 화면에서 Detail 정보 delete -->
+    <delete id="prod.outorder.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_ORDER_D
+         WHERE 1=1
+          AND OUT_PO_NO = #OUTPONO#
+          AND OUT_PO_SEQ = $OUTPOSEQ$
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+    </delete>
+    <!-- 외주발주등록 상세 화면에서 Detail 정보 delete 끝 -->
+    
+    <!-- 외주발주등록 상세 화면에서 Header 정보 delete -->
+    <delete id="prod.outorder.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_ORDER_H
+         WHERE 1=1
+          AND OUT_PO_NO = #PoNo#
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+    </delete>
+    <!-- 외주발주등록 상세 화면에서 Header 정보 delete 끝 -->
+    
+    <!-- 입고등록 상세 화면에서 완료 체크시
+          작업지시의 시작일자 필드(WORK_START_DATE ) SYSDATE로 update -->
+    <update id="prod.outorder.workorder.startdate.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_WORK_ORDER
+              SET  LAST_UPDATE_DATE = SYSDATE
+                    ,LAST_UPDATED_BY = #UPDATEID#
+        ]]> 
+        <isNotEmpty property="STARTDATE" prepend=",">
+            WORK_START_DATE = DECODE(#STARTDATE#, 'Y', SYSDATE, 'N', NULL)
+        </isNotEmpty>
+        <isNotEmpty property="WORKSTATUS" prepend=",">
+            WORK_STATUS = #WORKSTATUS#
+        </isNotEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND WORK_ORDER_ID = #WORKORDERID#
+           AND WORK_ORDER_SEQ = #WORKORDERSEQ#
+        ]]>
+    </update>
+    <!-- 작업지시 WORK_START_DATE update 끝 -->
+    
+    <select id="prod.outorder.matcheck.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+				SELECT CB_OUTSIDE_ORDER_PKG.CB_OUT_MAT_CHECK($ORGID$
+															                                            ,$COMPANYID$
+															                                            ,#WORKORDERID#
+															                                            ,$WORKORDERSEQ$
+															                                            ,$ORDERQTY$) AS MATCHECK
+				  FROM DUAL
+    </select>
+    
+    <select id="scm.outproc.outordercheck.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+			SELECT NVL((SELECT COUNT(*)
+			          FROM CB_SCM_INSPECTION_H IH
+			         WHERE IH.ORG_ID = #ORGID#
+			           AND IH.COMPANY_ID = #COMPANYID#
+			           AND IH.ORDER_NO = #OUTPONO#
+			           AND IH.ORDER_SEQ = $OUTPOSEQ$), 0) +
+			       NVL((SELECT COUNT(*)
+			          FROM CB_OUT_TRANS_D TD
+			         WHERE TD.ORG_ID = #ORGID#
+			           AND TD.COMPANY_ID = #COMPANYID#
+			           AND TD.OUT_PO_NO = #OUTPONO#
+			           AND TD.OUT_PO_SEQ = $OUTPOSEQ$), 0) AS PREVCHK
+			  FROM DUAL
+    </select> 
+    
+    <sql id="prod.outorder.InOut.sql-select">
+      SELECT RANK() OVER(ORDER BY V.ORGID, V.COMPANYID, V.OUTDATE DESC, V.WORKOUTID, V.INDATE, V.WORKINID) AS RN,
+	       ORGID AS ORGID,
+	       COMPANYID AS COMPANYID,
+	       WORKOUTID AS WORKOUTID,
+	       ITEMCODE AS ITEMCODE,
+	       ITEMNAME AS ITEMNAME,
+	       ORDERNAME AS ORDERNAME,
+	       MODEL AS MODEL,
+	       MODELNAME AS MODELNAME,
+	       ITEMSTANDARDDETAIL AS ITEMSTANDARDDETAIL,
+	       OUTTYPE AS OUTTYPE,
+	       OUTTYPENAME AS OUTTYPENAME,
+	       OUTDATE AS OUTDATE,
+	       NVL(OUTQTY,0) AS OUTQTY,
+	       WORKINID AS WORKINID,
+	       INDATE AS INDATE,
+	       NVL(INQTY,0) AS INQTY,
+	       INYN AS INYN
+      FROM CB_WORK_ORDER_INOUT_V V
+    </sql>
+    
+    <sql id="prod.outorder.InOut.Excel-select">
+        SELECT NULL AS RN,
+			      NULL AS ORGID,
+			      NULL AS COMPANYID,
+			      NULL AS WORKOUTID,
+			      NULL AS ITEMCODE,
+			      NULL AS ITEMNAME,
+			      'TOTAL' AS ORDERNAME,
+			      NULL AS MODEL,
+			      NULL AS MODELNAME,
+			      NULL AS ITEMSTANDARDDETAIL,
+			      NULL AS OUTTYPE,
+			      NULL AS OUTTYPENAME,
+			      NULL AS OUTDATE,
+			      NVL(SUM(OUTQTY),0) AS OUTQTY,
+			      NULL AS WORKINID,
+			      NULL AS INDATE,
+			      NVL(SUM(INQTY),0) AS INQTY,
+			      NULL AS INYN
+        FROM CB_WORK_ORDER_INOUT_V V
+    </sql>
+    
+    <sql id="prod.outorder.InOut.sql-where">
+       WHERE OUTQTY != 0 
+        <isNotEmpty property="ORGID" prepend="AND">
+              ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+              COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+              ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+              ITEMNAME  LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="MODELNAME" prepend="AND">
+              MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+              ITEMSTANDARDDETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+         <isNotEmpty property="DATETO">
+          <isNotEmpty property="DATEFROM" prepend="AND">
+             V.OUTDATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>     
+        <isNotEmpty property="INYN" prepend="AND">
+              INYN LIKE '%' || #INYN# || '%'
+        </isNotEmpty>
+        <isEmpty property="INYN" prepend="AND">
+              INYN LIKE '%' || #INYN# || '%'
+        </isEmpty>
+        <isNotEmpty property="OUTTYPENAME" prepend="AND">
+              OUTTYPENAME LIKE '%' || #OUTTYPENAME# || '%'
+        </isNotEmpty>
+        ORDER BY ORGID, COMPANYID, OUTDATE DESC, WORKOUTID, INDATE, WORKINID
+    </sql>
+    
+    <sql id="prod.outorder.InOut.sql-where2">
+        WHERE OUTQTY != 0 
+        <isNotEmpty property="ORGID" prepend="AND">
+              ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+              COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+              ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+              ITEMNAME  LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="MODELNAME" prepend="AND">
+              MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+              ITEMSTANDARDDETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+         <isNotEmpty property="DATETO">
+          <isNotEmpty property="DATEFROM" prepend="AND">
+             V.OUTDATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="INYN" prepend="AND">
+              INYN LIKE '%' || #INYN# || '%'
+        </isNotEmpty>
+        <isEmpty property="INYN" prepend="AND">
+              INYN LIKE '%' || #INYN# || '%'
+        </isEmpty>
+        <isNotEmpty property="OUTTYPENAME" prepend="AND">
+              OUTTYPENAME LIKE '%' || #OUTTYPENAME# || '%'
+        </isNotEmpty>
+    </sql>
+    
+    <select id="prod.outorder.InOut.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+          SELECT COUNT(*) FROM (
+            <include refid="prod.outorder.InOut.sql-select" />
+            <include refid="prod.outorder.InOut.sql-where" />
+          )
+    </select>
+    
+    <select id="prod.outorder.InOut.list" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+            <include refid="prod.outorder.InOut.sql-select" />
+            <include refid="prod.outorder.InOut.sql-where" />
+    </select>
+    
+    <select id="prod.outorder.InOut.Excel.list" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+            <include refid="prod.outorder.InOut.sql-select" />
+            <include refid="prod.outorder.InOut.sql-where2"  />
+            UNION ALL 
+            
+            <include refid="prod.outorder.InOut.Excel-select" />
+            <include refid="prod.outorder.InOut.sql-where2"  />  
+            ORDER BY ORGID, COMPANYID, OUTDATE DESC, WORKOUTID, INDATE, WORKINID         
+    </select>
+    
+    
+</sqlMap>

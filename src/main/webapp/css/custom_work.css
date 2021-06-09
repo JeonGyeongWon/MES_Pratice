@@ -1,0 +1,133 @@
+@CHARSET "EUC-KR";
+/* 현장용 - 콤보박스 */
+.trigger-combobox-custom {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_trigger_normal.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+.trigger-combobox-custom:hover {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_trigger_hover.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+
+.trigger-combobox-custom:active {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_trigger_click.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+
+/* 현장용 - 달력 */
+.trigger-datefield-custom {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_date_trigger_normal.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+.trigger-datefield-custom:hover {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_date_trigger_hover.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+
+.trigger-datefield-custom:active {
+  width: 50px !important;
+  height: auto;
+  border: 0;
+  background: white url( '/FNC/images/btn/btn_date_trigger_click.png' ) no-repeat 0 0; 
+  cursor: pointer;
+}
+
+/* 현장용 - 스크롤바 */
+::-webkit-scrollbar { /* 1 */
+  /*  width: 80px; */
+  height: 50px;
+}
+
+::-webkit-scrollbar-button { /* 2 */
+  /*     width: 30px; */
+  /*     height: 30px; */
+}
+
+::-webkit-scrollbar-track { /* 3 */
+  -webkit-box-shadow: inset 0 0 10px rgba(91, 155, 213, 1);
+  /*  background-color: rgb(241, 241, 241); */
+  background-color: rgb(255, 255, 255);
+  /*    border-radius: 10px; */
+}
+
+::-webkit-scrollbar-track-piece { /* 4 */
+  
+}
+
+::-webkit-scrollbar-thumb { /* 5 */
+  /*    -webkit-box-shadow: inset 0 0 20px rgba(193, 193, 193, 1); */
+  /*  background-color: rgb(193, 193, 193); */
+  background-color: rgb(91, 155, 213);
+  border-radius: 0px 0px 10px 0px;
+  width: 40%;
+}
+
+::-webkit-scrollbar-corner { /* 6 */
+  
+}
+
+::-webkit-resizer { /* 7 */
+  
+}
+
+/* 현장용 - 체크박스 */
+.x-form-checkbox-default {
+  width: 30px;
+  height: 30px;
+  background: url( '/FNC/images/btn/checkbox.png' ) no-repeat
+}
+
+.x-form-cb-checked .x-form-checkbox-default {
+  background-position: 0px -28px;
+}
+
+.x-field-default-form-checkbox-focus {
+  background-position: 0px 0px;
+}
+
+.x-form-cb-checked .x-field-default-form-checkbox-focus {
+  background-position: 0px -30px;
+}
+
+.x-grid-item {
+  border-top: 10 none;
+}
+
+.x-grid-item-selected {
+  background-position: 0 -15px;
+}
+
+.x-grid-cell-inner-checkcolumn {
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+ .x-grid-cell-checkcolumn {
+  width: 30px;
+  height: 30px;
+}
+
+ .x-grid-checkcolumn {
+  width: 30px;
+  height: 30px;
+  background: white url( '/FNC/images/btn/checkbox.png' ) 0 0 no-repeat; 
+}
+
+ .x-grid-checkcolumn-checked {
+  background-position: 0 -30px;
+}

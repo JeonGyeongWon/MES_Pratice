@@ -1,0 +1,2355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="inspprod">
+
+    <parameterMap class="java.util.Map" id="procReCreateParams">
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="procNcrCopyParams">
+        <parameter property="ORGID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="NCRNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="NCRQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="OLDNCRQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="prod.insp.work.order.create.call.Procedure" parameterClass="java.util.Map"  parameterMap="procReCreateParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_MFG_PKG.CB_WORK_ORDER_CREATE_R( ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="prod.insp.ncr.copy.call.Procedure" parameterClass="java.util.Map"  parameterMap="procNcrCopyParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_MFG_PKG.CB_NCR_COPY( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <!-- Dummy Lov 시작 -->
+    <sql id="prod.insp.dummy.month.sql-select">
+        SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS DATEFROM
+                 ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                 ,TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM'), 'YYYY-MM-DD') AS PREDATEFROM
+                 ,TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, -1)), 'YYYY-MM-DD') AS PREDATETO
+                 ,TO_CHAR(SYSDATE, 'YYYY-MM-DD') AS DATESYS
+                 ,TO_CHAR(SYSDATE, 'YYYY-MM') AS DATEMONTH
+                 ,TO_CHAR(DECODE(TO_CHAR(SYSDATE,'d'),1,SYSDATE-2,SYSDATE-1), 'YYYY-MM-DD')AS DATEFROM2
+          FROM DUAL
+    </sql>
+
+    <sql id="prod.insp.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="prod.insp.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.insp.dummy.month.sql-select" />
+        <include refid="prod.insp.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+
+    <sql id="prod.insp.list.sql-select">
+        SELECT RANK() OVER(ORDER BY NCR_NO DESC) AS RN
+                ,ORG_ID AS ORGID
+                ,COMPANY_ID AS COMPANYID
+                ,NCR_NO AS NCRNO
+                ,CREATION_DATE AS CREATIONDATE
+                ,BIG_CODE AS BIGCODE
+                ,BIG_NAME AS BIGNAME
+                ,MODEL AS MODEL
+                ,MODEL_NAME AS MODELNAME
+                ,ITEM_CODE AS ITEMCODE
+                ,ORDER_NAME AS ORDERNAME
+                ,DRAWING_NO AS DRAWINGNO
+                ,ITEM_NAME AS ITEMNAME
+                ,CAR_TYPE AS CARTYPE
+                ,CAR_TYPE_NAME AS CARTYPENAME
+                ,MATERIAL_TYPE AS MATERIALTYPE
+                ,UOM AS UOM
+                ,UOM_NAME AS UOMNAME
+                ,LOT_NO AS LOTNO
+                ,ROUTING_ID AS ROUTINGID
+                ,ROUTING_NAME AS ROUTINGNAME
+                ,EQUIPMENT_NAME AS EQUIPMENTNAME
+                ,WORK_CENTER_CODE AS WORKCENTERCODE
+                ,WORK_EMPLOYEE_NAME AS WORKEMPLOYEENAME
+                ,WORK_EMPLOYEE AS WORKEMPLOYEE
+                ,ROUTING_GROUP AS ROUTINGGROUP
+                ,NCR_IMPUTE AS NCRIMPUTE
+                ,NCR_IMPUTE_NAME AS NCRIMPUTENAME
+                ,NCR_RESULT AS NCRRESULT
+                ,NCR_RESULT_NAME AS NCRRESULTNAME
+                ,PROD_QTY AS PRODQTY
+                ,IMPORT_QTY AS IMPORTQTY
+                ,NCR_QTY AS NCRQTY
+                ,NCR_QTY AS OLDNCRQTY
+                ,EMPLOYEE_SEQ AS EMPLOYEESEQ
+                ,REMARKS AS REMARKS
+                ,WORK_ORDER_ID AS WORKORDERID
+                ,WORK_ORDER_SEQ AS WORKORDERSEQ
+                ,WORK_ORDER_YN AS WORKORDERYN
+                ,NCR_COST AS NCRCOST
+                ,NCR_PRICE AS NCRPRICE
+                ,OUT_TRANS_NO AS OUTTRANSNO
+                ,OUT_TRANS_SEQ AS OUTTRANSSEQ
+                ,ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+          FROM CB_NCR_V
+    </sql>
+
+    <sql id="prod.insp.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="NCRNO" prepend="AND">
+            NCR_NO = #NCRNO#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="MODELNAME" prepend="AND">
+            CAR_TYPE_NAME LIKE '%' || #MODELNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="NCRRESULT" prepend="AND">
+            NCR_RESULT = #NCRRESULT#
+         </isNotEmpty>
+         <isNotEmpty property="FAULTTYPE" prepend="AND">
+            NCR_IMPUTE = #FAULTTYPE#
+         </isNotEmpty>
+         <isNotEmpty property="NCRTO">
+               <isNotEmpty property="NCRFROM" prepend="AND">
+                  CREATION_DATE1 BETWEEN TO_DATE(#NCRFROM#,'YYYY-MM-DD')  AND TO_DATE(#NCRTO#,'YYYY-MM-DD')
+               </isNotEmpty>
+               <isEmpty property="NCRFROM" prepend="AND">
+                  CREATION_DATE1 = TO_DATE(#NCRTO#,'YYYY-MM-DD')
+               </isEmpty>
+         </isNotEmpty>
+         <isEmpty property="NCRTO">
+               <isNotEmpty property="NCRFROM" prepend="AND">
+                  CREATION_DATE1 = TO_DATE(#NCRFROM#,'YYYY-MM-DD')
+               </isNotEmpty>
+         </isEmpty>
+         ORDER BY NCR_NO DESC
+    </sql>
+
+    <select id="prod.insp.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.insp.list.sql-select" />
+        <include refid="prod.insp.list.sql-where" />
+    </select>
+
+    <select id="prod.insp.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.insp.list.sql-select" />
+            <include refid="prod.insp.list.sql-where" />
+        ) TOT
+    </select>
+    
+  <select id="prod.insp.firstlist.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT WORKORDERID AS WORKORDERID, WORKORDERSEQ AS WORKORDERSEQ, EMPLOYEESEQ AS EMPLOYEESEQ FROM (
+      <include refid="prod.insp.list.sql-select" />
+      <include refid="prod.insp.list.sql-where" />
+      )
+      WHERE 1=1
+        AND ROWNUM = 1
+  </select>
+    
+		<sql id="prod.insp.detail.sql-select">
+	      SELECT ROW_NUMBER() OVER(ORDER BY ORG_ID, COMPANY_ID, CHECK_DATE DESC, TO_DATE(CHECK_TIME, 'HH24:MI') DESC, ITEM_NAME, EQUIPMENT_NAME, CHECK_BIG, ORDER_NO) AS RN
+	              ,ORG_ID AS ORGID
+	              ,COMPANY_ID AS COMPANYID
+	              ,FML_ID AS FMLID
+	              ,ORDER_NO AS ORDERNO
+	              ,CHECK_LIST_ID AS CHECKLISTID
+	              ,ITEM_CODE AS ITEMCODE
+	              ,ITEM_NAME AS ITEMNAME
+	              ,ORDER_NAME AS ORDERNAME
+	              ,DRAWING_NO AS DRAWINGNO
+	              ,WORK_ORDER_ID AS WORKORDERID
+	              ,WORK_ORDER_SEQ AS WORKORDERSEQ
+	              ,FML_TYPE AS FMLTYPE
+	              ,FML_TYPE_NAME AS FMLTYPENAME
+	              ,FML_ID AS FMLID
+	              ,CHECK_TYPE_NAME AS CHECKTYPENAME
+	              ,CHECK_DATE CHECKDATE
+	              ,CHECK_START_TIME AS CHECKSTARTTIME
+	              ,CHECK_TIME AS CHECKTIME
+	              ,STANDARD_START_TIME AS STANDARDSTARTTIME
+	              ,STANDARD_END_TIME AS STANDARDENDTIME
+	              ,ROUTING_ID AS ROUTINGID
+	              ,ROUTING_OP AS ROUTINGOP
+	              ,ROUTING_NAME AS ROUTINGNAME
+	              ,EQUIPMENT_CODE AS EQUIPMENTCODE
+	              ,EQUIPMENT_NAME AS EQUIPMENTNAME
+	              ,KR_NAME AS KRNAME
+	              ,CHECK_BIG AS CHECKBIG
+	              ,CHECK_BIG_NAME AS CHECKBIGNAME
+	              ,CHECK_MIDDLE_NAME AS CHECKMIDDLENAME
+	              ,CHECK_SMALL_NAME AS CHECKSMALLNAME
+	              ,SPECIAL_CHECK_NAME AS SPECIALCHECKNAME
+	              ,CHECK_STANDARD AS CHECKSTANDARD
+	              ,STANDARD_VALUE AS STANDARDVALUE
+	              ,MAX_VALUE AS MAXVALUE
+	              ,MIN_VALUE AS MINVALUE
+	              ,CHECK_QTY AS CHECKQTY
+	              ,EMPLOYEE_NUMBER AS EMPLOYEENUMBER
+	              ,EMPLOYEE_NAME AS EMPLOYEENAME
+	              ,CHECK_CYCLE_NAME AS CHECKCYCLENAME
+	              ,CHECK_CYCLE AS CHECKCYCLE
+	              ,CHECK_RESULT1 AS CHECKRESULT1
+	              ,CHECK_RESULT2 AS CHECKRESULT2
+	              ,CHECK_RESULT3 AS CHECKRESULT3
+	              ,CHECK_RESULT4 AS CHECKRESULT4
+	              ,CHECK_RESULT5 AS CHECKRESULT5
+	              ,CHECK_RESULT6 AS CHECKRESULT6
+	              ,CHECK_RESULT7 AS CHECKRESULT7
+	              ,CHECK_RESULT8 AS CHECKRESULT8
+	              ,CHECK_RESULT9 AS CHECKRESULT9
+	              ,CHECK_RESULT10 AS CHECKRESULT10
+	              ,CHECK_RESULT11 AS CHECKRESULT11
+	              ,CHECK_RESULT12 AS CHECKRESULT12
+	              ,CHECK_RESULT13 AS CHECKRESULT13
+	              ,CHECK_RESULT14 AS CHECKRESULT14
+	              ,CHECK_RESULT15 AS CHECKRESULT15
+	              ,CHECK_RESULT16 AS CHECKRESULT16
+	              ,CHECK_RESULT17 AS CHECKRESULT17
+	              ,CHECK_RESULT18 AS CHECKRESULT18
+	              ,CHECK_RESULT19 AS CHECKRESULT19
+	              ,CHECK_RESULT20 AS CHECKRESULT20    
+	              ,CHECK_RESULT21 AS CHECKRESULT21
+	              ,CHECK_RESULT22 AS CHECKRESULT22
+	              ,CHECK_RESULT23 AS CHECKRESULT23
+	              ,CHECK_RESULT24 AS CHECKRESULT24
+	              ,CHECK_RESULT25 AS CHECKRESULT25
+	              ,CHECK_RESULT26 AS CHECKRESULT26
+	              ,CHECK_RESULT27 AS CHECKRESULT27
+	              ,CHECK_RESULT28 AS CHECKRESULT28
+	              ,CHECK_RESULT29 AS CHECKRESULT29
+	              ,CHECK_RESULT30 AS CHECKRESULT30
+	              ,CHECK_RESULT31 AS CHECKRESULT31
+	              ,CHECK_RESULT32 AS CHECKRESULT32
+	              ,CHECK_RESULT33 AS CHECKRESULT33
+	              ,CHECK_RESULT34 AS CHECKRESULT34
+	              ,CHECK_RESULT35 AS CHECKRESULT35
+	              ,CHECK_RESULT36 AS CHECKRESULT36
+	              ,CHECK_RESULT37 AS CHECKRESULT37
+	              ,CHECK_RESULT38 AS CHECKRESULT38
+	              ,CHECK_RESULT39 AS CHECKRESULT39
+	              ,CHECK_RESULT40 AS CHECKRESULT40
+	              ,CHECK_RESULT41 AS CHECKRESULT41
+	              ,CHECK_RESULT42 AS CHECKRESULT42
+	              ,CHECK_RESULT43 AS CHECKRESULT43
+	              ,CHECK_RESULT44 AS CHECKRESULT44
+	              ,CHECK_RESULT45 AS CHECKRESULT45
+	              ,CHECK_RESULT46 AS CHECKRESULT46
+	              ,CHECK_RESULT47 AS CHECKRESULT47
+	              ,CHECK_RESULT48 AS CHECKRESULT48
+	              ,CHECK_RESULT49 AS CHECKRESULT49
+	              ,CHECK_RESULT50 AS CHECKRESULT50
+	              ,CHECK_RESULT_NG1 AS CHECKRESULTNG1
+	              ,CHECK_RESULT_NG2 AS CHECKRESULTNG2
+	              ,CHECK_RESULT_NG3 AS CHECKRESULTNG3
+	              ,CHECK_RESULT_NG4 AS CHECKRESULTNG4
+	              ,CHECK_RESULT_NG5 AS CHECKRESULTNG5
+	              ,CHECK_RESULT_NG6 AS CHECKRESULTNG6
+	              ,CHECK_RESULT_NG7 AS CHECKRESULTNG7
+	              ,CHECK_RESULT_NG8 AS CHECKRESULTNG8
+	              ,CHECK_RESULT_NG9 AS CHECKRESULTNG9
+	              ,CHECK_RESULT_NG10 AS CHECKRESULTNG10
+	              ,CHECK_RESULT_NG11 AS CHECKRESULTNG11
+	              ,CHECK_RESULT_NG12 AS CHECKRESULTNG12
+	              ,CHECK_RESULT_NG13 AS CHECKRESULTNG13
+	              ,CHECK_RESULT_NG14 AS CHECKRESULTNG14
+	              ,CHECK_RESULT_NG15 AS CHECKRESULTNG15
+	              ,CHECK_RESULT_NG16 AS CHECKRESULTNG16
+	              ,CHECK_RESULT_NG17 AS CHECKRESULTNG17
+	              ,CHECK_RESULT_NG18 AS CHECKRESULTNG18
+	              ,CHECK_RESULT_NG19 AS CHECKRESULTNG19
+	              ,CHECK_RESULT_NG20 AS CHECKRESULTNG20    
+	              ,CHECK_RESULT_NG21 AS CHECKRESULTNG21
+	              ,CHECK_RESULT_NG22 AS CHECKRESULTNG22
+	              ,CHECK_RESULT_NG23 AS CHECKRESULTNG23
+	              ,CHECK_RESULT_NG24 AS CHECKRESULTNG24
+	              ,CHECK_RESULT_NG25 AS CHECKRESULTNG25
+	              ,CHECK_RESULT_NG26 AS CHECKRESULTNG26
+	              ,CHECK_RESULT_NG27 AS CHECKRESULTNG27
+	              ,CHECK_RESULT_NG28 AS CHECKRESULTNG28
+	              ,CHECK_RESULT_NG29 AS CHECKRESULTNG29
+	              ,CHECK_RESULT_NG30 AS CHECKRESULTNG30
+	              ,CHECK_RESULT_NG31 AS CHECKRESULTNG31
+	              ,CHECK_RESULT_NG32 AS CHECKRESULTNG32
+	              ,CHECK_RESULT_NG33 AS CHECKRESULTNG33
+	              ,CHECK_RESULT_NG34 AS CHECKRESULTNG34
+	              ,CHECK_RESULT_NG35 AS CHECKRESULTNG35
+	              ,CHECK_RESULT_NG36 AS CHECKRESULTNG36
+	              ,CHECK_RESULT_NG37 AS CHECKRESULTNG37
+	              ,CHECK_RESULT_NG38 AS CHECKRESULTNG38
+	              ,CHECK_RESULT_NG39 AS CHECKRESULTNG39
+	              ,CHECK_RESULT_NG40 AS CHECKRESULTNG40
+	              ,CHECK_RESULT_NG41 AS CHECKRESULTNG41
+	              ,CHECK_RESULT_NG42 AS CHECKRESULTNG42
+	              ,CHECK_RESULT_NG43 AS CHECKRESULTNG43
+	              ,CHECK_RESULT_NG44 AS CHECKRESULTNG44
+	              ,CHECK_RESULT_NG45 AS CHECKRESULTNG45
+	              ,CHECK_RESULT_NG46 AS CHECKRESULTNG46
+	              ,CHECK_RESULT_NG47 AS CHECKRESULTNG47
+	              ,CHECK_RESULT_NG48 AS CHECKRESULTNG48
+	              ,CHECK_RESULT_NG49 AS CHECKRESULTNG49
+	              ,CHECK_RESULT_NG50 AS CHECKRESULTNG50
+	              ,CHECK1 AS CHECK1
+	              ,CHECK2 AS CHECK2
+	              ,CHECK3 AS CHECK3
+	              ,CHECK4 AS CHECK4
+	              ,CHECK5 AS CHECK5
+	              ,CHECK6 AS CHECK6
+	              ,CHECK7 AS CHECK7
+	              ,CHECK8 AS CHECK8
+	              ,CHECK9 AS CHECK9
+	              ,CHECK10 AS CHECK10
+	              ,CHECK11 AS CHECK11
+	              ,CHECK12 AS CHECK12
+	              ,CHECK13 AS CHECK13
+	              ,CHECK14 AS CHECK14
+	              ,CHECK15 AS CHECK15
+	              ,CHECK16 AS CHECK16
+	              ,CHECK17 AS CHECK17
+	              ,CHECK18 AS CHECK18
+	              ,CHECK19 AS CHECK19
+	              ,CHECK20 AS CHECK20    
+	              ,CHECK21 AS CHECK21
+	              ,CHECK22 AS CHECK22
+	              ,CHECK23 AS CHECK23
+	              ,CHECK24 AS CHECK24
+	              ,CHECK25 AS CHECK25
+	              ,CHECK26 AS CHECK26
+	              ,CHECK27 AS CHECK27
+	              ,CHECK28 AS CHECK28
+	              ,CHECK29 AS CHECK29
+	              ,CHECK30 AS CHECK30
+	              ,CHECK31 AS CHECK31
+	              ,CHECK32 AS CHECK32
+	              ,CHECK33 AS CHECK33
+	              ,CHECK34 AS CHECK34
+	              ,CHECK35 AS CHECK35
+	              ,CHECK36 AS CHECK36
+	              ,CHECK37 AS CHECK37
+	              ,CHECK38 AS CHECK38
+	              ,CHECK39 AS CHECK39
+	              ,CHECK40 AS CHECK40
+	              ,CHECK41 AS CHECK41
+	              ,CHECK42 AS CHECK42
+	              ,CHECK43 AS CHECK43
+	              ,CHECK44 AS CHECK44
+	              ,CHECK45 AS CHECK45
+	              ,CHECK46 AS CHECK46
+	              ,CHECK47 AS CHECK47
+	              ,CHECK48 AS CHECK48
+	              ,CHECK49 AS CHECK49
+	              ,CHECK50 AS CHECK50
+	              ,CHECK_TIME1 AS CHECKTIME1
+	              ,CHECK_TIME2 AS CHECKTIME2
+	              ,CHECK_TIME3 AS CHECKTIME3
+	              ,CHECK_TIME4 AS CHECKTIME4
+	              ,CHECK_TIME5 AS CHECKTIME5
+	              ,CHECK_TIME6 AS CHECKTIME6
+	              ,CHECK_TIME7 AS CHECKTIME7
+	              ,CHECK_TIME8 AS CHECKTIME8
+	              ,CHECK_TIME9 AS CHECKTIME9
+	              ,CHECK_TIME10 AS CHECKTIME10
+	              ,CHECK_TIME11 AS CHECKTIME11
+	              ,CHECK_TIME12 AS CHECKTIME12
+	              ,CHECK_TIME13 AS CHECKTIME13
+	              ,CHECK_TIME14 AS CHECKTIME14
+	              ,CHECK_TIME15 AS CHECKTIME15
+	              ,CHECK_TIME16 AS CHECKTIME16
+	              ,CHECK_TIME17 AS CHECKTIME17
+	              ,CHECK_TIME18 AS CHECKTIME18
+	              ,CHECK_TIME19 AS CHECKTIME19
+	              ,CHECK_TIME20 AS CHECKTIME20    
+	              ,CHECK_TIME21 AS CHECKTIME21
+	              ,CHECK_TIME22 AS CHECKTIME22
+	              ,CHECK_TIME23 AS CHECKTIME23
+	              ,CHECK_TIME24 AS CHECKTIME24
+	              ,CHECK_TIME25 AS CHECKTIME25
+	              ,CHECK_TIME26 AS CHECKTIME26
+	              ,CHECK_TIME27 AS CHECKTIME27
+	              ,CHECK_TIME28 AS CHECKTIME28
+	              ,CHECK_TIME29 AS CHECKTIME29
+	              ,CHECK_TIME30 AS CHECKTIME30
+	              ,CHECK_TIME31 AS CHECKTIME31
+	              ,CHECK_TIME32 AS CHECKTIME32
+	              ,CHECK_TIME33 AS CHECKTIME33
+	              ,CHECK_TIME34 AS CHECKTIME34
+	              ,CHECK_TIME35 AS CHECKTIME35
+	              ,CHECK_TIME36 AS CHECKTIME36
+	              ,CHECK_TIME37 AS CHECKTIME37
+	              ,CHECK_TIME38 AS CHECKTIME38
+	              ,CHECK_TIME39 AS CHECKTIME39
+	              ,CHECK_TIME40 AS CHECKTIME40
+	              ,CHECK_TIME41 AS CHECKTIME41
+	              ,CHECK_TIME42 AS CHECKTIME42
+	              ,CHECK_TIME43 AS CHECKTIME43
+	              ,CHECK_TIME44 AS CHECKTIME44
+	              ,CHECK_TIME45 AS CHECKTIME45
+	              ,CHECK_TIME46 AS CHECKTIME46
+	              ,CHECK_TIME47 AS CHECKTIME47
+	              ,CHECK_TIME48 AS CHECKTIME48
+	              ,CHECK_TIME49 AS CHECKTIME49
+	              ,CHECK_TIME50 AS CHECKTIME50   
+	              ,CHECK_YN AS CHECKYN
+	              ,INSPECTION_YN AS INSPECTIONYN
+	              ,(CASE
+	                  WHEN CHECK_QTY = 1 THEN
+	                    CHECK_RESULT1
+	                  WHEN CHECK_QTY = 2 THEN
+	                    (CASE
+	                       WHEN RESULT1 = '합격' THEN
+	                         CHECK_RESULT2
+	                       ELSE
+	                         CHECK_RESULT1
+	                     END)
+	                  WHEN CHECK_QTY = 3 THEN
+	                    (CASE
+	                       WHEN RESULT1 = '합격' THEN
+	                        (CASE
+	                           WHEN RESULT2 = '합격' THEN
+	                             CHECK_RESULT3
+	                           ELSE
+	                             CHECK_RESULT2
+	                         END)
+	                       ELSE
+	                         CHECK_RESULT1
+	                     END)
+	                  WHEN CHECK_QTY = 4 THEN
+	                    (CASE
+	                       WHEN RESULT1 = '합격' THEN
+	                        (CASE
+	                           WHEN RESULT2 = '합격' THEN
+	                             (CASE
+	                               WHEN RESULT3 = '합격' THEN
+	                                 CHECK_RESULT4
+	                               ELSE
+	                                 CHECK_RESULT3
+	                             END)
+	                           ELSE
+	                             CHECK_RESULT2
+	                         END)
+	                       ELSE
+	                         CHECK_RESULT1
+	                     END)
+	                 ELSE
+	                   ''
+	                 END) AS CHECKRESULT
+	              ,TOTAL_RESULT AS TOTALRESULT
+	              ,CHECK_RESULT_M AS CHECKRESULTM
+	              ,MANAGE_EMPLOYEE_NAME AS MANAGEEMPLOYEENAME
+	              ,REMARKS AS REMARKS
+	              ,EMPLOYEE_SEQ AS EMPLOYEESEQ
+	              ,TOTAL_QTY AS TOTALQTY
+	        FROM CB_WORK_ORDER_HISTORY_V
+		</sql>
+		
+		<sql id="prod.insp.detail.sql-where">
+         WHERE 1=1
+           AND CHECK_BIG = 'F'
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="WORKORDERID" prepend="AND">
+            WORK_ORDER_ID = #WORKORDERID#
+         </isNotEmpty>
+         <isNotEmpty property="WORKORDERSEQ" prepend="AND">
+            WORK_ORDER_SEQ = $WORKORDERSEQ$
+         </isNotEmpty>
+         <isNotEmpty property="EMPLOYEESEQ" prepend="AND">
+            EMPLOYEE_SEQ = $EMPLOYEESEQ$
+         </isNotEmpty>
+		</sql>
+		
+		<select id="prod.insp.detail.select" parameterClass="java.util.Map"
+		    resultClass="java.util.HashMap" remapResults="true">
+		    <include refid="prod.insp.detail.sql-select" />
+		    <include refid="prod.insp.detail.sql-where" />
+		</select>
+		
+		<select id="prod.insp.detail.count" parameterClass="java.util.Map"
+		    resultClass="java.lang.Integer" remapResults="true">
+		    SELECT COUNT(*) FROM (
+		        <include refid="prod.insp.detail.sql-select" />
+		        <include refid="prod.insp.detail.sql-where" />
+		    ) TOT
+		</select>
+
+    <!-- 부적합품번호 생성 -->
+    <select id="prod.insp.new.ncrno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'N' || TO_CHAR(SYSDATE, 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS NCRNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(NCR_NO), -3)), 0) AS NUM
+                    FROM CB_NCR
+                   WHERE 1 = 1
+                      AND ORG_ID = #ORGID#
+                      AND COMPANY_ID = #COMPANYID#
+                      AND NCR_NO LIKE 'N' || TO_CHAR(SYSDATE, 'YYMMDD') || '%')
+    </select>
+    <!-- 부적합품번호 생성 끝 -->
+
+   <!-- 부적합품 생성 -->
+   <insert id="prod.insp.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_NCR
+              (ORG_ID
+              ,COMPANY_ID
+              ,ITEM_CODE
+              ,NCR_NO
+        ]]>
+        <isNotEmpty property="NCRIMPUTE" prepend=",">
+               NCR_IMPUTE
+        </isNotEmpty>
+        <isNotEmpty property="NCRRESULT" prepend=",">
+               NCR_RESULT
+        </isNotEmpty>
+        <isNotEmpty property="WORKEMPLOYEE" prepend=",">
+               EMPLOYEE_NUMBER
+        </isNotEmpty>
+        <isNotEmpty property="PRODQTY" prepend=",">
+               PROD_QTY
+        </isNotEmpty>
+        <isNotEmpty property="IMPORTQTY" prepend=",">
+               IMPORT_QTY
+        </isNotEmpty>
+        <isNotEmpty property="NCRQTY" prepend=",">
+               NCR_QTY
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#ITEMCODE#
+              ,#NCRNO#
+        ]]>
+        <isNotEmpty property="NCRIMPUTE" prepend=",">
+               #NCRIMPUTE#
+        </isNotEmpty>
+        <isNotEmpty property="NCRRESULT" prepend=",">
+               #NCRRESULT#
+        </isNotEmpty>
+        <isNotEmpty property="WORKEMPLOYEE" prepend=",">
+               #WORKEMPLOYEE#
+        </isNotEmpty>
+        <isNotEmpty property="PRODQTY" prepend=",">
+               $PRODQTY$
+        </isNotEmpty>
+        <isNotEmpty property="IMPORTQTY" prepend=",">
+               $IMPORTQTY$
+        </isNotEmpty>
+        <isNotEmpty property="NCRQTY" prepend=",">
+               $NCRQTY$
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,NVL(TO_DATE(#CREATIONDATE#, 'YYYY-MM-DD'), SYSDATE)
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 부적합품등록 생성 끝-->
+
+    <!-- 부적합품 등록 수정 -->
+    <update id="prod.insp.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_NCR
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="NCRIMPUTE" prepend=",">
+               NCR_IMPUTE = #NCRIMPUTE#
+        </isNotEmpty>
+        <isEmpty property="NCRIMPUTE" prepend=",">
+               NCR_IMPUTE = NULL
+        </isEmpty>
+        <isNotEmpty property="NCRRESULT" prepend=",">
+               NCR_RESULT = #NCRRESULT#
+        </isNotEmpty>
+        <isEmpty property="NCRRESULT" prepend=",">
+               NCR_RESULT = NULL
+        </isEmpty>
+        <isNotEmpty property="PRODQTY" prepend=",">
+               PROD_QTY = $PRODQTY$
+        </isNotEmpty>
+        <isNotEmpty property="IMPORTQTY" prepend=",">
+               IMPORT_QTY = $IMPORTQTY$
+        </isNotEmpty>
+        <isNotEmpty property="NCRQTY" prepend=",">
+               NCR_QTY = $NCRQTY$
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKEMPLOYEE" prepend=",">
+            EMPLOYEE_NUMBER = #WORKEMPLOYEE#
+        </isNotEmpty>
+        <isEmpty property="WORKEMPLOYEE" prepend=",">
+            EMPLOYEE_NUMBER = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND NCR_NO = #NCRNO#
+        ]]>
+    </update>
+    <!-- 부적합품등록 수정 -->
+
+    <!-- 부적합품등록 삭제 -->
+    <delete id="prod.insp.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_NCR
+         WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND NCR_NO = #NCRNO#
+    </delete>
+    <!-- 부적합품등록 삭제 -->
+
+   <!-- 부적합품등록 그리드에서 item(재고_ Lov 시작 -->
+    <sql id="prod.insp.item.lov.sql-select">
+        SELECT GU
+                 ,ORGID
+                 ,COMPANYID
+                 ,ITEMCODE
+                 ,ITEMNAME
+                 ,ORDERNAME
+                 ,UOM
+                 ,UOMNAME
+                 ,MAT AS MATQTY
+                 ,MRB AS MRBQTY
+                 ,PRC AS PRCQTY
+                 ,SHIP AS SHIPQTY
+                 ,SUB AS SUBQTY
+                 ,SAM AS SAMQTY
+         FROM CB_INV_V CIV
+    </sql>
+
+    <sql id="prod.insp.item.lov.sql-where">
+         WHERE 1 = 1
+           AND CIV.ORGID = #ORGID#
+           AND CIV.COMPANYID = #COMPANYID#
+           AND MRB > 0 
+        <isNotEmpty property="keyword" prepend="AND">
+            <isNotEqual property="keyword" compareValue="%">
+                 (CIV.ITEMCODE LIKE '%'|| #keyword# || '%' 
+                  OR CIV.ITEMNAME LIKE '%'|| #keyword# || '%'
+                  OR CIV.ORDERNAME LIKE '%'|| #keyword# || '%'
+                  )
+            </isNotEqual>
+        </isNotEmpty>
+        ORDER BY CIV.ITEMCODE
+    </sql>
+
+    <select id="prod.insp.item.lov.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+          <include refid="prod.insp.item.lov.sql-select" />
+          <include refid="prod.insp.item.lov.sql-where" />
+    </select>
+
+    <select id="prod.insp.item.lov.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="prod.insp.item.lov.sql-select" />
+        <include refid="prod.insp.item.lov.sql-where" />
+        ) TOT
+    </select>
+    <!-- 부적합품등록 그리드에서 item(재고) Lov 끝 -->
+    
+    <sql id="prod.insp.excellist.sql-select">
+      SELECT ROW_NUMBER() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.CREATIONDATE, AA.MODELNAME, AA.ROUTINGNAME, AA.WORKEMPLOYEENAME, AA.ITEMNAME) RN
+            ,AA.ORGID
+            ,AA.COMPANYID
+            ,AA.CREATIONDATE
+            ,AA.MODELNAME
+            ,AA.ITEMNAME
+            ,AA.ROUTINGNAME
+            ,AA.WORKEMPLOYEENAME
+            ,AA.ITEMSTANDARDDETAIL
+            ,SUM(AA.NCRA) AS NCRA
+            ,SUM(AA.NCRB) AS NCRB
+            ,SUM(AA.NCRC) AS NCRC
+            ,SUM(AA.NCRD) AS NCRD
+            ,SUM(AA.NCRE) AS NCRE
+            ,SUM(AA.NCRF) AS NCRF
+            ,SUM(AA.NCRG) AS NCRG
+            ,SUM(AA.NCRH) AS NCRH
+            ,SUM(AA.NCRI) AS NCRI
+            ,SUM(AA.NCRJ) AS NCRJ
+            ,SUM(AA.NCRK) AS NCRK
+            ,SUM(NCRRESULTA) AS NCRRESULTA
+            ,SUM(NCRRESULTB) AS NCRRESULTB
+            ,SUM(NCRRESULTC) AS NCRRESULTC
+            ,SUM(NCRRESULTD) AS NCRRESULTD
+        FROM(SELECT NV.ORG_ID AS ORGID
+                   ,NV.COMPANY_ID AS COMPANYID
+                   ,TO_CHAR(NV.CREATION_DATE1, 'MM/DD') AS CREATIONDATE
+                   ,NV.MODEL_NAME AS MODELNAME
+                   ,NV.ITEM_NAME AS ITEMNAME
+                   ,NV.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                   ,NV.ROUTING_NAME AS ROUTINGNAME
+                   ,NV.WORK_EMPLOYEE_NAME AS WORKEMPLOYEENAME
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0101', NV.NCR_QTY), 0) AS NCRA
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0102', NV.NCR_QTY), 0) AS NCRB
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0103', NV.NCR_QTY), 0) AS NCRC
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0104', NV.NCR_QTY), 0) AS NCRD
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0105', NV.NCR_QTY), 0) AS NCRE
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0106', NV.NCR_QTY), 0) AS NCRF
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0107', NV.NCR_QTY), 0) AS NCRG
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0108', NV.NCR_QTY), 0) AS NCRH
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0109', NV.NCR_QTY), 0) AS NCRI
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0110', NV.NCR_QTY), 0) AS NCRJ
+                   ,NVL(DECODE(NV.NCR_IMPUTE, '0111', NV.NCR_QTY), 0) AS NCRK
+                   ,NVL(DECODE(NV.NCR_RESULT, 'A', NV.NCR_QTY), 0) AS NCRRESULTA
+                   ,NVL(DECODE(NV.NCR_RESULT, 'B', NV.NCR_QTY), 0) AS NCRRESULTB
+                   ,NVL(DECODE(NV.NCR_RESULT, 'C', NV.NCR_QTY), 0) AS NCRRESULTC
+                   ,NVL(DECODE(NV.NCR_RESULT, 'D', NV.NCR_QTY), 0) AS NCRRESULTD
+               FROM CB_NCR_V NV
+    </sql>
+
+    <sql id="prod.insp.excellist.sql-where">
+             WHERE 1=1
+			         <isNotEmpty property="ORGID" prepend="AND">
+			            NV.ORG_ID = #ORGID#
+			         </isNotEmpty>
+			         <isNotEmpty property="COMPANYID" prepend="AND">
+			            NV.COMPANY_ID = #COMPANYID#
+			         </isNotEmpty>
+			         <isNotEmpty property="FAULTTYPE" prepend="AND">
+			            NCR_IMPUTE = #FAULTTYPE#
+			         </isNotEmpty>
+			         <isNotEmpty property="NCRTO">
+			               <isNotEmpty property="NCRFROM" prepend="AND">
+			                  NV.CREATION_DATE1 BETWEEN TRUNC(TO_DATE(#NCRFROM#, 'YYYY-MM-DD'), 'MM')
+			                  AND LAST_DAY(TO_DATE(#NCRTO#, 'YYYY-MM-DD'))
+			               </isNotEmpty>
+			         </isNotEmpty>
+               <isNotEmpty property="ORDERNAME" prepend="AND">
+                  ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+               </isNotEmpty>
+               <isNotEmpty property="ITEMNAME" prepend="AND">
+                  ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+               </isNotEmpty>
+               <isNotEmpty property="MODELNAME" prepend="AND">
+                  CAR_TYPE_NAME LIKE '%' || #MODELNAME# || '%'
+               </isNotEmpty>
+               )AA
+         GROUP BY AA.ORGID, AA.COMPANYID, AA.CREATIONDATE, AA.MODELNAME, AA.ITEMNAME
+                 ,AA.ROUTINGNAME, AA.WORKEMPLOYEENAME, AA.ITEMSTANDARDDETAIL
+         ORDER BY AA.ORGID, AA.COMPANYID, AA.CREATIONDATE, AA.MODELNAME, AA.ROUTINGNAME
+                      ,AA.WORKEMPLOYEENAME, AA.ITEMNAME
+    </sql>
+
+    <select id="prod.insp.excellist.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.insp.excellist.sql-select" />
+        <include refid="prod.insp.excellist.sql-where" />
+    </select>
+    
+    
+    <!-- 재작업지시 생성 여부 확인 시작 -->
+    <sql id="prod.insp.work.order.find.sql-select">
+      SELECT COUNT(*) AS COUNT
+        FROM CB_NCR_WORK_ORDER
+    </sql>
+
+    <sql id="prod.insp.work.order.find.sql-where">
+       WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="NCRNO" prepend="AND">
+            NCR_NO = #NCRNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="prod.insp.work.order.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.insp.work.order.find.sql-select" />
+        <include refid="prod.insp.work.order.find.sql-where" />
+    </select>
+    <!-- 재작업지시 생성 여부 확인 끝 -->
+    
+   <insert id="prod.insp.work.order.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_NCR_WORK_ORDER
+              (ORG_ID
+							,COMPANY_ID
+							,NCR_NO
+							,ITEM_CODE
+							,NCR_QTY
+							,WORK_ORDER_ID
+							,WORK_ORDER_SEQ
+							,EMPLOYEE_SEQ
+							,EMPLOYEE_NUMBER
+							,WORK_ORDER_ID_NEW
+							,WORK_ORDER_YN
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#NCRNO#
+              ,#ITEMCODE#
+              ,$NCRQTY$
+              ,#WORKORDERID#
+              ,$WORKORDERSEQ$
+              ,$EMPLOYEESEQ$
+              ,#WORKEMPLOYEE#
+              ,NULL
+              ,'N'
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,NVL(TO_DATE(#CREATIONDATE#, 'YYYY-MM-DD'), SYSDATE)
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <!-- 부적합집계 조회 시작 -->
+    <sql id="prod.inc.total.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ORDER_NAME, IM.ITEM_NAME, IM.ITEM_CODE) AS RN
+					      ,IM.ORG_ID AS ORGID
+					      ,IM.COMPANY_ID AS COMPANYID
+					      ,TMP.SEARCH_MONTH AS SEARCH_MONTH
+					      ,IM.ITEM_CODE AS ITEMCODE
+					      ,IM.ORDER_NAME AS ORDERNAME
+					      ,IM.ITEM_NAME AS ITEMNAME
+					      ,IM.CAR_TYPE AS MODEL
+					      ,(SELECT SC.SMALL_NAME
+					          FROM CB_SMALL_CODE SC
+					         WHERE SC.ORG_ID = IM.ORG_ID
+					           AND SC.COMPANY_ID = IM.COMPANY_ID
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'MODEL'
+					           AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+					      ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+					      ,(SELECT CC.CUSTOMER_NAME
+					          FROM CB_CUSTOMER CC
+					         WHERE CC.ORG_ID = IM.ORG_ID
+					           AND CC.COMPANY_ID = IM.COMPANY_ID
+					           AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,NULL
+					                                         ) AS NCRQTY
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,1
+					                                         ) AS NCR01
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,2
+					                                         ) AS NCR02
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,3
+					                                         ) AS NCR03
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,4
+					                                         ) AS NCR04
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,5
+					                                         ) AS NCR05
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,6
+					                                         ) AS NCR06
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,7
+					                                         ) AS NCR07
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,8
+					                                         ) AS NCR08
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,9
+					                                         ) AS NCR09
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,10
+					                                         ) AS NCR10
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,11
+					                                         ) AS NCR11
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,12
+					                                         ) AS NCR12
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,13
+					                                         ) AS NCR13
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,14
+					                                         ) AS NCR14
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,15
+					                                         ) AS NCR15
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,16
+					                                         ) AS NCR16
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,17
+					                                         ) AS NCR17
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,18
+					                                         ) AS NCR18
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,19
+					                                         ) AS NCR19
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,20
+					                                         ) AS NCR20
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,21
+					                                         ) AS NCR21
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,22
+					                                         ) AS NCR22
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,23
+					                                         ) AS NCR23
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,24
+					                                         ) AS NCR24
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(IM.ORG_ID
+					                                        ,IM.COMPANY_ID
+					                                        ,IM.ITEM_CODE
+					                                        ,TMP.ORDER_NAME
+					                                        ,TMP.ITEM_NAME
+					                                        ,TMP.MODEL
+					                                        ,TMP.MODEL_NAME
+					                                        ,TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+					                                        ,LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+					                                        ,25
+					                                         ) AS NCR25
+               ,NULL AS REMARKS
+			  FROM CB_ITEM_MASTER IM
+			      ,(SELECT NVL(#ORGID#, ORG_ID) AS ORG_ID
+			              ,NVL(#COMPANYID#, COMPANY_ID) AS COMPANY_ID
+			              ,#SEARCHMONTH# AS SEARCH_MONTH
+			              ,#ITEMCODE# AS ITEM_CODE
+			              ,#ORDERNAME# AS ORDER_NAME
+			              ,#ITEMNAME# AS ITEM_NAME
+			              ,#MODEL# AS MODEL
+			              ,#MODELNAME# AS MODEL_NAME
+			          FROM CB_ORG_COMPANY_V) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.inc.total.sql-where">
+         WHERE IM.ORG_ID = TMP.ORG_ID
+         AND IM.COMPANY_ID = TMP.COMPANY_ID
+         AND (IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE) IN (SELECT CN.ORG_ID, CN.COMPANY_ID, CN.ITEM_CODE
+                                                            FROM CB_NCR_V CN
+                                                           WHERE CN.ORG_ID = TMP.ORG_ID
+                                                             AND CN.COMPANY_ID = TMP.COMPANY_ID
+                                                             AND TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM') AND LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+                                                             AND CN.ORDER_NAME LIKE '%' || TMP.ORDER_NAME || '%'
+                                                             AND CN.ITEM_NAME LIKE '%' || TMP.ITEM_NAME || '%'
+                                                             AND CN.MODEL_NAME LIKE '%' || TMP.MODEL_NAME || '%'
+                                                             )
+    </sql>
+
+    <select id="prod.inc.total.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.total.sql-select" />
+        <include refid="prod.inc.total.sql-where" />
+    </select>
+
+    <select id="prod.inc.total.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.total.sql-select" />
+            <include refid="prod.inc.total.sql-where" />
+        ) TOT
+    </select>
+    <!-- 부적합 집계 조회 끝 -->
+    
+    
+    <!-- 부적합 집계 Chart 조회 시작 -->
+    <sql id="prod.inc.total.chart.sql-select">
+    <![CDATA[
+          SELECT RN
+						      ,VALUE
+						      ,LABEL
+						      ,CB_QUALITY_PKG.CB_NCR_TOTAL_FIND(LI.ORG_ID
+						                                       ,LI.COMPANY_ID
+						                                       ,LI.ITEM_CODE
+						                                       ,LI.ORDER_NAME
+						                                       ,LI.ITEM_NAME
+						                                       ,LI.MODEL
+						                                       ,LI.MODEL_NAME
+						                                       ,TRUNC(TO_DATE(LI.SEARCH_MONTH, 'YYYY-MM'), 'MM')
+						                                       ,LAST_DAY(TO_DATE(LI.SEARCH_MONTH, 'YYYY-MM'))
+						                                       ,RN
+						                                       ,DECODE(LI.GUBUN
+						                                              ,'TOTAL', 1
+						                                              ,'RATE', 2)
+						                                       ) AS NCRQTY
+				  FROM (
+				        SELECT RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE) AS RN
+					              ,SC.ORG_ID AS ORG_ID
+					              ,SC.COMPANY_ID AS COMPANY_ID
+					              ,SC.SMALL_CODE AS VALUE
+					              ,SC.SMALL_NAME AS LABEL
+					              ,TMP.ITEM_CODE AS ITEM_CODE
+					              ,TMP.ORDER_NAME AS ORDER_NAME
+					              ,TMP.ITEM_NAME AS ITEM_NAME
+					              ,TMP.MODEL AS MODEL
+					              ,TMP.MODEL_NAME AS MODEL_NAME
+					              ,TMP.SEARCH_MONTH AS SEARCH_MONTH
+					              ,TMP.GUBUN AS GUBUN
+				          FROM CB_SMALL_CODE SC
+				             ,(SELECT NVL(#ORGID#, ORG_ID) AS ORG_ID
+				                     ,NVL(#COMPANYID#, COMPANY_ID) AS COMPANY_ID
+				                     ,#SEARCHMONTH# AS SEARCH_MONTH
+				                     ,#ITEMCODE# AS ITEM_CODE
+				                     ,#ORDERNAME# AS ORDER_NAME
+				                     ,#ITEMNAME# AS ITEM_NAME
+				                     ,#MODEL# AS MODEL
+				                     ,#MODELNAME# AS MODEL_NAME
+				                     ,#GUBUN# AS GUBUN
+				                 FROM CB_ORG_COMPANY_V) TMP
+				         WHERE SC.ORG_ID = TMP.ORG_ID
+				           AND SC.COMPANY_ID = TMP.COMPANY_ID
+				           AND SC.BIG_CODE = 'MFG'
+				           AND SC.MIDDLE_CODE = 'FAULT_TYPE'
+				           AND SC.USE_YN = 'Y'
+				        ) LI
+    ]]>
+    </sql>
+
+    <sql id="prod.inc.total.chart.sql-where">
+    <![CDATA[
+         WHERE 1 = 1
+    ]]>
+    </sql>
+
+    <select id="prod.inc.total.chart.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.total.chart.sql-select" />
+        <include refid="prod.inc.total.chart.sql-where" />
+    </select>
+
+    <select id="prod.inc.total.chart.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.total.chart.sql-select" />
+            <include refid="prod.inc.total.chart.sql-where" />
+        ) TOT
+    </select>
+    <!-- 부적합 집계 Chart 조회 끝 -->
+    
+    
+    <sql id="prod.inc.detail.chart.sql-select">
+    <![CDATA[
+          SELECT RN
+                  ,VALUE
+                  ,LABEL
+                  ,CB_QUALITY_PKG.CB_NCR_TOTAL_FIND(LI.ORG_ID
+                                                   ,LI.COMPANY_ID
+                                                   ,LI.ITEM_CODE
+                                                   ,LI.ORDER_NAME
+                                                   ,LI.ITEM_NAME
+                                                   ,LI.MODEL
+                                                   ,LI.MODEL_NAME
+                                                   ,TO_DATE(LI.SEARCHFROM, 'YYYY-MM-DD')
+                                                   ,TO_DATE(LI.SEARCHTO, 'YYYY-MM-DD')
+                                                   ,RN
+                                                   ,DECODE(LI.GUBUN
+                                                          ,'TOTAL', 1
+                                                          ,'RATE', 2)
+                                                   ) AS NCRQTY
+          FROM (
+                SELECT RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE) AS RN
+                        ,SC.ORG_ID AS ORG_ID
+                        ,SC.COMPANY_ID AS COMPANY_ID
+                        ,SC.SMALL_CODE AS VALUE
+                        ,SC.SMALL_NAME AS LABEL
+                        ,TMP.ITEM_CODE AS ITEM_CODE
+                        ,TMP.ORDER_NAME AS ORDER_NAME
+                        ,TMP.ITEM_NAME AS ITEM_NAME
+                        ,TMP.MODEL AS MODEL
+                        ,TMP.MODEL_NAME AS MODEL_NAME
+                        ,TMP.SEARCHFROM AS SEARCHFROM
+                        ,TMP.SEARCHTO AS SEARCHTO
+                        ,TMP.GUBUN AS GUBUN
+                  FROM CB_SMALL_CODE SC
+                     ,(SELECT #ORGID# AS ORG_ID
+                             ,#COMPANYID# AS COMPANY_ID
+                             ,#SEARCHFROM# AS SEARCHFROM
+                             ,#SEARCHTO# AS SEARCHTO
+                             ,#ITEMCODE# AS ITEM_CODE
+                             ,#ORDERNAME# AS ORDER_NAME
+                             ,#ITEMNAME# AS ITEM_NAME
+                             ,#MODEL# AS MODEL
+                             ,#MODELNAME# AS MODEL_NAME
+                             ,#GUBUN# AS GUBUN
+                         FROM DUAL) TMP
+                 WHERE 1=1
+                   AND SC.ORG_ID = TMP.ORG_ID
+                   AND SC.COMPANY_ID = TMP.COMPANY_ID
+                   AND SC.BIG_CODE = 'MFG'
+                   AND SC.MIDDLE_CODE = 'FAULT_TYPE'
+                   AND SC.USE_YN = 'Y'
+                ) LI
+    ]]>
+    </sql>
+
+    <sql id="prod.inc.detail.chart.sql-where">
+    <![CDATA[
+         WHERE 1 = 1
+    ]]>
+    </sql>
+
+    <select id="prod.inc.detail.chart.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.detail.chart.sql-select" />
+        <include refid="prod.inc.detail.chart.sql-where" />
+    </select>
+
+    <select id="prod.inc.detail.chart.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.detail.chart.sql-select" />
+            <include refid="prod.inc.detail.chart.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- 부적합 상세내역 팝업 조회 시작 -->
+    <sql id="prod.inc.detail.popup.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CN.ORG_ID, CN.COMPANY_ID, CN.CREATION_DATE, CN.ORDER_NAME, CN.ITEM_NAME, CN.ITEM_CODE) AS RN
+                ,CN.ORG_ID AS ORGID
+                ,CN.COMPANY_ID AS COMPANYID
+                ,CN.CREATION_DATE AS CREATIONDATE
+                ,CN.ITEM_CODE AS ITEMCODE
+                ,CN.ORDER_NAME AS ORDERNAME
+                ,CN.ITEM_NAME AS ITEMNAME
+                ,CN.MODEL AS MODEL
+                ,CN.MODEL_NAME AS MODELNAME
+                ,CN.CUSTOMER_CODE AS CUSTOMERCODE
+                ,CN.CUSTOMER_NAME AS CUSTOMERNAME
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,NULL
+                                                   ) AS NCRQTY
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,1
+                                                   ) AS NCR01
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,2
+                                                   ) AS NCR02
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,3
+                                                   ) AS NCR03
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,4
+                                                   ) AS NCR04
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,5
+                                                   ) AS NCR05
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,6
+                                                   ) AS NCR06
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,7
+                                                   ) AS NCR07
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,8
+                                                   ) AS NCR08
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,9
+                                                   ) AS NCR09
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,10
+                                                   ) AS NCR10
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,11
+                                                   ) AS NCR11
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,12
+                                                   ) AS NCR12
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,13
+                                                   ) AS NCR13
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,14
+                                                   ) AS NCR14
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,15
+                                                   ) AS NCR15
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,16
+                                                   ) AS NCR16
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,17
+                                                   ) AS NCR17
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,18
+                                                   ) AS NCR18
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,19
+                                                   ) AS NCR19
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,20
+                                                   ) AS NCR20
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,21
+                                                   ) AS NCR21
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,22
+                                                   ) AS NCR22
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,23
+                                                   ) AS NCR23
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,24
+                                                   ) AS NCR24
+                ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+                                                  ,CN.COMPANY_ID
+                                                  ,CN.ITEM_CODE
+                                                  ,CN.ORDER_NAME
+                                                  ,CN.ITEM_NAME
+                                                  ,CN.MODEL
+                                                  ,CN.MODEL_NAME
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+                                                  ,25
+                                                   ) AS NCR25
+        FROM CB_NCR_V CN
+            ,(SELECT #ORGID# AS ORG_ID
+                    ,#COMPANYID# AS COMPANY_ID
+                    ,#SEARCHMONTH# AS SEARCH_MONTH
+                    ,#ITEMCODE# AS ITEM_CODE
+                    ,#ORDERNAME# AS ORDER_NAME
+                    ,#ITEMNAME# AS ITEM_NAME
+                    ,#MODEL# AS MODEL
+                    ,#MODELNAME# AS MODEL_NAME
+                FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.inc.detail.popup.sql-where">
+         WHERE 1 = 1
+           AND CN.ORG_ID = TMP.ORG_ID
+           AND CN.COMPANY_ID = TMP.COMPANY_ID
+           AND TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD') BETWEEN TRUNC(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'), 'MM') AND LAST_DAY(TO_DATE(TMP.SEARCH_MONTH, 'YYYY-MM'))
+           AND CN.ORDER_NAME LIKE '%' || TMP.ORDER_NAME || '%'
+           AND CN.ITEM_NAME LIKE '%' || TMP.ITEM_NAME || '%'
+           AND CN.MODEL_NAME LIKE '%' || TMP.MODEL_NAME || '%'
+         GROUP BY CN.ORG_ID
+                 ,CN.COMPANY_ID
+                 ,CN.CREATION_DATE
+                 ,CN.ITEM_CODE
+                 ,CN.ORDER_NAME
+                 ,CN.ITEM_NAME
+                 ,CN.MODEL
+                 ,CN.MODEL_NAME
+                 ,CN.CUSTOMER_CODE
+                 ,CN.CUSTOMER_NAME
+    </sql>
+
+    <select id="prod.inc.detail.popup.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.detail.popup.sql-select" />
+        <include refid="prod.inc.detail.popup.sql-where" />
+    </select>
+
+    <select id="prod.inc.detail.popup.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.detail.popup.sql-select" />
+            <include refid="prod.inc.detail.popup.sql-where" />
+        ) TOT
+    </select>
+    <!-- 부적합 상세내역 팝업 조회 끝 -->
+    
+    <!-- 부적합 상세내역 조회 시작 -->
+    <sql id="prod.inc.detail.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CN.ORG_ID, CN.COMPANY_ID, CN.CREATION_DATE, CN.ORDER_NAME, CN.ITEM_NAME, CN.ITEM_CODE) AS RN
+					      ,CN.ORG_ID AS ORGID
+					      ,CN.COMPANY_ID AS COMPANYID
+					      ,CN.CREATION_DATE AS CREATIONDATE
+					      ,CN.ITEM_CODE AS ITEMCODE
+					      ,CN.ORDER_NAME AS ORDERNAME
+					      ,CN.ITEM_NAME AS ITEMNAME
+					      ,CN.MODEL AS MODEL
+					      ,CN.MODEL_NAME AS MODELNAME
+					      ,CN.CUSTOMER_CODE AS CUSTOMERCODE
+					      ,CN.CUSTOMER_NAME AS CUSTOMERNAME
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,NULL
+					                                         ) AS NCRQTY
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,1
+					                                         ) AS NCR01
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,2
+					                                         ) AS NCR02
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,3
+					                                         ) AS NCR03
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,4
+					                                         ) AS NCR04
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,5
+					                                         ) AS NCR05
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,6
+					                                         ) AS NCR06
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,7
+					                                         ) AS NCR07
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,8
+					                                         ) AS NCR08
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,9
+					                                         ) AS NCR09
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,10
+					                                         ) AS NCR10
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,11
+					                                         ) AS NCR11
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,12
+					                                         ) AS NCR12
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,13
+					                                         ) AS NCR13
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,14
+					                                         ) AS NCR14
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,15
+					                                         ) AS NCR15
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,16
+					                                         ) AS NCR16
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,17
+					                                         ) AS NCR17
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,18
+					                                         ) AS NCR18
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,19
+					                                         ) AS NCR19
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,20
+					                                         ) AS NCR20
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,21
+					                                         ) AS NCR21
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,22
+					                                         ) AS NCR22
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,23
+					                                         ) AS NCR23
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,24
+					                                         ) AS NCR24
+					      ,CB_QUALITY_PKG.CB_NCR_NUMBER_FIND(CN.ORG_ID
+					                                        ,CN.COMPANY_ID
+					                                        ,CN.ITEM_CODE
+					                                        ,CN.ORDER_NAME
+					                                        ,CN.ITEM_NAME
+					                                        ,CN.MODEL
+					                                        ,CN.MODEL_NAME
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD')
+					                                        ,25
+					                                         ) AS NCR25
+			  FROM CB_NCR_V CN
+			      ,(SELECT #ORGID# AS ORG_ID
+			              ,#COMPANYID# AS COMPANY_ID
+			              ,#SEARCHFROM# AS SEARCH_FROM
+			              ,#SEARCHTO# AS SEARCH_TO
+			              ,#ITEMCODE# AS ITEM_CODE
+			              ,#ORDERNAME# AS ORDER_NAME
+			              ,#ITEMNAME# AS ITEM_NAME
+			              ,#MODEL# AS MODEL
+			              ,#MODELNAME# AS MODEL_NAME
+			          FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.inc.detail.sql-where">
+         WHERE 1 = 1
+				   AND CN.ORG_ID = TMP.ORG_ID
+				   AND CN.COMPANY_ID = TMP.COMPANY_ID
+				   AND TO_DATE(CN.CREATION_DATE, 'YYYY-MM-DD') BETWEEN TO_DATE(TMP.SEARCH_FROM, 'YYYY-MM-DD') AND TO_DATE(TMP.SEARCH_TO, 'YYYY-MM-DD')
+				   AND CN.ORDER_NAME LIKE '%' || TMP.ORDER_NAME || '%'
+				   AND CN.ITEM_NAME LIKE '%' || TMP.ITEM_NAME || '%'
+				   AND CN.MODEL_NAME LIKE '%' || TMP.MODEL_NAME || '%'
+				 GROUP BY CN.ORG_ID
+				         ,CN.COMPANY_ID
+				         ,CN.CREATION_DATE
+				         ,CN.ITEM_CODE
+				         ,CN.ORDER_NAME
+				         ,CN.ITEM_NAME
+				         ,CN.MODEL
+				         ,CN.MODEL_NAME
+				         ,CN.CUSTOMER_CODE
+				         ,CN.CUSTOMER_NAME
+    </sql>
+
+    <select id="prod.inc.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.detail.sql-select" />
+        <include refid="prod.inc.detail.sql-where" />
+    </select>
+
+    <select id="prod.inc.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.detail.sql-select" />
+            <include refid="prod.inc.detail.sql-where" />
+        ) TOT
+    </select>
+    <!-- 부적합 상세내역 조회 끝 -->
+    
+    <!-- 불량현황 시작 -->
+    <sql id="prod.inc.fault.kpi.sql-select">
+      SELECT LEVEL || '월' AS MONTHTITLE
+             ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 2)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'PROD'
+                                                            ,'N') AS PRODY2
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 2)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'FAULT'
+                                                            ,'N') AS FAULTY2
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 2)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'RATE'
+                                                            ,'N') AS RATEY2
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 1)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'PROD'
+                                                            ,'N') AS PRODY1
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 1)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'FAULT'
+                                                            ,'N') AS FAULTY1
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 1)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'RATE'
+                                                            ,'N') AS RATEY1
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 0)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'PROD'
+                                                            ,'N') AS PRODY0
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 0)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'FAULT'
+                                                            ,'N') AS FAULTY0
+            ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                            ,TP.COMPANYID
+                                                            ,(TP.YYYY - 0)||'-'||DECODE(LENGTH(LEVEL), 1, '0'||LEVEL, LEVEL)
+                                                            ,TP.CUSTOMERNAME
+                                                            ,TP.ORDERNAME
+                                                            ,TP.ITEMNAME
+                                                            ,TP.CARTYPENAME
+                                                            ,TP.ROUTINGNAME
+                                                            ,'RATE'
+                                                            ,'N') AS RATEY0
+        FROM DUAL
+            ,(SELECT $COMPANYID$ AS ORGID
+                    ,$ORGID$ AS COMPANYID
+                    ,TO_NUMBER(#DATEYEAR#) AS YYYY
+                    ,#CUSTOMERNAME# AS CUSTOMERNAME
+                    ,#ORDERNAME# AS ORDERNAME
+                    ,#ITEMNAME# AS ITEMNAME
+                    ,#CARTYPENAME# AS CARTYPENAME
+                    ,#ROUTINGNAME# AS ROUTINGNAME 
+                FROM DUAL)TP
+        CONNECT BY LEVEL <![CDATA[ <= ]]> 12
+    </sql>
+
+    <select id="prod.inc.fault.kpi.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.fault.kpi.sql-select" />
+    </select>
+
+    <select id="prod.inc.fault.kpi.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.fault.kpi.sql-select" />
+        ) TOT
+    </select>    
+    
+    <sql id="prod.inc.fault.list.sql-select">
+        SELECT DECODE(LAG(TP.YYYY - AA.LV) OVER (ORDER BY (TP.YYYY - AA.LV)), (TP.YYYY - AA.LV), '', DENSE_RANK() OVER(ORDER BY (TP.YYYY - AA.LV))) AS RN
+              ,DECODE(LAG(TP.YYYY - AA.LV) OVER (ORDER BY (TP.YYYY - AA.LV)), (TP.YYYY - AA.LV), '', (TP.YYYY - AA.LV)) AS YYYY
+              ,GUBUNCODE AS GUBUNCODE
+              ,GUBUNNAME AS GUBUNNAME
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-01'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY01
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-02'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY02
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-03'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY03
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-04'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY04
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-05'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY05
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-06'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY06
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-07'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY07
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-08'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY08
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-09'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY09
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-10'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY10
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-11'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY11
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-12'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'N') AS MONTHQTY12
+              ,CB_COMMON_STANDARD_PKG.CB_FAULT_STATUS_KPI_LIST(TP.ORGID
+                                                              ,TP.COMPANYID
+                                                              ,(TP.YYYY - AA.LV) || '-01'
+                                                              ,TP.CUSTOMERNAME
+                                                              ,TP.ORDERNAME
+                                                              ,TP.ITEMNAME
+                                                              ,TP.CARTYPENAME
+                                                              ,TP.ROUTINGNAME
+                                                              ,AA.GUBUNCODE
+                                                              ,'Y') AS TOTALMONTHQTY
+          FROM (SELECT LEVEL AS ORDERLV
+                      ,DECODE(LEVEL, 1, 2, 2, 2, 3, 2, 4, 1, 5, 1, 6, 1, 7, 0, 8, 0, 9, 0) AS LV
+                      ,DECODE(LEVEL, 1, 'PROD', 2, 'FAULT', 3, 'RATE', 4, 'PROD', 5, 'FAULT', 6, 'RATE', 7, 'PROD', 8, 'FAULT', 9, 'RATE') AS GUBUNCODE
+                      ,DECODE(LEVEL, 1, '생산수량', 2, '불량수량', 3, '불량율', 4, '생산수량', 5, '불량수량', 6, '불량율', 7, '생산수량', 8, '불량수량', 9, '불량율') AS GUBUNNAME
+                  FROM DUAL
+                  CONNECT BY LEVEL <![CDATA[ <= ]]> 9)AA
+            ,(SELECT $COMPANYID$ AS ORGID
+                    ,$ORGID$ AS COMPANYID
+                    ,TO_NUMBER(#DATEYEAR#) AS YYYY
+                    ,#CUSTOMERNAME# AS CUSTOMERNAME
+                    ,#ORDERNAME# AS ORDERNAME
+                    ,#ITEMNAME# AS ITEMNAME
+                    ,#CARTYPENAME# AS CARTYPENAME
+                    ,#ROUTINGNAME# AS ROUTINGNAME 
+                FROM DUAL)TP
+    </sql>
+
+    <select id="prod.inc.fault.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.inc.fault.list.sql-select" />
+    </select>
+
+    <select id="prod.inc.fault.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.inc.fault.list.sql-select" />
+        ) TOT
+    </select>
+    <!-- 불량현황 끝 -->
+</sqlMap>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="close">
+    <parameterMap class="java.util.Map" id="procCloseParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="STANDARDMONTH" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="close.monthly.manage.call.Procedure" parameterClass="java.util.Map"  parameterMap="procCloseParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_CLOSE_PKG.CB_CLOSE_MONYHLY_MANAGE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    
+  <sql id="close.dummy.month.sql-select">
+      SELECT TO_CHAR(TRUNC(SYSDATE, 'YYYY'), 'YYYY-MM') AS DATEFROM
+               ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), 12) - 1, 'YYYY-MM') AS DATETO
+        FROM DUAL
+  </sql>
+
+  <sql id="close.dummy.month.sql-where">
+       WHERE 1 = 1
+  </sql>
+
+  <select id="close.dummy.month.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      <include refid="close.dummy.month.sql-select" />
+      <include refid="close.dummy.month.sql-where" />
+  </select>
+  
+  <sql id="close.monthly.list.sql-select">
+  <![CDATA[
+   SELECT RANK() OVER(ORDER BY CC.STANDARD_MONTH) AS RN
+			    ,CC.ORG_ID AS ORGID
+			    ,CC.COMPANY_ID AS COMPANYID
+			    ,TO_CHAR(CC.STANDARD_MONTH, 'YYYY-MM') AS YYYYMM
+			    ,TO_CHAR(CC.STANDARD_MONTH, 'YYYY-MM-DD') AS STANDARDMONTH
+			    ,NVL2(MC.OM_CLOSE, 'TRUE', NULL) AS OMCLOSE
+			    ,NVL2(MC.PM_CLOSE, 'TRUE', NULL) AS PMCLOSE
+			    ,NVL2(MC.MFG_CLOSE, 'TRUE', NULL) AS MFGCLOSE
+			    ,NVL2(MC.OP_CLOSE, 'TRUE', NULL) AS OPCLOSE
+			    ,MC.REMARKS AS REMARKS
+		FROM CB_MONTH_CLOSE MC
+			    ,(SELECT TMP.ORG_ID
+				            ,TMP.COMPANY_ID
+				            ,ADD_MONTHS(TMP.SEARCH_FROM, (LEVEL - 1)) AS STANDARD_MONTH
+		        FROM (SELECT #ORGID# AS ORG_ID
+					                    ,#COMPANYID# AS COMPANY_ID
+					                    ,TO_DATE(#SEARCHFROM#, 'YYYY-MM') AS SEARCH_FROM
+					                    ,TO_DATE(#SEARCHTO#, 'YYYY-MM') AS SEARCH_TO
+			                FROM DUAL) TMP
+			      CONNECT BY LEVEL <= MONTHS_BETWEEN(TMP.SEARCH_TO, TMP.SEARCH_FROM) + 1) CC
+  ]]>
+  </sql>
+
+  <sql id="close.monthly.list.sql-where">
+	 WHERE MC.ORG_ID (+) = CC.ORG_ID
+	   AND MC.COMPANY_ID (+) = CC.COMPANY_ID
+	   AND MC.STANDARD_MONTH (+) = CC.STANDARD_MONTH
+  </sql>
+
+  <select id="close.monthly.list.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+         <include refid="close.monthly.list.sql-select" />
+         <include refid="close.monthly.list.sql-where" />
+  </select>
+
+  <select id="close.monthly.list.count" parameterClass="java.util.Map"
+      resultClass="java.lang.Integer">
+      SELECT COUNT(*) FROM (
+          <include refid="close.monthly.list.sql-select" />
+          <include refid="close.monthly.list.sql-where" />
+      ) TOT
+  </select>
+  
+  
+  <sql id="close.monthly.list.find.sql-select">
+      SELECT COUNT(MC.STANDARD_MONTH) AS COUNT
+        FROM CB_MONTH_CLOSE MC
+  </sql>
+
+  <sql id="close.monthly.list.find.sql-where">
+       WHERE MC.ORG_ID = #ORGID#
+          AND MC.COMPANY_ID = #COMPANYID#
+          AND MC.STANDARD_MONTH = TO_DATE(#STANDARDMONTH#, 'YYYY-MM-DD')
+  </sql>
+
+  <select id="close.monthly.list.find.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      <include refid="close.monthly.list.find.sql-select" />
+      <include refid="close.monthly.list.find.sql-where" />
+  </select>
+  
+  <insert id="close.monthly.list.insert" parameterClass="java.util.Map">
+      <![CDATA[
+          INSERT INTO CB_MONTH_CLOSE (
+             ORG_ID
+						,COMPANY_ID
+						,STANDARD_MONTH
+      ]]>
+      <isNotEmpty property="OMCLOSE" prepend=",">
+             OM_CLOSE
+      </isNotEmpty>
+      <isNotEmpty property="PMCLOSE" prepend=",">
+             PM_CLOSE
+      </isNotEmpty>
+      <isNotEmpty property="MFGCLOSE" prepend=",">
+             MFG_CLOSE
+      </isNotEmpty>
+      <isNotEmpty property="OPCLOSE" prepend=",">
+             OP_CLOSE
+      </isNotEmpty>
+      <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS
+      </isNotEmpty>
+      <![CDATA[
+             ,CREATION_DATE
+             ,CREATED_BY
+             ,LAST_UPDATE_DATE
+             ,LAST_UPDATED_BY
+             )
+          VALUES (
+            $ORGID$
+            ,$COMPANYID$
+            ,TO_DATE(#STANDARDMONTH#, 'YYYY-MM-DD')
+      ]]>
+      <isNotEmpty property="OMCLOSE" >
+	      <isEqual property="OMCLOSE" compareValue="true" prepend=",">
+	        'Y'
+	      </isEqual>
+        <isEqual property="OMCLOSE" compareValue="false" prepend=",">
+          NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="PMCLOSE" >
+        <isEqual property="PMCLOSE" compareValue="true" prepend=",">
+          'Y'
+        </isEqual>
+        <isEqual property="PMCLOSE" compareValue="false" prepend=",">
+          NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="MFGCLOSE" >
+        <isEqual property="MFGCLOSE" compareValue="true" prepend=",">
+          'Y'
+        </isEqual>
+        <isEqual property="MFGCLOSE" compareValue="false" prepend=",">
+          NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="OPCLOSE" >
+        <isEqual property="OPCLOSE" compareValue="true" prepend=",">
+          'Y'
+        </isEqual>
+        <isEqual property="OPCLOSE" compareValue="false" prepend=",">
+          NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="REMARKS" prepend=",">
+             #REMARKS#
+      </isNotEmpty>
+      <![CDATA[
+             ,SYSDATE
+             ,#REGISTID#
+             ,SYSDATE
+             ,#REGISTID#
+             )
+      ]]>
+  </insert>
+
+  <update id="close.monthly.list.update" parameterClass="java.util.Map">
+      <![CDATA[
+      UPDATE CB_MONTH_CLOSE
+         SET LAST_UPDATED_BY  = #UPDATEID#
+             , LAST_UPDATE_DATE = SYSDATE
+             
+      ]]>
+      <isNotEmpty property="OMCLOSE" >
+        <isEqual property="OMCLOSE" compareValue="true" prepend=",">
+          OM_CLOSE = 'Y'
+        </isEqual>
+        <isEqual property="OMCLOSE" compareValue="false" prepend=",">
+          OM_CLOSE = NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="PMCLOSE" >
+        <isEqual property="PMCLOSE" compareValue="true" prepend=",">
+          PM_CLOSE = 'Y'
+        </isEqual>
+        <isEqual property="PMCLOSE" compareValue="false" prepend=",">
+          PM_CLOSE = NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="MFGCLOSE" >
+        <isEqual property="MFGCLOSE" compareValue="true" prepend=",">
+          MFG_CLOSE = 'Y'
+        </isEqual>
+        <isEqual property="MFGCLOSE" compareValue="false" prepend=",">
+          MFG_CLOSE = NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="OPCLOSE" >
+        <isEqual property="OPCLOSE" compareValue="true" prepend=",">
+          OP_CLOSE = 'Y'
+        </isEqual>
+        <isEqual property="OPCLOSE" compareValue="false" prepend=",">
+          OP_CLOSE = NULL
+        </isEqual>
+      </isNotEmpty>
+      <isNotEmpty property="REMARKS" prepend=",">
+             REMARKS = #REMARKS#
+      </isNotEmpty>
+      <isEmpty property="REMARKS" prepend=",">
+             REMARKS = NULL
+      </isEmpty>
+      <![CDATA[
+       WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND STANDARD_MONTH = TO_DATE(#STANDARDMONTH#, 'YYYY-MM-DD')
+      ]]>
+  </update>
+  
+</sqlMap>

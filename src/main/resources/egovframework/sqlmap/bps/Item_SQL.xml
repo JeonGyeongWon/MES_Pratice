@@ -1,0 +1,2307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="item">
+    <parameterMap class="java.util.Map" id="procItemPriceParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="EFFECTIVESTARTDATE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="item.master.price.change.call.Procedure" parameterClass="java.util.Map"  parameterMap="procItemPriceParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_COMMON_STANDARD_PKG.CB_SALES_PRICE_CHANGE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <sql id="item.bigclass.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, BIG_CODE) AS RN,
+             ORG_ID AS ORGID,
+             COMPANY_ID AS COMPANYID,
+             GROUP_CODE AS GROUPCODE,
+             BIG_CODE AS BIGCODE,
+             BIG_NAME AS BIGNAME,
+             REMARKS AS REMARKS,
+             USE_YN AS USEYN,
+             CREATED_BY AS REGISTID,
+             TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS REGISTDT,
+             LAST_UPDATED_BY AS UPDATEID,
+             TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS UPDATEDT
+      FROM CB_BIG_CLASS
+    </sql>
+
+    <sql id="item.bigclass.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+        <isNotEmpty property="groupcode" prepend="AND">
+            GROUP_CODE = #groupcode#
+        </isNotEmpty>
+        ORDER BY ORG_ID, COMPANY_ID, BIG_CODE
+    </sql>
+
+    <select id="item.bigclass.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="item.bigclass.sql-select" />
+        <include refid="item.bigclass.sql-where" />
+    </select>
+
+    <select id="item.bigclass.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.bigclass.sql-select" />
+            <include refid="item.bigclass.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="item.bigclass.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, GROUPCODE, BIGCODE
+         FROM (
+            <include refid="item.bigclass.sql-select" />
+            <include refid="item.bigclass.sql-where" />
+        )
+        WHERE 1=1
+          AND RN = 1
+    </select>
+    
+    <insert id="item.bigclass.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_BIG_CLASS
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,BIG_NAME
+            ,REMARKS
+            ,USE_YN
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#BIGNAME#
+            ,#REMARKS#
+            ,#USEYN#
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.bigclass.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_BIG_CLASS
+       SET BIG_NAME         = #BIGNAME#,
+            REMARKS          = #REMARKS#,
+            USE_YN           = #USEYN#,
+            LAST_UPDATE_DATE = SYSDATE,
+            LAST_UPDATED_BY  = #UPDATEID#
+     WHERE 1=1
+        AND ORG_ID = #ORGID#
+        AND COMPANY_ID = #COMPANYID#
+        AND GROUP_CODE = #GROUPCODE# 
+        AND BIG_CODE = #BIGCODE#
+    ]]>
+    </update>
+    
+    <sql id="item.middleclass.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, BIG_CODE, MIDDLE_CODE) AS RN,
+             ORG_ID AS ORGID,
+             COMPANY_ID AS COMPANYID,
+             GROUP_CODE AS GROUPCODE,
+             BIG_CODE AS BIGCODE,
+             MIDDLE_CODE AS MIDDLECODE,
+             MIDDLE_NAME AS MIDDLENAME,
+             REMARKS AS REMARKS,
+             USE_YN AS USEYN,
+             CREATED_BY AS REGISTID,
+             TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS REGISTDT,
+             LAST_UPDATED_BY AS UPDATEID,
+             TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS UPDATEDT
+      FROM CB_MIDDLE_CLASS
+    </sql>
+
+    <sql id="item.middleclass.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+        <isNotEmpty property="groupcode" prepend="AND">
+            GROUP_CODE = #groupcode#
+        </isNotEmpty>
+        <isNotEmpty property="bigcode" prepend="AND">
+            BIG_CODE = #bigcode#
+        </isNotEmpty>
+       ORDER BY ORG_ID, COMPANY_ID, BIG_CODE, MIDDLE_CODE
+    </sql>
+
+    <select id="item.middleclass.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.middleclass.sql-select" />
+           <include refid="item.middleclass.sql-where" />
+    </select>
+
+    <select id="item.middleclass.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.middleclass.sql-select" />
+            <include refid="item.middleclass.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="item.middleclass.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, GROUPCODE, BIGCODE, MIDDLECODE
+         FROM (
+           <include refid="item.middleclass.sql-select" />
+           <include refid="item.middleclass.sql-where" />
+        )
+        WHERE 1=1
+          AND RN = 1
+    </select>
+    
+    <insert id="item.middleclass.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_MIDDLE_CLASS
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,MIDDLE_NAME
+            ,REMARKS
+            ,USE_YN
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#MIDDLECODE#
+            ,#MIDDLENAME#
+            ,#REMARKS#
+            ,#USEYN#
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.middleclass.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_MIDDLE_CLASS
+       SET LAST_UPDATE_DATE = SYSDATE,
+            LAST_UPDATED_BY  = #UPDATEID#,
+            MIDDLE_NAME      = #MIDDLENAME#,
+            REMARKS          = #REMARKS#,
+            USE_YN           = #USEYN#
+     WHERE 1=1
+        AND ORG_ID = #ORGID#
+        AND COMPANY_ID = #COMPANYID#
+        AND GROUP_CODE = #GROUPCODE# 
+        AND BIG_CODE = #BIGCODE#
+        AND MIDDLE_CODE = #MIDDLECODE#
+    ]]>
+    </update>
+    
+    <sql id="item.smallclass.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, BIG_CODE, MIDDLE_CODE, SMALL_CODE) AS RN,
+                 ORG_ID AS ORGID,
+                 COMPANY_ID AS COMPANYID,
+                 GROUP_CODE AS GROUPCODE,
+                 BIG_CODE AS BIGCODE,
+                 MIDDLE_CODE AS MIDDLECODE,
+                 SMALL_CODE AS SMALLCODE,
+                 SMALL_NAME AS SMALLNAME,
+                 REMARKS AS REMARKS,
+                 USE_YN AS USEYN,
+                 CREATED_BY AS REGISTID,
+                 TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS REGISTDT,
+                 LAST_UPDATED_BY AS UPDATEID,
+                 TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS UPDATEDT
+          FROM CB_SMALL_CLASS
+    </sql>
+
+    <sql id="item.smallclass.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+        <isNotEmpty property="groupcode" prepend="AND">
+            GROUP_CODE = #groupcode#
+        </isNotEmpty>
+        <isNotEmpty property="bigcode" prepend="AND">
+            BIG_CODE = #bigcode#
+        </isNotEmpty>
+        <isNotEmpty property="middlecode" prepend="AND">
+            MIDDLE_CODE = #middlecode#
+        </isNotEmpty>
+       ORDER BY ORG_ID, COMPANY_ID, BIG_CODE, MIDDLE_CODE, SMALL_CODE
+    </sql>
+
+    <select id="item.smallclass.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.smallclass.sql-select" />
+           <include refid="item.smallclass.sql-where" />
+    </select>
+
+    <select id="item.smallclass.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.smallclass.sql-select" />
+            <include refid="item.smallclass.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="item.smallclass.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, GROUPCODE, BIGCODE, MIDDLECODE, SMALLCODE FROM (
+           <include refid="item.smallclass.sql-select" />
+           <include refid="item.smallclass.sql-where" />
+        )
+        WHERE 1=1
+          AND RN = 1
+    </select>
+    
+    <insert id="item.smallclass.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_SMALL_CLASS
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,SMALL_CODE
+            ,SMALL_NAME
+            ,REMARKS
+            ,USE_YN
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#MIDDLECODE#
+            ,#SMALLCODE#
+            ,#SMALLNAME#
+            ,#REMARKS#
+            ,#USEYN#
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.smallclass.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_SMALL_CLASS
+           SET LAST_UPDATE_DATE = SYSDATE,
+                LAST_UPDATED_BY  = #UPDATEID#,
+                SMALL_NAME      = #SMALLNAME#,
+                REMARKS          = #REMARKS#,
+                USE_YN           = #USEYN#
+       WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND GROUP_CODE = #GROUPCODE# 
+          AND BIG_CODE = #BIGCODE#
+          AND MIDDLE_CODE = #MIDDLECODE#
+          AND SMALL_CODE = #SMALLCODE#
+    ]]>
+    </update>
+    
+    <!-- ITEM 제품 -->
+    <sql id="item.master.product.sql-select">
+       SELECT RANK() OVER(ORDER BY IM.ORG_ID
+                                               ,IM.COMPANY_ID
+                                               ,IM.GROUP_CODE
+                                               ,IM.BIG_CODE
+                                               ,IM.MIDDLE_CODE
+                                               ,IM.SMALL_CODE
+                                               ,IM.ITEM_CODE) AS RN
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.ITEM_TYPE AS ITEMTYPE
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                     AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+                ,IM.GROUP_CODE AS GROUPCODE
+                ,IM.BIG_CODE AS BIGCODE
+                ,IM.MIDDLE_CODE AS MIDDLECODE
+                ,IM.SMALL_CODE AS SMALLCODE
+                ,IM.ITEM_CODE AS ITEMCODE
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.DRAWING_NO AS DRAWINGNO
+                ,IM.ITEM_NAME_K AS KORITEMNAME
+                ,IM.WEIGHT AS WEIGHT
+                ,IM.CAR_TYPE AS MODEL
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'MODEL'
+                     AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+                ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,IM.THICK AS THICK
+                ,IM.WIDTH AS WIDTH
+                ,IM.PITCH AS PITCH
+                ,IM.SPECIFIC_GRAVITY AS SPECIFICGRAVITY
+                ,IM.UNIT_WEIGHT AS UNITWEIGHT
+                ,IM.WEIGHT AS WEIGHT
+                ,IM.USE_RATE AS USERATE
+                ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE CC.ORG_ID = IM.ORG_ID
+                     AND CC.COMPANY_ID = IM.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,IM.UOM AS UOM
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+                ,IM.BOX_CNT AS BOXCNT
+                ,IM.PROCESS_INSPECTION_YN AS PROCESSINSPECTIONYN
+                ,IM.SHIPMENT_INSPECTION_YN AS SHIPMENTINSPECTIONYN
+                ,IM.MAKE_TYPE AS MAKETYPE
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'MAKE_TYPE'
+                     AND SC.SMALL_CODE = IM.MAKE_TYPE) AS MAKETYPENAME           
+                ,IM.UNIT_COST AS UNITCOST
+                ,IM.UNIT_COST_DETAIL AS UNITCOSTDETAIL
+                ,IM.MATERIAL_COST AS MATERIALCOST
+                ,IM.REMARKS AS REMARKS
+                ,TO_CHAR(IM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+                ,TO_CHAR(IM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+                ,IM.USE_YN AS USEYN
+                ,IM.ITEM_STANDARD AS ITEMSTANDARD
+                ,IM.DRAWING_REV AS DRAWINGREV
+                ,TO_CHAR(IM.DRAWING_DATE, 'YYYY-MM-DD') AS DRAWINGDATE
+                ,IM.MANAGEMENT_NUMBER AS MANAGEMENTNUMBER
+                ,IM.LABEL AS LABEL
+                ,(SELECT SC.SMALL_NAME
+			              FROM CB_SMALL_CODE SC
+			             WHERE SC.ORG_ID = IM.ORG_ID
+			               AND SC.COMPANY_ID = IM.COMPANY_ID
+			               AND SC.BIG_CODE = 'OM'
+			               AND SC.MIDDLE_CODE ='SHIPPING_ITEM_GROUP'
+			               AND SC.SMALL_CODE = IM.LABEL) AS LABELTEXT
+			          ,IM.SORT_ORDER AS SORTORDER
+        FROM CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="item.master.product.sql-where">
+        WHERE 1=1
+<!--            AND SYSDATE BETWEEN NVL(IM.EFFECTIVE_START_DATE, SYSDATE) AND NVL(IM.EFFECTIVE_END_DATE, SYSDATE) -->
+        <isNotEmpty property="orgid" prepend="AND">
+            IM.ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            IM.COMPANY_ID = #companyid#
+        </isNotEmpty>
+        <isNotEmpty property="groupcode" prepend="AND">
+            IM.GROUP_CODE = #groupcode#
+        </isNotEmpty>
+        <isNotEmpty property="bigcode" prepend="AND">
+            IM.BIG_CODE = #bigcode#
+        </isNotEmpty>
+        <isNotEmpty property="middlecode" prepend="AND">
+            IM.MIDDLE_CODE = #middlecode#
+        </isNotEmpty>
+        <isNotEmpty property="smallcode" prepend="AND">
+            IM.SMALL_CODE = #smallcode#
+        </isNotEmpty>
+        <isNotEmpty property="itemcode" prepend="AND">
+            IM.ITEM_CODE = #itemcode#
+        </isNotEmpty>
+        <isNotEmpty property="modelname" prepend="AND">
+            IM.CAR_TYPE IN  (SELECT SC.SMALL_CODE
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'MODEL'
+                     AND SC.SMALL_NAME LIKE '%'||#modelname#||'%')
+        </isNotEmpty>
+    </sql>
+
+    <select id="item.master.product.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.master.product.sql-select" />
+           <include refid="item.master.product.sql-where" />
+           ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.GROUP_CODE, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE
+    </select>
+
+    <select id="item.master.product.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.master.product.sql-select" />
+            <include refid="item.master.product.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- 품목코드 생성 시작 -->
+    <select id="item.master.new.itemcode.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #GROUPCODE# || #BIGCODE# || #MIDDLECODE# || #SMALLCODE# || 
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('000')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 99 AND 998 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS ITEMCODE
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(ITEM_CODE), -4)), 0) AS NUM
+                  FROM CB_ITEM_MASTER
+                 WHERE 1=1
+                   AND ORG_ID = #ORGID#
+                   AND COMPANY_ID = #COMPANYID#
+                   AND GROUP_CODE = #GROUPCODE#
+                   AND ITEM_CODE LIKE #GROUPCODE# || #BIGCODE# || #MIDDLECODE# || #SMALLCODE# || '%'
+                )
+    </select>
+    <!-- 품목코드 생성 끝-->
+    
+    
+    <insert id="item.master.product.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_ITEM_MASTER
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,SMALL_CODE
+            ,ITEM_CODE
+            ,ITEM_NAME
+            ,UOM
+            ,EFFECTIVE_START_DATE
+            ,EFFECTIVE_END_DATE
+            ,USE_YN
+        ]]>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend=",">
+            ITEM_STANDARD_DETAIL
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGNO" prepend=",">
+            DRAWING_NO
+        </isNotEmpty>
+        <isNotEmpty property="KORITEMNAME" prepend=",">
+            ITEM_NAME_K
+        </isNotEmpty>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="MODEL" prepend=",">
+            CAR_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            THICK
+        </isNotEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            WIDTH
+        </isNotEmpty>
+        <isNotEmpty property="PITCH" prepend=",">
+            PITCH
+        </isNotEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY
+        </isNotEmpty>
+        <isNotEmpty property="UNITWEIGHT" prepend=",">
+            UNIT_WEIGHT
+        </isNotEmpty>
+        <isNotEmpty property="WEIGHT" prepend=",">
+            WEIGHT
+        </isNotEmpty>
+        <isNotEmpty property="USERATE" prepend=",">
+            USE_RATE
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="MANAGEMENTNUMBER" prepend=",">
+            MANAGEMENT_NUMBER
+        </isNotEmpty>
+        <isNotEmpty property="BOXCNT" prepend=",">
+            BOX_CNT
+        </isNotEmpty>
+        <isNotEmpty property="PROCESSINSPECTIONYN" prepend=",">
+            PROCESS_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+            SHIPMENT_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="MAKETYPE" prepend=",">
+            MAKE_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            UNIT_COST
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOSTDETAIL" prepend=",">
+            UNIT_COST_DETAIL
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALCOST" prepend=",">
+            MATERIAL_COST
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGREV" prepend=",">
+            DRAWING_REV
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGDATE" prepend=",">
+            DRAWING_DATE
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS
+        </isNotEmpty>
+        <isNotEmpty property="LABELCODE" prepend=",">
+            LABEL
+        </isNotEmpty>
+        <isNotEmpty property="SORTORDER" prepend=",">
+            SORT_ORDER
+        </isNotEmpty>
+        <![CDATA[
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#MIDDLECODE#
+            ,#SMALLCODE#
+            ,#ITEMCODE#
+            ,#ITEMNAME#
+            ,#UOM#
+            ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+            ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+            ,#USEYN#
+        ]]>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            #ITEMSTANDARD#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend=",">
+            #ITEMSTANDARDDETAIL#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            #ORDERNAME#
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGNO" prepend=",">
+            #DRAWINGNO#
+        </isNotEmpty>
+        <isNotEmpty property="KORITEMNAME" prepend=",">
+            #KORITEMNAME#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            #ITEMTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="MODEL" prepend=",">
+            #MODEL#
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            #MATERIALTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            $THICK$
+        </isNotEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            $WIDTH$
+        </isNotEmpty>
+        <isNotEmpty property="PITCH" prepend=",">
+            $PITCH$
+        </isNotEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            $SPECIFICGRAVITY$
+        </isNotEmpty>
+        <isNotEmpty property="UNITWEIGHT" prepend=",">
+            $UNITWEIGHT$
+        </isNotEmpty>
+        <isNotEmpty property="WEIGHT" prepend=",">
+            $WEIGHT$
+        </isNotEmpty>
+        <isNotEmpty property="USERATE" prepend=",">
+            $USERATE$
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="MANAGEMENTNUMBER" prepend=",">
+            #MANAGEMENTNUMBER#
+        </isNotEmpty>
+        <isNotEmpty property="BOXCNT" prepend=",">
+            $BOXCNT$
+        </isNotEmpty>
+        <isNotEmpty property="PROCESSINSPECTIONYN" prepend=",">
+            #PROCESSINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+            #SHIPMENTINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="MAKETYPE" prepend=",">
+            #MAKETYPE#
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            $UNITCOST$
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOSTDETAIL" prepend=",">
+            $UNITCOSTDETAIL$
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALCOST" prepend=",">
+            $MATERIALCOST$
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGREV" prepend=",">
+            $DRAWINGREV$
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGDATE" prepend=",">
+            TO_DATE(#DRAWINGDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            #REMARKS#
+        </isNotEmpty>
+        <isNotEmpty property="LABELCODE" prepend=",">
+            #LABELCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SORTORDER" prepend=",">
+            #SORTORDER#
+        </isNotEmpty>
+        <![CDATA[
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.master.product.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY  = #UPDATEID#
+                ,ITEM_NAME = #ITEMNAME#
+                ,UOM = #UOM#
+                ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+                ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+                ,USE_YN = #USEYN#
+        ]]>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = #ITEMSTANDARD#
+        </isNotEmpty>
+        <isEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend=",">
+            ITEM_STANDARD_DETAIL = #ITEMSTANDARDDETAIL#
+        </isNotEmpty>
+        <isEmpty property="ITEMSTANDARDDETAIL" prepend=",">
+            ITEM_STANDARD_DETAIL = NULL
+        </isEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME = #ORDERNAME#
+        </isNotEmpty>
+        <isEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME = NULL
+        </isEmpty>
+        <isNotEmpty property="DRAWINGNO" prepend=",">
+            DRAWING_NO = #DRAWINGNO#
+        </isNotEmpty>
+        <isEmpty property="DRAWINGNO" prepend=",">
+            DRAWING_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="KORITEMNAME" prepend=",">
+            ITEM_NAME_K = #KORITEMNAME#
+        </isNotEmpty>
+        <isEmpty property="KORITEMNAME" prepend=",">
+            ITEM_NAME_K = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = #ITEMTYPE#
+        </isNotEmpty>
+        <isEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="MODEL" prepend=",">
+            CAR_TYPE = #MODEL#
+        </isNotEmpty>
+        <isEmpty property="MODEL" prepend=",">
+            CAR_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE = #MATERIALTYPE#
+        </isNotEmpty>
+        <isEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            THICK = $THICK$
+        </isNotEmpty>
+        <isEmpty property="THICK" prepend=",">
+            THICK = NULL
+        </isEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            WIDTH = $WIDTH$
+        </isNotEmpty>
+        <isEmpty property="WIDTH" prepend=",">
+            WIDTH = NULL
+        </isEmpty>
+        <isNotEmpty property="PITCH" prepend=",">
+            PITCH = $PITCH$
+        </isNotEmpty>
+        <isEmpty property="PITCH" prepend=",">
+            PITCH = NULL
+        </isEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY = $SPECIFICGRAVITY$
+        </isNotEmpty>
+        <isEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITWEIGHT" prepend=",">
+            UNIT_WEIGHT = $UNITWEIGHT$
+        </isNotEmpty>
+        <isEmpty property="UNITWEIGHT" prepend=",">
+            UNIT_WEIGHT = NULL
+        </isEmpty>
+        <isNotEmpty property="WEIGHT" prepend=",">
+            WEIGHT = $WEIGHT$
+        </isNotEmpty>
+        <isEmpty property="WEIGHT" prepend=",">
+            WEIGHT = NULL
+        </isEmpty>
+        <isNotEmpty property="USERATE" prepend=",">
+            USE_RATE = $USERATE$
+        </isNotEmpty>
+        <isEmpty property="USERATE" prepend=",">
+            USE_RATE = NULL
+        </isEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="MANAGEMENTNUMBER" prepend=",">
+            MANAGEMENT_NUMBER = #MANAGEMENTNUMBER#
+        </isNotEmpty>
+        <isEmpty property="MANAGEMENTNUMBER" prepend=",">
+            MANAGEMENT_NUMBER = NULL
+        </isEmpty>
+        <isNotEmpty property="BOXCNT" prepend=",">
+            BOX_CNT = $BOXCNT$
+        </isNotEmpty>
+        <isEmpty property="BOXCNT" prepend=",">
+            BOX_CNT = NULL
+        </isEmpty>
+        <isNotEmpty property="PROCESSINSPECTIONYN" prepend=",">
+            PROCESS_INSPECTION_YN = #PROCESSINSPECTIONYN#
+        </isNotEmpty>
+        <isEmpty property="PROCESSINSPECTIONYN" prepend=",">
+            PROCESS_INSPECTION_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+            SHIPMENT_INSPECTION_YN = #SHIPMENTINSPECTIONYN#
+        </isNotEmpty>
+        <isEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+            SHIPMENT_INSPECTION_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="MAKETYPE" prepend=",">
+            MAKE_TYPE = #MAKETYPE#
+        </isNotEmpty>
+        <isEmpty property="MAKETYPE" prepend=",">
+            MAKE_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            UNIT_COST = $UNITCOST$
+        </isNotEmpty>
+        <isEmpty property="UNITCOST" prepend=",">
+            UNIT_COST = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITCOSTDETAIL" prepend=",">
+            UNIT_COST_DETAIL = $UNITCOSTDETAIL$
+        </isNotEmpty>
+        <isEmpty property="UNITCOSTDETAIL" prepend=",">
+            UNIT_COST_DETAIL = NULL
+        </isEmpty>
+        <isNotEmpty property="MATERIALCOST" prepend=",">
+            MATERIAL_COST = $MATERIALCOST$
+        </isNotEmpty>
+        <isEmpty property="MATERIALCOST" prepend=",">
+            MATERIAL_COST = NULL
+        </isEmpty>
+        <isNotEmpty property="DRAWINGREV" prepend=",">
+            DRAWING_REV = $DRAWINGREV$
+        </isNotEmpty>
+        <isEmpty property="DRAWINGREV" prepend=",">
+            DRAWING_REV = NULL
+        </isEmpty>
+        <isNotEmpty property="DRAWINGDATE" prepend=",">
+            DRAWING_DATE = TO_DATE(#DRAWINGDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="DRAWINGDATE" prepend=",">
+            DRAWING_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <isNotEmpty property="LABELCODE" prepend=",">
+            LABEL = #LABELCODE#
+        </isNotEmpty>
+        <isEmpty property="LABELCODE" prepend=",">
+            LABEL = null
+        </isEmpty>
+        <isNotEmpty property="SORTORDER" prepend=",">
+            SORT_ORDER = #SORTORDER#
+        </isNotEmpty>
+        <isEmpty property="SORTORDER" prepend=",">
+            SORT_ORDER = NULL
+        </isEmpty>
+        <![CDATA[
+       WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND GROUP_CODE = #GROUPCODE# 
+          AND BIG_CODE = #BIGCODE#
+          AND MIDDLE_CODE = #MIDDLECODE#
+          AND SMALL_CODE = #SMALLCODE#
+          AND ITEM_CODE = #ITEMCODE#
+    ]]>
+    </update>
+    
+    <sql id="item.master.material.sql-select">
+       SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE) AS RN
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.ITEM_TYPE AS ITEMTYPE
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                     AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+                ,IM.GROUP_CODE AS GROUPCODE
+                ,IM.BIG_CODE AS BIGCODE
+                ,IM.MIDDLE_CODE AS MIDDLECODE
+                ,IM.SMALL_CODE AS SMALLCODE
+                ,IM.ITEM_CODE AS ITEMCODE
+                ,IM.ITEM_NAME AS ITEMNAME
+                /*,(CASE WHEN IM.ORDER_NAME IS NULL OR IM.ITEM_STANDARD IS NULL THEN
+                  IM.ORDER_NAME || IM.ITEM_STANDARD
+                  ELSE IMIM.ITEM_STANDARD
+                  END) AS ITEMSTANDARD*/
+                ,IM.ITEM_STANDARD AS ITEMSTANDARD
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,IM.THICK AS THICK
+                ,IM.THICK_ALLOWANCE AS THICKALLOWANCE
+                ,IM.WIDTH AS WIDTH
+                ,IM.WIDTH_ALLOWANCE AS WIDTHALLOWANCE
+                ,IM.SPECIFIC_GRAVITY AS SPECIFICGRAVITY
+                ,IM.UOM AS UOM
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+                ,IM.UNIT_COST AS UNITCOST
+                ,IM.ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+                ,IM.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+                ,IM.LOT_YN AS LOTYN
+                ,IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN
+                ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE CC.ORG_ID = IM.ORG_ID
+                     AND CC.COMPANY_ID = IM.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN
+                ,IM.REMARKS AS REMARKS
+                ,TO_CHAR(IM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+                ,TO_CHAR(IM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+                ,IM.USE_YN AS USEYN
+                ,IM.ITEM_CLASS AS ITEMCLASS
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'ITEM_CLASS'
+                     AND SC.SMALL_CODE = IM.ITEM_CLASS) AS ITEMCLASSNAME
+                ,IM.INV_SAFE_QTY AS INVSAFEQTY
+                ,IM.SUB_ITEM AS SUBITEM
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'SUB_ITEM'
+                     AND SC.SMALL_CODE = IM.SUB_ITEM) AS SUBITEMNAME
+        FROM CB_ITEM_MASTER IM
+    </sql>
+
+    <select id="item.master.material.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.master.material.sql-select" />
+           <include refid="item.master.product.sql-where" />
+           ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE
+    </select>
+
+    <select id="item.master.material.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.master.material.sql-select" />
+            <include refid="item.master.product.sql-where" />
+        ) TOT
+    </select>
+    
+    <insert id="item.master.material.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_ITEM_MASTER
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,SMALL_CODE
+            ,ITEM_CODE
+            ,ITEM_NAME
+            ,UOM
+            ,EFFECTIVE_START_DATE
+            ,EFFECTIVE_END_DATE
+            ,USE_YN
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            THICK
+        </isNotEmpty>
+        <isNotEmpty property="THICKALLOWANCE" prepend=",">
+            THICK_ALLOWANCE
+        </isNotEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            WIDTH
+        </isNotEmpty>
+        <isNotEmpty property="WIDTHALLOWANCE" prepend=",">
+            WIDTH_ALLOWANCE
+        </isNotEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            UNIT_COST
+        </isNotEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="SCMINSPECTIONYN" prepend=",">
+            SCM_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="LOTYN" prepend=",">
+            LOT_YN
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCLASS" prepend=",">
+            ITEM_CLASS
+        </isNotEmpty>
+        <isNotEmpty property="INVSAFEQTY" prepend=",">
+            INV_SAFE_QTY
+        </isNotEmpty>
+        <isNotEmpty property="SUBITEM" prepend=",">
+            SUB_ITEM
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS
+        </isNotEmpty>
+        <![CDATA[
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#MIDDLECODE#
+            ,#SMALLCODE#
+            ,#ITEMCODE#
+            ,#ITEMNAME#
+            ,#UOM#
+            ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+            ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+            ,#USEYN#
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            #ITEMTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            #MATERIALTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            $THICK$
+        </isNotEmpty>
+        <isNotEmpty property="THICKALLOWANCE" prepend=",">
+            #THICKALLOWANCE#
+        </isNotEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            $WIDTH$
+        </isNotEmpty>
+        <isNotEmpty property="WIDTHALLOWANCE" prepend=",">
+            #WIDTHALLOWANCE#
+        </isNotEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            $SPECIFICGRAVITY$
+        </isNotEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            $UNITCOST$
+        </isNotEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            #ORDERINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="SCMINSPECTIONYN" prepend=",">
+            #SCMINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="LOTYN" prepend=",">
+            #LOTYN#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            #INVENTORYMANAGEYN#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            #ORDERNAME#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            #ITEMSTANDARD#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCLASS" prepend=",">
+            #ITEMCLASS#
+        </isNotEmpty>
+        <isNotEmpty property="INVSAFEQTY" prepend=",">
+            $INVSAFEQTY$
+        </isNotEmpty>
+        <isNotEmpty property="SUBITEM" prepend=",">
+            #SUBITEM#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.master.material.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY  = #UPDATEID#
+                ,ITEM_NAME = #ITEMNAME#
+                ,UOM = #UOM#
+                ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+                ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+                ,USE_YN = #USEYN#
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = #ITEMTYPE#
+        </isNotEmpty>
+        <isEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME = #ORDERNAME#
+        </isNotEmpty>
+        <isEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME = NULL
+        </isEmpty>
+        <isNotEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE = #MATERIALTYPE#
+        </isNotEmpty>
+        <isEmpty property="MATERIALTYPE" prepend=",">
+            MATERIAL_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="THICK" prepend=",">
+            THICK = $THICK$
+        </isNotEmpty>
+        <isEmpty property="THICK" prepend=",">
+            THICK = NULL
+        </isEmpty>
+        <isNotEmpty property="THICKALLOWANCE" prepend=",">
+            THICK_ALLOWANCE = #THICKALLOWANCE#
+        </isNotEmpty>
+        <isEmpty property="THICKALLOWANCE" prepend=",">
+            THICK_ALLOWANCE = NULL
+        </isEmpty>
+        <isNotEmpty property="WIDTH" prepend=",">
+            WIDTH = $WIDTH$
+        </isNotEmpty>
+        <isEmpty property="WIDTH" prepend=",">
+            WIDTH = NULL
+        </isEmpty>
+        <isNotEmpty property="WIDTHALLOWANCE" prepend=",">
+            WIDTH_ALLOWANCE = #WIDTHALLOWANCE#
+        </isNotEmpty>
+        <isEmpty property="WIDTHALLOWANCE" prepend=",">
+            WIDTH_ALLOWANCE = NULL
+        </isEmpty>
+        <isNotEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY = $SPECIFICGRAVITY$
+        </isNotEmpty>
+        <isEmpty property="SPECIFICGRAVITY" prepend=",">
+            SPECIFIC_GRAVITY = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITCOST" prepend=",">
+            UNIT_COST = $UNITCOST$
+        </isNotEmpty>
+        <isEmpty property="UNITCOST" prepend=",">
+            UNIT_COST = NULL
+        </isEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN = #ORDERINSPECTIONYN#
+        </isNotEmpty>
+        <isEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="SCMINSPECTIONYN" prepend=",">
+            SCM_INSPECTION_YN = #SCMINSPECTIONYN#
+        </isNotEmpty>
+        <isEmpty property="SCMINSPECTIONYN" prepend=",">
+            SCM_INSPECTION_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="LOTYN" prepend=",">
+            LOT_YN = #LOTYN#
+        </isNotEmpty>
+        <isEmpty property="LOTYN" prepend=",">
+            LOT_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN = #INVENTORYMANAGEYN#
+        </isNotEmpty>
+        <isEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = #ITEMSTANDARD#
+        </isNotEmpty>
+        <isEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMCLASS" prepend=",">
+            ITEM_CLASS = #ITEMCLASS#
+        </isNotEmpty>
+        <isEmpty property="ITEMCLASS" prepend=",">
+            ITEM_CLASS = NULL
+        </isEmpty>
+        <isNotEmpty property="INVSAFEQTY" prepend=",">
+            INV_SAFE_QTY = $INVSAFEQTY$
+        </isNotEmpty>
+        <isEmpty property="INVSAFEQTY" prepend=",">
+            INV_SAFE_QTY = NULL
+        </isEmpty>
+        <isNotEmpty property="SUBITEM" prepend=",">
+            SUB_ITEM = #SUBITEM#
+        </isNotEmpty>
+        <isEmpty property="SUBITEM" prepend=",">
+            SUB_ITEM = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+       WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND GROUP_CODE = #GROUPCODE# 
+          AND BIG_CODE = #BIGCODE#
+          AND MIDDLE_CODE = #MIDDLECODE#
+          AND SMALL_CODE = #SMALLCODE#
+          AND ITEM_CODE = #ITEMCODE#
+    ]]>
+    </update>
+    
+    <sql id="item.master.tool.sql-select">
+       SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE) AS RN
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.ITEM_TYPE AS ITEMTYPE
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                     AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+                ,IM.GROUP_CODE AS GROUPCODE
+                ,IM.BIG_CODE AS BIGCODE
+                ,IM.MIDDLE_CODE AS MIDDLECODE
+                ,IM.SMALL_CODE AS SMALLCODE
+                ,IM.ITEM_CODE AS ITEMCODE
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.ITEM_STANDARD AS ITEMSTANDARD
+                ,IM.UOM AS UOM
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE SC.ORG_ID = IM.ORG_ID
+                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'UOM'
+                     AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+                ,IM.ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+                ,IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN
+                ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE CC.ORG_ID = IM.ORG_ID
+                     AND CC.COMPANY_ID = IM.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN
+                ,IM.SAFETY_INVENTORY AS SAFETYINVENTORY
+                ,IM.REMARKS AS REMARKS
+                ,TO_CHAR(IM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+                ,TO_CHAR(IM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+                ,IM.USE_YN AS USEYN
+        FROM CB_ITEM_MASTER IM
+    </sql>
+
+    <select id="item.master.tool.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.master.tool.sql-select" />
+           <include refid="item.master.product.sql-where" />
+           ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_NAME, IM.ITEM_STANDARD
+    </select>
+
+    <select id="item.master.tool.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.master.tool.sql-select" />
+            <include refid="item.master.product.sql-where" />
+        ) TOT
+    </select>
+    
+    <insert id="item.master.tool.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_ITEM_MASTER
+        (
+            ORG_ID
+            ,COMPANY_ID
+            ,GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,SMALL_CODE
+            ,ITEM_CODE
+            ,ITEM_NAME
+            ,UOM
+            ,EFFECTIVE_START_DATE
+            ,EFFECTIVE_END_DATE
+            ,USE_YN
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD
+        </isNotEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN
+        </isNotEmpty>
+        <isNotEmpty property="SAFETYINVENTORY" prepend=",">
+            SAFETY_INVENTORY
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            ORDER_NAME
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS
+        </isNotEmpty>
+        <![CDATA[
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+        )
+        VALUES
+        (
+            #ORGID#
+            ,#COMPANYID#
+            ,#GROUPCODE#
+            ,#BIGCODE#
+            ,#MIDDLECODE#
+            ,#SMALLCODE#
+            ,#ITEMCODE#
+            ,#ITEMNAME#
+            ,#UOM#
+            ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+            ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+            ,#USEYN#
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            #ITEMTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            #ITEMSTANDARD#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            #ORDERINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            #INVENTORYMANAGEYN#
+        </isNotEmpty>
+        <isNotEmpty property="SAFETYINVENTORY" prepend=",">
+            $SAFETYINVENTORY$
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend=",">
+            #ORDERNAME#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+        )
+        ]]>
+    </insert>
+
+    <update id="item.master.tool.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY  = #UPDATEID#
+                ,ITEM_NAME = #ITEMNAME#
+                ,UOM = #UOM#
+                ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+                ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+                ,USE_YN = #USEYN#
+        ]]>
+        <isNotEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = #ITEMTYPE#
+        </isNotEmpty>
+        <isEmpty property="ITEMTYPE" prepend=",">
+            ITEM_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = #ITEMSTANDARD#
+        </isNotEmpty>
+        <isEmpty property="ITEMSTANDARD" prepend=",">
+            ITEM_STANDARD = NULL
+        </isEmpty>
+        <isNotEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN = #ORDERINSPECTIONYN#
+        </isNotEmpty>
+        <isEmpty property="ORDERINSPECTIONYN" prepend=",">
+            ORDER_INSPECTION_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isEmpty property="CUSTOMERCODE" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN = #INVENTORYMANAGEYN#
+        </isNotEmpty>
+        <isEmpty property="INVENTORYMANAGEYN" prepend=",">
+            INVENTORY_MANAGE_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="SAFETYINVENTORY" prepend=",">
+            SAFETY_INVENTORY = $SAFETYINVENTORY$
+        </isNotEmpty>
+        <isEmpty property="SAFETYINVENTORY" prepend=",">
+            SAFETY_INVENTORY = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+       WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND GROUP_CODE = #GROUPCODE# 
+          AND BIG_CODE = #BIGCODE#
+          AND MIDDLE_CODE = #MIDDLECODE#
+          AND SMALL_CODE = #SMALLCODE#
+          AND ITEM_CODE = #ITEMCODE#
+    ]]>
+    </update>
+    
+    <!-- ITEM  master 2016.12.06 -->
+    <sql id="item.master.master.sql-select">
+       SELECT ROWNUM AS RNUM,
+           IM.GROUP_CODE AS GROUPCODE,
+           IM.BIG_CODE AS BIGCODE,
+           IM.MIDDLE_CODE AS MIDDLECODE,
+           IM.SMALL_CODE AS SMALLCODE,
+           IM.ITEM_CODE AS ITEMCODE,
+           IM.ITEM_NAME AS ITEMNAME,
+           IM.ORDER_NAME AS ORDERNAME,
+           IM.ITEM_TYPE AS ITEMTYPE,
+           IM.UOM AS UOM,
+            (SELECT SC.SMALL_NAME
+              FROM CB_SMALL_CODE SC
+            WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'UOM'
+               AND SC.SMALL_CODE = IM.UOM
+               AND SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+           ) AS UOMNAME,
+           IM.UNIT_COST AS UNITCOST,
+           IM.CUSTOMER_CODE AS CUSTOMERCODE,
+           (SELECT CC.CUSTOMER_NAME
+              FROM CB_CUSTOMER CC
+             WHERE CC.CUSTOMER_CODE = IM.CUSTOMER_CODE
+               AND CC.ORG_ID = IM.ORG_ID
+               AND CC.COMPANY_ID = IM.COMPANY_ID ) AS CUSTOMERNAME,
+           IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN,
+           IM.LOT_YN AS LOTYN,
+           IM.BARCODE_YN AS BARCODEYN ,
+           (SELECT SC.SMALL_NAME
+             FROM CB_SMALL_CODE SC
+            WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+               AND SC.SMALL_CODE = IM.ITEM_TYPE
+               AND SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+           ) AS ITEMTYPENAME,
+           IM.INV_SAFE_QTY AS INVSAFEQTY,
+           IM.INV_REDU_RATE AS INVREDURATE,
+           IM.INV_MIN_QTY AS INVMINQTY,
+           IM.INV_MAX_QTY AS INVMAXQTY,
+           IM.PUR_PO_UOM AS PURPOUOM,
+           IM.PUR_WA_UOM AS PURWAUOM,
+           IM.WAR_NON_INSP_YN AS WARNONINSPYN,
+           IM.WAR_ALT_WARE_YN AS WARALTWAREYN,
+           IM.PRO_MAKE_TYPE AS PROMAKETYPE,
+           IM.PRO_SOUR_TYPE AS PROSOURTYPE,
+           IM.PRO_SOUR_ORG AS PROSOURORG,
+           IM.PRO_MAT_TYPE AS PROMATTYPE,
+           IM.PRO_LEAD_TIME AS PROLEADTIME,
+           IM.SHIP_UOM AS SHIPUOM,
+           IM.SHIP_BOX AS SHIPBOX,
+           IM.PRO_LEAD_SIZE AS PROLEADSIZE,
+           IM.USE_YN AS USEYN,
+           IM.REMARKS AS REMARKS,
+           TO_CHAR(IM.EFFECTIVE_START_DATE,'YYYY-MM-DD') AS EFFECTIVESTARTDATE,
+           TO_CHAR(IM.EFFECTIVE_END_DATE,'YYYY-MM-DD') AS EFFECTIVEENDDATE
+           ,IM.MODEL AS MODEL
+           ,(SELECT SC.SMALL_NAME
+              FROM CB_SMALL_CODE SC
+            WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'MODEL'
+               AND SC.SMALL_CODE = IM.MODEL
+               AND SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+           ) AS MODELNAME
+           ,IM.CUSTOMER_GUBUN AS CUSTOMERGUBUN
+           , (SELECT SC.SMALL_NAME
+              FROM CB_SMALL_CODE SC
+             WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'CUSTOMER_GUBUN'
+               AND SC.SMALL_CODE = IM.CUSTOMER_GUBUN
+               AND SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+           ) AS CUSTOMERGUBUNNAME
+           ,LOCATION
+           ,IM.ORG_ID AS ORGID
+           ,IM.COMPANY_ID AS COMPANYID
+           ,IM.BOX_CNT AS BOXCNT
+           ,IM.ORDER_UNIT AS ORDERUNIT
+           ,IM.SALES_PRICE AS SALESPRICE
+      FROM CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="item.master.master.sql-where">
+        WHERE IM.USE_YN = 'Y'
+       <isNotEmpty property="orgid" prepend="AND">
+           ORG_ID = #orgid#
+       </isNotEmpty>
+       <isNotEmpty property="companyid" prepend="AND">
+           COMPANY_ID = #companyid#
+       </isNotEmpty>
+       <isNotEmpty property="groupcode" prepend="AND">
+           GROUP_CODE = #groupcode#
+       </isNotEmpty>
+       <isNotEmpty property="bigcode" prepend="AND">
+           BIG_CODE = #bigcode#
+       </isNotEmpty>
+       <isNotEmpty property="middlecode" prepend="AND">
+           MIDDLE_CODE = #middlecode#
+       </isNotEmpty>
+       <isNotEmpty property="smallcode" prepend="AND">
+           SMALL_CODE = #smallcode#
+       </isNotEmpty>
+       <isNotEmpty property="itemcode" prepend="AND">
+           ITEM_CODE LIKE '%'||#itemcode#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="itemname" prepend="AND">
+           ITEM_NAME LIKE '%'||#itemname#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ordername" prepend="AND">
+           ORDER_NAME LIKE '%'||#ordername#||'%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMTYPE" prepend="AND">
+           ITEM_TYPE = #ITEMTYPE#
+       </isNotEmpty>
+       <isNotEmpty property="modelname" prepend="AND">
+           MODEL = #modelname#
+       </isNotEmpty>
+       <isNotEmpty property="cusname" prepend="AND">
+           CUSTOMER_GUBUN = #cusname#
+       </isNotEmpty>       
+    </sql>
+
+    <select id="item.master.master.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="item.master.master.sql-select" />
+           <include refid="item.master.master.sql-where" />
+           ORDER BY  IM.ITEM_TYPE , IM.ITEM_CODE
+    </select>
+
+    <select id="item.master.master.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="item.master.master.sql-select" />
+            <include refid="item.master.master.sql-where" />
+        ) TOT
+    </select>
+    
+    <insert id="item.master.master.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_ITEM_MASTER
+        (
+            GROUP_CODE
+            ,BIG_CODE
+            ,MIDDLE_CODE
+            ,SMALL_CODE
+            ,ITEM_CODE
+            ,ITEM_NAME
+            ,ORDER_NAME
+            ,ITEM_TYPE
+            ,CUSTOMER_CODE
+            ,UOM
+            ,INVENTORY_MANAGE_YN
+	          ,INV_SAFE_QTY,
+	           INV_REDU_RATE,
+	           INV_MIN_QTY,
+	           INV_MAX_QTY,
+	           PUR_PO_UOM ,
+	           PUR_WA_UOM ,
+	           WAR_NON_INSP_YN ,
+	           WAR_ALT_WARE_YN ,
+	           PRO_MAKE_TYPE ,
+	           PRO_SOUR_TYPE ,
+	           PRO_SOUR_ORG ,
+	           PRO_MAT_TYPE ,
+	           PRO_LEAD_TIME ,
+	           SHIP_UOM ,
+	           SHIP_BOX ,
+	           PRO_LEAD_SIZE ,
+	           USE_YN ,
+	           LOT_YN,
+	           BARCODE_YN ,
+	           REMARKS ,
+	           EFFECTIVE_START_DATE,
+	           EFFECTIVE_END_DATE 
+            ,CREATED_BY
+            ,CREATION_DATE
+            ,LAST_UPDATED_BY
+            ,LAST_UPDATE_DATE
+            ,ORG_ID
+            ,COMPANY_ID
+            ,MODEL
+            ,CUSTOMER_GUBUN
+            ,LOCATION
+            ,BOX_CNT
+            ,ORDER_UNIT
+            ,SALES_PRICE
+        )
+        VALUES
+        (
+            NVL(#ITEMTYPE#,'A')
+            ,NVL(#ITEMTYPE#,'A')||'01'
+            ,NVL(#ITEMTYPE#,'A')||'01'||'01'
+            ,'A010101'
+            ,#ITEMCODE#
+            ,#ITEMNAME#
+            ,#ORDERNAME#
+            ,#ITEMTYPE#
+            ,#CUSTOMERCODE#
+            ,#UOM#
+            ,#INVENTORYMANAGEYN#
+            ,#INVSAFEQTY#,
+             #INVREDURATE#,
+             #INVMINQTY#,
+             #INVMAXQTY#,
+             #PURPOUOM# ,
+             #PURWAUOM# ,
+             #WARNONINSPYN# ,
+             #WARALTWAREYN# ,
+             #PROMAKETYPE# ,
+             #PROSOURTYPE# ,
+             #PROSOURORG# ,
+             #PROMATTYPE# ,
+             #PROLEADTIME# ,
+             #SHIPUOM# ,
+             #SHIPBOX# ,
+             #PROLEADSIZE# ,
+             #USEYN# ,
+             #LOTYN# ,
+             #BARCODEYN# ,
+             #REMARKS# ,
+             #EFFECTIVESTARTDATE#,
+             #EFFECTIVEENDDATE# 
+            ,#REGISTID#
+            ,SYSDATE
+            ,#REGISTID#
+            ,SYSDATE
+            ,#ORGID#
+            ,#COMPANYID#
+            ,#MODEL#
+            ,#CUSTOMERGUBUN#
+             ,#LOCATION#
+             ,#BOXCNT#
+             ,#ORDERUNIT#
+             ,#SALESPRICE#
+        )
+        ]]>
+    </insert>
+    
+    <update id="item.master.master.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY  = #UPDATEID#
+               ,ITEM_NAME = #ITEMNAME#
+            ,ORDER_NAME = #ORDERNAME#
+            ,ITEM_TYPE = #ITEMTYPE#
+            ,CUSTOMER_CODE = #CUSTOMERCODE#
+            ,UOM = #UOM#
+            ,LOT_YN = #LOTYN#
+            ,BARCODE_YN = #BARCODEYN#
+            ,INVENTORY_MANAGE_YN = #INVENTORYMANAGEYN#
+            , INV_SAFE_QTY  = #INVSAFEQTY#,
+             INV_REDU_RATE = #INVREDURATE#,
+             INV_MIN_QTY = #INVMINQTY#,
+             INV_MAX_QTY = #INVMAXQTY#,
+             PUR_PO_UOM  = #PURPOUOM#,
+             PUR_WA_UOM  = #PURWAUOM#,
+             WAR_NON_INSP_YN  = #WARNONINSPYN#,
+             WAR_ALT_WARE_YN  = #WARALTWAREYN#,
+             PRO_MAKE_TYPE  = #PROMAKETYPE#,
+             PRO_SOUR_TYPE  = #PROSOURTYPE#,
+             PRO_SOUR_ORG  = #PROSOURORG#,
+             PRO_MAT_TYPE  = #PROMATTYPE#,
+             PRO_LEAD_TIME  = #PROLEADTIME#,
+             SHIP_UOM  = #SHIPUOM#,
+             SHIP_BOX  = #SHIPBOX#,
+             PRO_LEAD_SIZE  = #PROLEADSIZE#,
+             USE_YN  = #USEYN#,
+             REMARKS  = #REMARKS#,
+             EFFECTIVE_START_DATE = #EFFECTIVESTARTDATE#,
+             EFFECTIVE_END_DATE = #EFFECTIVEENDDATE#
+             ,MODEL = #MODEL#  
+             ,CUSTOMER_GUBUN = #CUSTOMERGUBUN#  
+             ,LOCATION = #LOCATION#  
+             ,BOX_CNT = #BOXCNT#
+             ,ORDER_UNIT = #ORDERUNIT#
+             ,SALES_PRICE = #SALESPRICE#
+         WHERE ITEM_CODE = #ITEMCODE#
+           AND ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </update>
+    
+    <delete id="item.master.master.delete" parameterClass="java.util.Map">
+    <![CDATA[
+        DELETE CB_ITEM_MASTER
+         WHERE ITEM_CODE = #ITEMCODE#
+           AND ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </delete>    
+    <!-- ITEM  master END 2016.12.06 -->
+  
+    <!-- ITEM  master price 2017.04.03 -->
+    <select id="item.master.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, ITEMCODE FROM (
+           <include refid="item.master.master.sql-select" />
+           <include refid="item.master.master.sql-where" />
+        )
+        WHERE ROWNUM = 1
+    </select>  
+    
+   <sql id="item.master.masterprice.sql-select">
+    SELECT RANK() OVER(ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.PRICE_SEQ) AS RN
+              ,SP.ORG_ID AS ORGID
+              ,SP.COMPANY_ID AS COMPANYID
+              ,SP.PRICE_SEQ AS PRICESEQ
+              ,SP.ITEM_CODE AS ITEMCODE
+              ,SP.UNIT_PRICE_A AS UNITPRICEA
+              ,SP.UNIT_PRICE_B AS UNITPRICEB
+              ,SP.UNIT_PRICE_C AS UNITPRICEC
+              ,SP.CURRENCY_CODE AS CURRENCYCODE
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE SC.ORG_ID = SP.ORG_ID
+                   AND SC.COMPANY_ID = SP.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'CURRENCY_CODE'
+                   AND SC.SMALL_CODE = SP.CURRENCY_CODE) AS CURRENCYCODENAME
+              ,TO_CHAR(SP.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+              ,TO_CHAR(SP.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+              ,TO_CHAR(SP.CREATION_DATE, 'YYYY-MM-DD') AS CREATEDATE
+              ,SP.REMARKS AS REMARKS
+      FROM CB_SALES_PRICE SP
+  </sql>
+
+  <sql id="item.master.masterprice.sql-where">
+         WHERE 1 = 1
+    <isNotEmpty property="ORGID" prepend="AND">
+      SP.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+      SP.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="ITEMCODE" prepend="AND">
+      SP.ITEM_CODE =  #ITEMCODE# 
+    </isNotEmpty>
+  </sql>
+
+  <select id="item.master.masterprice.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="item.master.masterprice.sql-select" />
+    <include refid="item.master.masterprice.sql-where" />
+    ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.PRICE_SEQ
+  </select>
+
+  <select id="item.master.masterprice.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="item.master.masterprice.sql-select" />
+      <include refid="item.master.masterprice.sql-where" />
+    ) TOT
+  </select>
+  
+    <insert id="item.master.masterprice.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SALES_PRICE
+              (ORG_ID
+              ,COMPANY_ID
+              ,PRICE_SEQ
+              ,ITEM_CODE
+              ,UNIT_PRICE_A
+              ,EFFECTIVE_START_DATE
+              ,EFFECTIVE_END_DATE
+              ,CUSTOMER_CODE
+              ,CURRENCY_CODE             
+        ]]>
+        <isNotEmpty property="UNITPRICEB" prepend=",">
+               UNIT_PRICE_B
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICEC" prepend=",">
+               UNIT_PRICE_C
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ($ORGID$
+               ,$COMPANYID$
+               ,(SELECT NVL(MAX(PRICE_SEQ), 0) + 1
+                   FROM CB_SALES_PRICE)
+               ,#ITEMCODE#
+               ,$UNITPRICEA$
+               ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+               ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+               ,#CUSTOMERCODE#
+               ,#CURRENCYCODE#
+        ]]>
+        <isNotEmpty property="UNITPRICEB" prepend=",">
+               $UNITPRICEB$
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICEC" prepend=",">
+               $UNITPRICEC$
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="item.master.masterprice.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_PRICE
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , UNIT_PRICE_A = $UNITPRICEA$
+               , EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+               , EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="UNITPRICEB" prepend=",">
+            UNIT_PRICE_B = #UNITPRICEB#
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICEC" prepend=",">
+            UNIT_PRICE_C = #UNITPRICEC#
+        </isNotEmpty>
+        <!-- <isNotEmpty property="CURRENCYCODE" prepend=",">
+            CURRENCY_CODE = #CURRENCYCODE#
+        </isNotEmpty> -->
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND PRICE_SEQ = $PRICESEQ$
+        ]]>
+    </update>
+    
+    <delete id="item.master.masterprice.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SALES_PRICE
+         WHERE ORG_ID = $ORGID$
+            AND COMPANY_ID = $COMPANYID$
+            AND PRICE_SEQ = $PRICESEQ$
+    </delete>
+
+   <update id="item.master.master.updateprice" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , UNIT_COST = $UNITPRICEA$
+        ]]>
+        <![CDATA[
+        WHERE ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND ITEM_CODE = #ITEMCODE#
+        ]]>
+    </update>
+    <!-- ITEM master price END 2017.04.03 -->
+
+    <!-- ITEM  master sales 2017.04.25 -->
+   <sql id="item.master.mastersales.sql-select">
+    SELECT RANK() OVER(ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.PRICE_SEQ) AS RN
+              ,SP.ORG_ID AS ORGID
+              ,SP.COMPANY_ID AS COMPANYID
+              ,SP.PRICE_SEQ AS PRICESEQ
+              ,SP.ITEM_CODE AS ITEMCODE
+              ,SP.SALES_PRICE AS SALESPRICE
+              ,SP.CURRENCY_CODE AS CURRENCYCODE
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE SC.ORG_ID = SP.ORG_ID
+                   AND SC.COMPANY_ID = SP.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'CURRENCY_CODE'
+                   AND SC.SMALL_CODE = SP.CURRENCY_CODE) AS CURRENCYCODENAME
+              ,TO_CHAR(SP.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+              ,TO_CHAR(SP.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+              ,SP.REMARKS AS REMARKS
+      FROM CB_SALES_PRICE_A SP
+  </sql>
+
+  <sql id="item.master.mastersales.sql-where">
+         WHERE 1 = 1
+    <isNotEmpty property="ORGID" prepend="AND">
+      SP.ORG_ID = #ORGID#
+    </isNotEmpty>
+    <isNotEmpty property="COMPANYID" prepend="AND">
+      SP.COMPANY_ID = #COMPANYID#
+    </isNotEmpty>
+    <isNotEmpty property="ITEMCODE" prepend="AND">
+      SP.ITEM_CODE =  #ITEMCODE# 
+    </isNotEmpty>
+  </sql>
+
+  <select id="item.master.mastersales.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="item.master.mastersales.sql-select" />
+    <include refid="item.master.mastersales.sql-where" />
+    ORDER BY SP.ORG_ID, SP.COMPANY_ID, SP.PRICE_SEQ
+  </select>
+
+  <select id="item.master.mastersales.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="item.master.mastersales.sql-select" />
+      <include refid="item.master.mastersales.sql-where" />
+    ) TOT
+  </select>
+  
+    <insert id="item.master.mastersales.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SALES_PRICE_A
+              (ORG_ID
+              ,COMPANY_ID
+              ,PRICE_SEQ
+              ,ITEM_CODE
+              ,SALES_PRICE
+              ,EFFECTIVE_START_DATE
+              ,EFFECTIVE_END_DATE
+              ,CUSTOMER_CODE
+              ,CURRENCY_CODE             
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ($ORGID$
+               ,$COMPANYID$
+               ,(SELECT NVL(MAX(PRICE_SEQ), 0) + 1
+                   FROM CB_SALES_PRICE_A)
+               ,#ITEMCODE#
+               ,$SALESPRICE$
+               ,TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+               ,TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+               ,#CUSTOMERCODE#
+               ,#CURRENCYCODE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="item.master.mastersales.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_PRICE_A
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , SALES_PRICE = $SALESPRICE$
+               , EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+               , EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+               , CURRENCY_CODE = #CURRENCYCODE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND PRICE_SEQ = $PRICESEQ$
+        ]]>
+    </update>
+    
+    <delete id="item.master.mastersales.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SALES_PRICE_A
+         WHERE ORG_ID = $ORGID$
+            AND COMPANY_ID = $COMPANYID$
+            AND PRICE_SEQ = $PRICESEQ$
+    </delete>
+
+   <update id="item.master.master.updatesales" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_ITEM_MASTER
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , SALES_PRICE = $SALESPRICE$
+        ]]>
+        <![CDATA[
+        WHERE ORG_ID = $ORGID$
+           AND COMPANY_ID = $COMPANYID$
+           AND ITEM_CODE = #ITEMCODE#
+        ]]>
+    </update>
+    <!-- ITEM master sales END 2017.04.25 -->
+    
+  <!-- 품목관리 엑셀리스트 시작 -->
+  <sql id="item.master.itemproductexcellist.sql-select">
+      SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.GROUP_CODE, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE) AS RN
+	            ,IM.ORG_ID AS ORGID
+	            ,IM.COMPANY_ID AS COMPANYID
+	            ,IM.BIG_CODE AS BIGCODE
+	            ,(SELECT BC.BIG_NAME
+	               FROM CB_BIG_CLASS BC
+	              WHERE BC.GROUP_CODE = IM.GROUP_CODE
+	                 AND BC.ORG_ID = IM.ORG_ID
+	                 AND BC.COMPANY_ID = IM.COMPANY_ID
+	                 AND BC.BIG_CODE = IM.BIG_CODE) AS BIGNAME
+	            ,IM.MIDDLE_CODE AS MIDDLE_CODE
+	            ,(SELECT MC.MIDDLE_NAME
+	               FROM CB_MIDDLE_CLASS MC
+	              WHERE MC.ORG_ID = IM.ORG_ID
+	                 AND MC.COMPANY_ID = IM.COMPANY_ID
+	                 AND MC.GROUP_CODE = IM.GROUP_CODE
+	                 AND MC.BIG_CODE = IM.BIG_CODE
+	                 AND MC.MIDDLE_CODE = IM.MIDDLE_CODE) AS MIDDLENAME
+	            ,IM.SMALL_CODE AS SMALL_CODE
+	            ,(SELECT SC.SMALL_NAME
+	               FROM CB_SMALL_CLASS SC
+	              WHERE SC.ORG_ID = IM.ORG_ID
+	                 AND SC.COMPANY_ID = IM.COMPANY_ID
+	                 AND SC.GROUP_CODE = IM.GROUP_CODE
+	                 AND SC.BIG_CODE = IM.BIG_CODE
+	                 AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+	                 AND SC.SMALL_CODE = IM.SMALL_CODE) AS SMALLNAME
+	            ,IM.ITEM_CODE AS ITEMCODE
+	            ,IM.DRAWING_NO AS DRAWINGNO
+	            ,IM.ORDER_NAME AS ORDERNAME
+	            ,IM.ITEM_NAME AS ITEMNAME
+	            ,IM.CAR_TYPE AS MODEL
+	            ,(SELECT SC.SMALL_NAME
+	               FROM CB_SMALL_CODE SC
+	              WHERE SC.ORG_ID = IM.ORG_ID
+	                 AND SC.COMPANY_ID = IM.COMPANY_ID
+	                 AND SC.BIG_CODE = 'CMM'
+	                 AND SC.MIDDLE_CODE = 'MODEL'
+	                 AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+	            ,IM.ITEM_STANDARD AS ITEMSTANDARD
+	            ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+	            ,IM.MATERIAL_TYPE AS MATERIALTYPE
+	            ,IM.UOM AS UOM
+	            ,(SELECT SC.SMALL_NAME
+	               FROM CB_SMALL_CODE SC
+	              WHERE SC.ORG_ID = IM.ORG_ID
+	                 AND SC.COMPANY_ID = IM.COMPANY_ID
+	                 AND SC.BIG_CODE = 'CMM'
+	                 AND SC.MIDDLE_CODE = 'UOM'
+	                 AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+	            ,IM.ITEM_TYPE AS ITEMTYPE
+	            ,(SELECT SC.SMALL_NAME
+	               FROM CB_SMALL_CODE SC
+	              WHERE SC.ORG_ID = IM.ORG_ID
+	                 AND SC.COMPANY_ID = IM.COMPANY_ID
+	                 AND SC.BIG_CODE = 'CMM'
+	                 AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+	                 AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+              ,IM.ITEM_CLASS AS ITEMCLASS
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE SC.ORG_ID = IM.ORG_ID
+                   AND SC.COMPANY_ID = IM.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'ITEM_CLASS'
+                   AND SC.SMALL_CODE = IM.ITEM_CLASS) AS ITEMCLASSNAME
+              ,IM.SUB_ITEM AS SUBITEM
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE SC.ORG_ID = IM.ORG_ID
+                   AND SC.COMPANY_ID = IM.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'SUB_ITEM'
+                   AND SC.SMALL_CODE = IM.SUB_ITEM) AS SUBITEMNAME
+	            ,IM.WEIGHT AS WEIGHT
+	            ,IM.DRAWING_REV AS DRAWINGREV
+	            ,TO_CHAR(IM.DRAWING_DATE, 'YYYY-MM-DD') AS DRAWINGDATE
+	            ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+	            ,(SELECT CC.CUSTOMER_NAME
+	               FROM CB_CUSTOMER CC
+	              WHERE CC.ORG_ID = IM.ORG_ID
+	                 AND CC.COMPANY_ID = IM.COMPANY_ID
+	                 AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME
+	            ,IM.MANAGEMENT_NUMBER AS MANAGEMENTNUMBER
+	            ,IM.MAKE_TYPE AS MAKETYPE
+	            ,(SELECT SC.SMALL_NAME
+	               FROM CB_SMALL_CODE SC
+	              WHERE SC.ORG_ID = IM.ORG_ID
+	                 AND SC.COMPANY_ID = IM.COMPANY_ID
+	                 AND SC.BIG_CODE = 'CMM'
+	                 AND SC.MIDDLE_CODE = 'MAKE_TYPE'
+	                 AND SC.SMALL_CODE = IM.MAKE_TYPE) AS MAKETYPENAME
+	            ,IM.SHIPMENT_INSPECTION_YN AS SHIPMENTINSPECTIONYN
+	            
+              ,IM.ORDER_INSPECTION_YN AS ORDERINSPECTIONYN
+              ,IM.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+              ,IM.LOT_YN AS LOTYN
+              ,IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN
+              ,IM.INV_SAFE_QTY AS INVSAFEQTY
+              
+              ,IM.SAFETY_INVENTORY AS SAFETYINVENTORY
+	            ,NVL(CB_COST_PKG.CB_SALES_PRICE_FNC(IM.ORG_ID
+													                                     ,IM.COMPANY_ID
+													                                     ,IM.ITEM_CODE
+													                                     ,SYSDATE), 0) AS UNITPRICEA
+	            ,TO_CHAR(IM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+	            ,TO_CHAR(IM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+	            ,IM.REMARKS AS REMARKS
+              ,IM.LABEL AS LABEL
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE SC.ORG_ID = IM.ORG_ID
+                   AND SC.COMPANY_ID = IM.COMPANY_ID
+                   AND SC.BIG_CODE = 'OM'
+                   AND SC.MIDDLE_CODE ='SHIPPING_ITEM_GROUP'
+                   AND SC.SMALL_CODE = IM.LABEL) AS LABELTEXT
+	            ,IM.SORT_ORDER AS SORTORDER
+        FROM CB_ITEM_MASTER IM
+  </sql>
+
+  <sql id="item.master.itemproductexcellist.sql-where">
+       WHERE IM.GROUP_CODE = #GROUPCODE#
+         AND TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE
+          <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORG_ID = #ORGID#
+          </isNotEmpty>
+          <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANY_ID = #COMPANYID#
+          </isNotEmpty>
+          <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEM_CODE =  #ITEMCODE# 
+          </isNotEmpty>
+       ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_CODE
+  </sql>
+
+  <select id="item.master.itemproductexcellist.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="item.master.itemproductexcellist.sql-select" />
+    <include refid="item.master.itemproductexcellist.sql-where" />
+  </select>
+
+  <select id="item.master.itemproductlist.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="item.master.itemproductexcellist.sql-select" />
+      <include refid="item.master.itemproductexcellist.sql-where" />
+    ) TOT
+  </select>
+  <!-- 품목관리 엑셀리스트 끝 -->
+</sqlMap>

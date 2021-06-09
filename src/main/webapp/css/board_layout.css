@@ -1,0 +1,707 @@
+.board_title01 {
+    font-weight: bold;
+    background-position: left;
+    width: 980px;
+    overflow: hidden;
+    text-align: left;
+    padding-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+    position: relative;
+    background-image:
+        url("../../../images/egovframework/adt/bullet_bluebar.gif");
+    background-repeat: no-repeat;
+}
+
+.board_title01>ul {
+    padding-top: 11px;
+}
+
+.black_title_text {
+    font-family: "돋움", dotum;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+.list_ar {
+    margin-top: 10px;
+    float: left;
+    position: relative;
+}
+
+.list_ar_ul_1 {
+    background-position: center;
+    border: 1px solid rgb(0, 152, 201);
+    width: 100%;
+    height: 24px;
+    color: rgb(255, 255, 255);
+    padding-top: 5px;
+    font-weight: bold;
+    background-image:
+        url("../../../images/egovframework/adt/img_board_bg.gif");
+}
+
+.list_ar_ul_2 {
+    width: 653px;
+    height: 30px;
+    padding-top: 8px;
+    border-bottom-color: rgb(171, 194, 217);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.table_list02 {
+    width: 100%;
+    height: 25px;
+    padding-top: 5px;
+    border-top-color: rgb(171, 194, 217);
+    border-bottom-color: rgb(171, 194, 217);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    float: left;
+}
+
+.table_list02 {
+    width: 100%;
+    height: 25px;
+    padding-top: 5px;
+    border-top-color: rgb(171, 194, 217);
+    border-bottom-color: rgb(171, 194, 217);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    float: left;
+}
+
+.eduDetail th {
+    padding-left: 20px;
+    text-align: left;
+    color: #6070ba
+}
+
+.eduDetail td.pointRed {
+    color: #e00
+}
+
+.table_list03 {
+    width: 100%;
+    height: 25px;
+    padding-top: 5px;
+    border-bottom-color: rgb(171, 194, 217);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    float: left;
+}
+
+.b_name_55 {
+    width: 70px;
+    text-align: center;
+    float: left;
+}
+
+.b_name_100 {
+    text-align: left;
+}
+
+.b_name_101 {
+    text-align: left;
+    float: left;
+}
+
+.b_name_size {
+    text-align: center;
+    float: left;
+}
+
+.content_01 {
+    width: 100%;
+    text-align: left;
+    padding-right: 12px;
+    padding-left: 12px;
+    margin-top: 10px;
+    margin-bottom: 100px;
+    float: left;
+}
+
+.right_board_title55 {
+    color: rgb(1, 64, 131);
+    padding-top: 5px;
+    font-family: "gulim", "dotum", "Arial", "Verdana";
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+.right_board_list66 {
+    color: rgb(149, 149, 149);
+    padding-top: 5px;
+    font-family: "dotum", "gulim", "dotum", "Arial", "Verdana";
+    font-size: 9pt;
+}
+
+.b_name01 {
+    color: #5B6984;
+    font-family: "dotum", "gulim", "dotum", "Arial", "Verdana";
+    font-size: 9pt;
+    font-weight: bold;
+}
+
+.btn_area {
+    width: 990px;
+    margin-top: 10px;
+    float: left;
+}
+
+.gray_bg09 {
+    background: url("../../../images/egovframework/adt/qu_bg.gif") repeat-y;
+    width: 814px;
+}
+
+.white_bgbg {
+    border: 1px solid rgb(180, 180, 180);
+    width: 768px;
+    letter-spacing: -0.1px;
+    font-family: "dotum", "gulim", "dotum", "Arial", "Verdana";
+    font-size: 9pt;
+    background-color: rgb(255, 255, 255);
+}
+
+.board_login_move {
+    background-color: aqua;
+}
+
+a.board:link {
+    color: #666;
+    font-family: 'Nanum Gothic', "dotum", "gulim", "dotum", "Arial",
+        "Verdana";
+    font-size: 13px;
+    text-decoration: none;
+}
+
+a.board:visited {
+    color: #666;
+    font-family: 'Nanum Gothic', "dotum", "gulim", "dotum", "Arial",
+        "Verdana";
+    font-size: 13px;
+    text-decoration: none;
+}
+
+a.board:active {
+    color: #666;
+    font-family: 'Nanum Gothic', "dotum", "gulim", "dotum", "Arial",
+        "Verdana";
+    font-size: 13px;
+    text-decoration: none;
+}
+
+a.board:hover {
+    color: #666;
+    font-family: 'Nanum Gothic', "dotum", "gulim", "dotum", "Arial",
+        "Verdana";
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.table_list th {
+    height: 30px;
+    background-color: rgb(245, 245, 245);
+}
+
+.table_list td {
+    height: 34px;
+}
+
+.list_ar {
+    padding-top: 12px;
+}
+
+.table_list {
+    border-width: 1px 0px;
+    border-style: solid none;
+    border-color: rgb(171, 194, 217) currentColor;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.table_no55 {
+    text-align: center;
+    color: rgb(0, 0, 0);
+    font-family: "Tahoma";
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.search_box01 {
+    overflow: hidden;
+    width: 990px;
+    height: 62px;
+    position: relative;
+    background-image:
+        url("../../../images/egovframework/adt/bg_board_search.gif");
+    background-repeat: no-repeat;
+}
+
+.search_box01 ul {
+    width: 800px;
+    margin: 0 auto;
+}
+
+.search_box01 ul .ser_box19 {
+    width: 200px
+}
+
+.list_ar {
+    padding-top: 12px;
+}
+
+.button_01 {
+    margin-left: 5px;
+    float: right;
+}
+
+.button_02 {
+    margin-left: 5px;
+    float: right;
+}
+
+.ser_btn {
+    margin-top: 5px;
+}
+
+.txt_overflow {
+    overflow: hidden;
+    float: left;
+    white-space: nowrap;
+}
+
+.ser_box12 {
+    width: 59px;
+}
+
+#dom_table {
+    padding-top: 15px;
+    padding-left: 0px;
+}
+
+#dom_table table {
+    border: 2px solid rgb(207, 215, 191);
+    width: 651px;
+    border-collapse: collapse;
+}
+
+#dom_table th {
+    background-position: center;
+    border: 1px solid rgb(171, 235, 255);
+    color: rgb(255, 255, 255);
+    padding-top: 5px;
+    font-weight: bold;
+    background-image:
+        url("../../../images/egovframework/adt/img_board_bg.gif");
+}
+
+#dom_table td {
+    border: 1px solid rgb(229, 230, 232);
+    height: 25px;
+    padding-left: 5px;
+    font-size: 11px;
+    border-collapse: collapse;
+}
+
+.titlerow {
+    margin: 0px;
+    border: 1px solid rgb(171, 235, 255);
+    color: rgb(255, 255, 255);
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-left: 0px;
+    font-size: 11px;
+    background-color: rgb(37, 182, 227);
+}
+
+.bluebackground {
+    border: 1px solid rgb(171, 235, 255);
+    color: rgb(51, 51, 51);
+    padding-top: 5px;
+    font-weight: bold;
+    background-color: rgb(235, 235, 235);
+}
+
+.inputlarge {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    height: 14px;
+    font-size: 11px;
+}
+
+.inputsmall {
+    border: 1px solid rgb(213, 213, 213);
+    width: 90%;
+    height: 14px;
+    font-size: 11px;
+}
+
+.opselect_large01 {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    font-size: 11px;
+}
+
+.inputlarge_readonly {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    height: 14px;
+    color: rgb(79, 111, 187);
+    font-size: 11px;
+}
+
+.inputsmall {
+    border: 1px solid rgb(213, 213, 213);
+    width: 90%;
+    height: 14px;
+    font-size: 11px;
+}
+
+.inputsmall_c {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    height: 14px;
+    text-align: center;
+    font-size: 11px;
+}
+
+.inputsmall_r {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    height: 14px;
+    text-align: right;
+    font-size: 11px;
+}
+
+.inputsmall_r_ro {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    height: 14px;
+    text-align: right;
+    color: rgb(79, 111, 187);
+    font-size: 11px;
+}
+
+.inputsmall_readOnly {
+    border: 1px solid rgb(213, 213, 213);
+    width: 90%;
+    height: 14px;
+    color: rgb(79, 111, 187);
+    font-size: 11px;
+}
+
+.inputsmall01 {
+    border: 1px solid rgb(213, 213, 213);
+    width: 80%;
+    height: 14px;
+    font-size: 11px;
+}
+
+.inputsmall01_readOnly {
+    border: 1px solid rgb(213, 213, 213);
+    width: 80%;
+    height: 14px;
+    color: rgb(79, 111, 187);
+    font-size: 11px;
+}
+
+.inputsmall01_readOnly_r {
+    border: 1px solid rgb(213, 213, 213);
+    width: 80%;
+    height: 14px;
+    text-align: right;
+    color: rgb(79, 111, 187);
+    font-size: 11px;
+}
+
+.inputsmall1 {
+    border: 1px solid rgb(213, 213, 213);
+    width: 95%;
+    height: 14px;
+    font-size: 11px;
+}
+
+.inputdom {
+    border: 1px solid rgb(213, 213, 213);
+    width: 50px;
+    height: 14px;
+    font-size: 10px;
+}
+
+.inputdom_c {
+    border: 1px solid rgb(213, 213, 213);
+    width: 60px;
+    height: 14px;
+    text-align: center;
+    font-size: 11px;
+}
+
+.inputdom_r {
+    border: 1px solid rgb(213, 213, 213);
+    width: 150px;
+    height: 14px;
+    text-align: right;
+    font-size: 11px;
+}
+
+.inputsusmall {
+    border: 1px solid rgb(213, 213, 213);
+    width: 50px;
+    height: 14px;
+    font-size: 10px;
+}
+
+.inputdomsmall_c {
+    border: 1px solid rgb(213, 213, 213);
+    width: 30px;
+    height: 14px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.inputdomsmall_r {
+    border: 1px solid rgb(213, 213, 213);
+    width: 45px;
+    height: 14px;
+    text-align: right;
+    font-size: 10px;
+}
+
+.inputdomss_r {
+    border: 1px solid rgb(213, 213, 213);
+    width: 25px;
+    height: 14px;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 10px;
+}
+
+.inputdomss_r_ro {
+    border: 1px solid rgb(213, 213, 213);
+    width: 30px;
+    height: 14px;
+    text-align: right;
+    color: white;
+    padding-right: 5px;
+    font-size: 10px;
+    background-color: rgb(128, 128, 128);
+}
+
+.inputdomss_r_rl {
+    border: 1px solid rgb(213, 213, 213);
+    width: 150px;
+    height: 14px;
+    text-align: right;
+    color: white;
+    font-size: 11px;
+    background-color: rgb(128, 128, 128);
+}
+
+.inputdomss_c_ro {
+    border: 1px solid rgb(213, 213, 213);
+    width: 60px;
+    height: 14px;
+    text-align: center;
+    color: white;
+    font-size: 11px;
+    background-color: rgb(128, 128, 128);
+}
+
+.list_td_left {
+    padding-left: 5px;
+}
+
+.list_td_right {
+    padding-right: 5px;
+}
+
+.list_td_left2 {
+    width: 40px;
+    padding-left: 5px;
+}
+
+.opselect_large01 {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    font-size: 11px;
+}
+
+.select {
+    border: 1px solid rgb(213, 213, 213);
+    width: 97%;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.selectSmall {
+    border: 1px solid rgb(213, 213, 213);
+    width: 70%;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.opselect_smaill01 {
+    border: 1px solid rgb(213, 213, 213);
+    width: 40px;
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+.th_add {
+    background-position: 4px;
+    width: 5px;
+    height: 11px;
+    padding-left: 15px;
+    background-image: url("/images/egovframework/required.gif");
+    background-repeat: no-repeat;
+}
+
+/*2012-10-24 App List View 추가*/
+.applist_wrap {
+    margin-top: 25px;
+    color: #666;
+    line-height: 16px;
+}
+
+.tbl_head {
+    background: #f7f7f7;
+    height: 32px;
+    border-bottom: 1px solid #abc2d9;
+    font-size: 12px;
+    font-weight: bold;
+    color: #6085c9;
+}
+
+.tbl_head .head01 {
+    float: left;
+    width: 15%;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.tbl_head .head02 {
+    float: left;
+    width: 65%;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.tbl_head .head03 {
+    float: left;
+    width: 20%;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.table_list {
+    border: none;
+}
+
+.table_list td.img {
+    height: 92px;
+    text-align: center;
+    border-bottom: 1px solid #abc2d9;
+}
+
+.table_list td.content_tit {
+    text-align: left;
+    font-weight: bold;
+    height: 31px;
+    vertical-align: middle;
+    padding-top: 6px;
+}
+
+.table_list td.content_info {
+    text-align: left;
+    height: 38px;
+    border-bottom: 1px solid #abc2d9;
+    vertical-align: top;
+}
+
+.table_list td.btn {
+    text-align: center;
+    border-bottom: 1px solid #abc2d9;
+}
+
+.table_list td.btn .pd_top5 {
+    padding-top: 5px;
+}
+
+/*2012-10-24 App List View 추가*/
+
+
+/* 20131204추가 EgovIdPasswordSearch.jsp */
+
+#searchId_area {
+    float: left;
+    width: 320px;
+}
+
+#searchId_area table {
+    width: 320px;
+    margin: 0;
+}
+
+#searchId_area input.ser_box:focus, #searchpw_area input.ser_box:focus, #searchpw_area select#passwordHint:focus {
+    border: 2px solid #b5cae2;
+}
+
+#searchId_area table tr:first-child td, #searchpw_area table tr:first-child td {
+    border-top: 2px solid #4880be;border-bottom: 1px solid #b5cae2;padding-right:5px; padding-left:10px;
+}
+
+#searchId_area table tr td, #searchpw_area table tr td{
+    border-bottom: 1px solid #b5cae2;padding-right:5px; padding-left:10px;
+}
+
+#searchpw_area {
+    float: left;
+    width: 400px;
+    margin-left: 100px;
+}
+
+#searchpw_area div.inquirypw {
+float: right;position:relative;left:140px; margin-top: 50px;
+font-size: 11px;border-bottom: 1px solid #666;
+}
+
+/* #searchpw_area a {
+    width: 140px;
+    height: 21px;
+} */
+
+/* 20131204추가 EgovIdPasswordResult.jsp */
+div.search_result {
+    padding-left: 20px;
+}
+
+div.result_data {
+    padding: 25px 0 0;
+    width: 763px;
+    height: 120px;
+    background: url(/images/egovframework/adt/board/idPwResult_bg.jpg) no-repeat 0 0;
+    text-align: center;
+}
+
+div.result_data div.no_data {
+     margin:0;
+     padding:5px 0 10px 0;
+}
+
+div.result_data span.result_id {
+     border-bottom: 1px solid #888;
+     color: #cf5047;
+     font-size: 16px;
+}
+
+div.result_data div.btn_area {
+    width: 763px;
+    padding:10px 0 20px 0;text-align:center;border-top:1px solid #e5e5e5;
+}

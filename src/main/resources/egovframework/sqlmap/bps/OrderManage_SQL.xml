@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orderManage">
+
+    <parameterMap class="java.util.Map" id="OrderManageProcPlan">
+			  <parameter property="ORG" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+			  <parameter property="COMP" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SONUM" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="UPDATEID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="OrderManageProcPlanDel">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SONO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SOSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="UPDATEID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="procUnitPriceParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SONO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SOSEQ" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    
+     
+    
+    <procedure id="order.manage.ordermanagestatelist.Procedure" parameterClass="java.util.Map"  parameterMap="OrderManageProcPlan" resultClass="java.util.HashMap" >
+    <![CDATA[
+              {call CB_SO_PKG.CB_PROD_PLAN_PROC( ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="order.manage.prodplan.delete.Procedure" parameterClass="java.util.Map"  parameterMap="OrderManageProcPlanDel" resultClass="java.util.HashMap" >
+    <![CDATA[
+              {call CB_SO_PKG.CB_PROD_PLAN_DEL( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="order.manage.unitprice.call.Procedure" parameterClass="java.util.Map"  parameterMap="procUnitPriceParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SO_PKG.CB_UNIT_PRICE_MANAGE( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+  <sql id="order.manage.ordermanagestatelist.master.list.sql-select">
+           SELECT RANK() OVER(ORDER BY SOH.ORG_ID, SOH.COMPANY_ID, SOH.SO_DATE DESC, SOH.SO_NO) AS RN
+              ,SOH.ORG_ID AS ORGID
+              ,SOH.COMPANY_ID AS COMPANYID
+              ,SOH.SO_NO AS SONO
+              ,SOH.REV_NO AS REVNO
+              ,TO_CHAR(SOH.SO_DATE, 'YYYY-MM-DD') AS SODATE
+              ,SOH.CUSTOMER_CODE AS CUSTOMERCODE
+              ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+              ,SOH.SALES_PERSON AS SALESPERSON
+              ,HM.KR_NAME AS SALESPERSONNAME
+              ,SOH.SO_STATUS AS SOSTATUS
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                  AND SC.ORG_ID = SOH.ORG_ID
+                  AND SC.COMPANY_ID = SOH.COMPANY_ID
+                  AND SC.BIG_CODE = 'OM'
+                  AND SC.MIDDLE_CODE = 'SO_STATUS'
+                  AND SC.SMALL_CODE = SOH.SO_STATUS) AS SOSTATUSNAME
+              ,TO_CHAR(SOH.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+              ,(SELECT NVL(SUM(OD.SUPPLY_PRICE), 0)
+                  FROM CB_SALES_ORDER_D OD
+                 WHERE 1=1
+                    AND OD.ORG_ID = SOH.ORG_ID
+                    AND OD.COMPANY_ID = SOH.COMPANY_ID
+                    AND OD.SO_NO = SOH.SO_NO) AS SUPPLYPRICE
+              ,(SELECT NVL(SUM(OD.ADDITIONAL_TAX), 0)
+                  FROM CB_SALES_ORDER_D OD
+                 WHERE 1=1
+                    AND OD.ORG_ID = SOH.ORG_ID
+                    AND OD.COMPANY_ID = SOH.COMPANY_ID
+                    AND OD.SO_NO = SOH.SO_NO) AS ADDITIONALTAX
+              ,(SELECT NVL(SUM(OD.SUPPLY_PRICE), 0) + NVL(SUM(OD.ADDITIONAL_TAX), 0)
+                  FROM CB_SALES_ORDER_D OD
+                 WHERE 1=1
+                    AND OD.ORG_ID = SOH.ORG_ID
+                    AND OD.COMPANY_ID = SOH.COMPANY_ID
+                    AND OD.SO_NO = SOH.SO_NO) AS TOTAL
+              ,SOH.TAX_DIV AS TAXDIV
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                  AND SC.ORG_ID = SOH.ORG_ID
+                  AND SC.COMPANY_ID = SOH.COMPANY_ID
+                  AND SC.BIG_CODE = 'CMM'
+                  AND SC.MIDDLE_CODE = 'TAX_DIV'
+                  AND SC.SMALL_CODE = SOH.TAX_DIV) AS TAXDIVNAME
+              ,SOH.PAYMENT_TERMS AS PAYMENTTERMS
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                  AND SC.ORG_ID = SOH.ORG_ID
+                  AND SC.COMPANY_ID = SOH.COMPANY_ID
+                  AND SC.BIG_CODE = 'CMM'
+                  AND SC.MIDDLE_CODE = 'PAYMENT_TERMS'
+                  AND SC.SMALL_CODE = SOH.PAYMENT_TERMS) AS PAYMENTTERMSNAME
+             ,CC.CLOSING_DATE AS CLOSINGDATE
+             ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+               WHERE 1=1
+                  AND SC.ORG_ID = CC.ORG_ID
+                  AND SC.COMPANY_ID = CC.COMPANY_ID
+                  AND SC.BIG_CODE = 'CMM'
+                  AND SC.MIDDLE_CODE = 'CLOSING_DATE'
+                  AND SC.SMALL_CODE = CC.CLOSING_DATE) AS CLOSINGDATENAME
+              ,SOH.SO_TYPE AS SOTYPE
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                  AND SC.ORG_ID = SOH.ORG_ID
+                  AND SC.COMPANY_ID = SOH.COMPANY_ID
+                  AND SC.BIG_CODE = 'OM'
+                  AND SC.MIDDLE_CODE = 'SO_TYPE'
+                  AND SC.SMALL_CODE = SOH.SO_TYPE) AS SOTYPENAME
+              ,SOH.REMARKS AS REMARKS
+          FROM CB_SALES_ORDER_H SOH
+              ,CB_CUSTOMER CC
+              ,CB_HUMANRESOURCE_MANAGER HM
+  </sql>
+
+  <sql id="order.manage.ordermanagestatelist.master.list.sql-where">
+         WHERE 1=1
+            AND SOH.ORG_ID = CC.ORG_ID
+            AND SOH.COMPANY_ID = CC.COMPANY_ID
+            AND SOH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+            AND HM.EMPLOYEE_NUMBER(+) = SOH.SALES_PERSON
+				    <isNotEmpty property="ORGID" prepend="AND">
+				      SOH.ORG_ID = #ORGID#
+				    </isNotEmpty>
+				    <isNotEmpty property="COMPANYID" prepend="AND">
+				      SOH.COMPANY_ID = #COMPANYID#
+				    </isNotEmpty>
+				    <isNotEmpty property="DATETO">
+				        <isNotEmpty property="DATEFROM" prepend="AND">
+		              SOH.SO_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+		            </isNotEmpty>
+				    </isNotEmpty>
+				    <isNotEmpty property="SONO" prepend="AND">
+				      SOH.SO_NO = #SONO#
+				    </isNotEmpty>
+				    <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+				      SOH.CUSTOMER_CODE = #CUSTOMERCODE#
+				    </isNotEmpty>
+				    <isNotEmpty property="SALESPERSON" prepend="AND">
+				      SOH.SALES_PERSON = #SALESPERSON#
+				    </isNotEmpty>
+				    <isNotEmpty property="SOSTATUS" prepend="AND">
+				      SOH.SO_STATUS = #SOSTATUS#
+				    </isNotEmpty>
+				    <isNotEmpty property="ITEMCODE" prepend="AND">
+				      SOH.SO_NO IN (SELECT OD.SO_NO 
+				                        FROM CB_SALES_ORDER_D OD
+				                       WHERE 1=1
+				                          AND OD.ORG_ID = SOH.ORG_ID
+				                          AND OD.COMPANY_ID = SOH.COMPANY_ID
+				                          AND OD.ITEM_CODE = #ITEMCODE#)
+				    </isNotEmpty>
+				    ORDER BY SOH.ORG_ID, SOH.COMPANY_ID, SOH.SO_DATE DESC, SOH.SO_NO DESC
+  </sql>
+
+  <select id="order.manage.ordermanagestatelist.master.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.manage.ordermanagestatelist.master.list.sql-select" />
+    <include refid="order.manage.ordermanagestatelist.master.list.sql-where" />
+  </select>
+
+  <select id="order.manage.ordermanagestatelist.master.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.manage.ordermanagestatelist.master.list.sql-select" />
+      <include refid="order.manage.ordermanagestatelist.master.list.sql-where" />
+        )TOT
+  </select>
+
+  <sql id="order.manage.ordermanagestatelist.detail.list.sql-select">
+     SELECT RANK() OVER(ORDER BY SOD.ORG_ID, SOD.COMPANY_ID, SOD.SO_SEQ) AS RN
+              ,SOD.ORG_ID AS ORGID
+              ,SOD.COMPANY_ID AS COMPANYID
+              ,SOD.SO_NO AS SONO
+              ,SOD.SO_SEQ AS SOSEQ
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CLASS SC
+                 WHERE 1=1
+                    AND SC.ORG_ID = IM.ORG_ID
+                    AND SC.COMPANY_ID = IM.COMPANY_ID
+                    AND SC.GROUP_CODE = IM.GROUP_CODE
+                    AND SC.BIG_CODE = IM.BIG_CODE
+                    AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+                    AND SC.SMALL_CODE = IM.SMALL_CODE) AS SMALLNAME
+              ,IM.ORDER_NAME AS ORDERNAME
+              ,IM.DRAWING_NO AS DRAWINGNO
+              ,IM.ITEM_NAME AS ITEMNAME
+              ,IM.ITEM_CODE AS ITEMCODE
+              ,IM.CAR_TYPE AS CARTYPE
+              ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL 
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                   AND SC.ORG_ID = IM.ORG_ID
+                   AND SC.COMPANY_ID = IM.COMPANY_ID
+                   AND SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'MODEL'
+                   AND SC.SMALL_CODE = IM.CAR_TYPE) AS CARTYPENAME
+              ,IM.MATERIAL_TYPE AS MATERIALTYPE
+              ,IM.UOM AS UOM
+              ,(SELECT SC.SMALL_NAME
+                  FROM CB_SMALL_CODE SC
+                 WHERE 1=1
+                    AND SC.ORG_ID = IM.ORG_ID
+                    AND SC.COMPANY_ID = IM.COMPANY_ID
+                    AND SC.BIG_CODE = 'CMM'
+                    AND SC.MIDDLE_CODE = 'UOM'
+                    AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+              ,IM.WEIGHT AS WEIGHT
+              ,IM.WEIGHT * SOD.SO_QTY AS SUMWEIGHT
+              ,SOD.SO_QTY AS SOQTY
+              ,SOD.UNIT_PRICE AS UNITPRICEA
+              ,SOD.SUPPLY_PRICE AS SUPPLYPRICE
+              ,SOD.ADDITIONAL_TAX AS ADDITIONALTAX
+              ,SOD.SUPPLY_PRICE + SOD.ADDITIONAL_TAX AS TOTAL
+              ,TO_CHAR(SOD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+              ,TO_CHAR(SOD.CAST_END_PLAN_DATE, 'YYYY-MM-DD') AS CASTENDPLANDATE
+              ,TO_CHAR(SOD.WORK_END_PLAN_DATE, 'YYYY-MM-DD') AS WORKENDPLANDATE
+              ,SOD.CUSTOMER_ORDER AS CUSTOMERORDER
+              ,SOD.CUSTOMER_ORDER_SEQ AS CUSTOMERORDERSEQ
+              ,SOD.WORK_ORDER_DIV AS WORKORDERDIV
+              ,(SELECT SC.SMALL_NAME
+                 FROM CB_SMALL_CODE SC
+                WHERE 1=1
+                   AND SC.ORG_ID = SOD.ORG_ID
+                   AND SC.COMPANY_ID = SOD.COMPANY_ID
+                   AND SC.BIG_CODE = 'OM'
+                   AND SC.MIDDLE_CODE = 'WORK_ORDER_DIV'
+                   AND SC.SMALL_CODE = SOD.WORK_ORDER_DIV) AS WORKORDERDIVNAME
+              ,SOD.INVENTORY_QTY AS INVENTORYQTY
+              ,SOD.COMPLETE_YN AS COMPLETEYN
+              ,SOD.REMARKS AS REMARKS
+          FROM CB_SALES_ORDER_D SOD
+              ,CB_ITEM_MASTER_V IM
+  </sql>
+
+  <sql id="order.manage.ordermanagestatelist.detail.list.sql-where">
+         WHERE 1=1
+            AND SOD.ORG_ID = IM.ORG_ID
+            AND SOD.COMPANY_ID = IM.COMPANY_ID
+            AND SOD.ITEM_CODE = IM.ITEM_CODE
+            <isNotEmpty property="ORGID" prepend="AND">
+              SOD.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              SOD.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="SONO" prepend="AND">
+              SOD.SO_NO = #SONO#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              SOD.SO_NO IN (SELECT OD.SO_NO 
+                                FROM CB_SALES_ORDER_D OD
+                               WHERE 1=1
+                                  AND OD.ORG_ID = SOD.ORG_ID
+                                  AND OD.COMPANY_ID = SOD.COMPANY_ID
+                                  AND OD.ITEM_CODE = #ITEMCODE#)
+            </isNotEmpty>
+            ORDER BY SOD.ORG_ID, SOD.COMPANY_ID, SOD.SO_SEQ
+  </sql>
+
+  <select id="order.manage.ordermanagestatelist.detail.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.manage.ordermanagestatelist.detail.list.sql-select" />
+    <include refid="order.manage.ordermanagestatelist.detail.list.sql-where" />
+  </select>
+
+  <select id="order.manage.ordermanagestatelist.detail.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="order.manage.ordermanagestatelist.detail.list.sql-select" />
+      <include refid="order.manage.ordermanagestatelist.detail.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <select id="order.manage.ordermanagesono.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">                  
+        SELECT 'SO' || TO_CHAR(TO_DATE(#SoDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '-' ||
+               (CASE
+                  WHEN NVL(NUM, 0) BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NVL(NUM, 0) BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NVL(NUM, 0) + 1) AS FINDSONO
+          FROM (SELECT MAX(SUBSTR(SO_NO, -3, 3)) AS NUM
+                  FROM CB_SALES_ORDER_H
+                 WHERE 1 = 1
+                   AND SO_NO LIKE 'SO' || TO_CHAR(TO_DATE(#SoDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '%')
+    </select>
+        
+    <sql id="order.manage.ordermanagesoseq.find.sql-select">
+        SELECT COUNT(OD.SO_NO) AS COUNT
+          FROM CB_SALES_ORDER_D OD
+    </sql>
+
+    <sql id="order.manage.ordermanagesoseq.find.sql-where">
+         WHERE 1 = 1
+             AND OD.ORG_ID = #Orgid#
+             AND OD.COMPANY_ID = #CompanyId#
+             AND OD.SO_NO = #SoNo#
+             AND OD.SO_SEQ = $SOSEQ$
+    </sql>
+
+    <select id="order.manage.ordermanagesoseq.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.manage.ordermanagesoseq.find.sql-select" />
+        <include refid="order.manage.ordermanagesoseq.find.sql-where" />
+    </select>
+    
+    <insert id="order.manage.ordermanagestatelist.master.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SALES_ORDER_H
+              (SO_NO
+				      ,ORG_ID
+				      ,COMPANY_ID
+				      ,REV_NO
+				      ,SO_DATE
+				      ,SO_STATUS
+				      ,CUSTOMER_CODE
+				      ,SALES_PERSON
+				      ,DUE_DATE
+				      ,TAX_DIV
+				      ,PAYMENT_TERMS
+				      ,SO_TYPE
+        ]]>
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+             (#SoNo#
+             ,#searchOrgId#
+             ,#searchCompanyId#
+             ,0
+             ,TO_DATE(#SoDate#, 'YYYY-MM-DD')
+             ,#SoStatus#
+             ,#CustomerCode#
+             ,#SalesPerson#
+             ,#DueDate#
+             ,#TaxDiv#
+             ,#PaymentTerms#
+             ,#SoType#
+        ]]>
+        <isNotEmpty property="ReMarks" prepend=",">
+              #ReMarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+        
+    <insert id="order.manage.ordermanagestatelist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SALES_ORDER_D
+              (SO_NO
+              ,SO_SEQ
+              ,ORG_ID
+              ,COMPANY_ID
+              ,ITEM_CODE
+              ,SO_QTY
+              ,SUPPLY_PRICE
+              ,ADDITIONAL_TAX
+              ,INVENTORY_QTY
+        ]]>
+        <isNotEmpty property="DUEDATE" prepend=",">
+              DUE_DATE
+        </isNotEmpty>
+        <isNotEmpty property="CASTENDPLANDATE" prepend=",">
+              CAST_END_PLAN_DATE
+        </isNotEmpty>
+        <isNotEmpty property="WORKENDPLANDATE" prepend=",">
+              WORK_END_PLAN_DATE
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERDIV" prepend=",">
+              WORK_ORDER_DIV
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICEA" prepend=",">
+              UNIT_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERORDER" prepend=",">
+               CUSTOMER_ORDER
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERORDERSEQ" prepend=",">
+               CUSTOMER_ORDER_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="COMPLETEYN" prepend=",">
+               COMPLETE_YN
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES              
+              (#SoNo#
+              ,$SOSEQ$
+              ,#Orgid#
+              ,#CompanyId#
+              ,#ITEMCODE#
+              ,$SOQTY$
+              ,$SUPPLYPRICE$
+              ,$ADDITIONALTAX$
+              ,$INVENTORYQTY$
+        ]]>
+        <isNotEmpty property="DUEDATE" prepend=",">
+              TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="CASTENDPLANDATE" prepend=",">
+              TO_DATE(#CASTENDPLANDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="WORKENDPLANDATE" prepend=",">
+              TO_DATE(#WORKENDPLANDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERDIV" prepend=",">
+              #WORKORDERDIV#
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICEA" prepend=",">
+              #UNITPRICEA#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERORDER" prepend=",">
+               #CUSTOMERORDER#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERORDERSEQ" prepend=",">
+               #CUSTOMERORDERSEQ#
+        </isNotEmpty>
+        <isNotEmpty property="COMPLETEYN" prepend=",">
+               #COMPLETEYN#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="order.manage.ordermanagestatelist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_ORDER_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , REV_NO = REV_NO + 1
+        ]]>
+        <isNotEmpty property="SoDate" prepend=",">
+            SO_DATE = TO_DATE(#SoDate#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="SoDate" prepend=",">
+            SO_DATE = NULL
+        </isEmpty>        
+        <isNotEmpty property="SoStatus" prepend=",">
+            SO_STATUS = #SoStatus#
+        </isNotEmpty>
+        <isEmpty property="SoStatus" prepend=",">
+            SO_STATUS = NULL
+        </isEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>        
+        <isNotEmpty property="SalesPerson" prepend=",">
+            SALES_PERSON = #SalesPerson#
+        </isNotEmpty>
+        <isEmpty property="SalesPerson" prepend=",">
+            SALES_PERSON = NULL
+        </isEmpty>        
+        <isNotEmpty property="DueDate" prepend=",">
+            DUE_DATE = TO_DATE(#DueDate#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="DueDate" prepend=",">
+            DUE_DATE = NULL
+        </isEmpty>        
+        <isNotEmpty property="TaxDiv" prepend=",">
+            TAX_DIV = #TaxDiv#
+        </isNotEmpty>
+        <isEmpty property="TaxDiv" prepend=",">
+            TAX_DIV = NULL
+        </isEmpty>        
+        <isNotEmpty property="PaymentTerms" prepend=",">
+            PAYMENT_TERMS = #PaymentTerms#
+        </isNotEmpty>
+        <isEmpty property="PaymentTerms" prepend=",">
+            PAYMENT_TERMS = NULL
+        </isEmpty>
+        <isNotEmpty property="SoType" prepend=",">
+            SO_TYPE = #SoType#
+        </isNotEmpty>
+        <isEmpty property="SoType" prepend=",">
+            SO_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+            REMARKS = #ReMarks#
+        </isNotEmpty>
+        <isEmpty property="ReMarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId# 
+          AND SO_NO = #SoNo#
+        ]]>
+    </update>
+    
+    <update id="order.manage.ordermanagestatelist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_ORDER_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>      
+        <isNotEmpty property="UNITPRICEA" prepend=",">
+              UNIT_PRICE = #UNITPRICEA#
+        </isNotEmpty>
+        <isEmpty property="UNITPRICEA" prepend=",">
+            UNIT_PRICE = NULL
+        </isEmpty>  
+        <isNotEmpty property="INVENTORYQTY" prepend=",">
+            INVENTORY_QTY = $INVENTORYQTY$
+        </isNotEmpty>
+        <isEmpty property="INVENTORYQTY" prepend=",">
+            INVENTORY_QTY = NULL
+        </isEmpty>   
+        <isNotEmpty property="ITEMCODE" prepend=",">
+            ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isEmpty property="ITEMCODE" prepend=",">
+            ITEM_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="SOQTY" prepend=",">
+            SO_QTY = #SOQTY#
+        </isNotEmpty>
+        <isEmpty property="SOQTY" prepend=",">
+            SO_QTY = NULL
+        </isEmpty> 
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+            SUPPLY_PRICE = #SUPPLYPRICE#
+        </isNotEmpty>
+        <isEmpty property="SUPPLYPRICE" prepend=",">
+            SUPPLY_PRICE = NULL
+        </isEmpty>        
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+            ADDITIONAL_TAX = #ADDITIONALTAX#
+        </isNotEmpty>
+        <isEmpty property="ADDITIONALTAX" prepend=",">
+            ADDITIONAL_TAX = NULL
+        </isEmpty>
+        <isNotEmpty property="DUEDATE" prepend=",">
+            DUE_DATE = TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="DUEDATE" prepend=",">
+            DUE_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="CASTENDPLANDATE" prepend=",">
+            CAST_END_PLAN_DATE = TO_DATE(#CASTENDPLANDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="CASTENDPLANDATE" prepend=",">
+            CAST_END_PLAN_DATE = NULL
+        </isEmpty> 
+        <isNotEmpty property="WORKENDPLANDATE" prepend=",">
+            WORK_END_PLAN_DATE = TO_DATE(#WORKENDPLANDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="WORKENDPLANDATE" prepend=",">
+            WORK_END_PLAN_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKORDERDIV" prepend=",">
+            WORK_ORDER_DIV = #WORKORDERDIV#
+        </isNotEmpty>
+        <isEmpty property="WORKORDERDIV" prepend=",">
+            WORK_ORDER_DIV = NULL
+        </isEmpty>
+        <isNotEmpty property="CUSTOMERORDER" prepend=",">
+            CUSTOMER_ORDER = #CUSTOMERORDER#
+        </isNotEmpty>
+        <isEmpty property="CUSTOMERORDER" prepend=",">
+            CUSTOMER_ORDER = NULL
+        </isEmpty>
+        <isNotEmpty property="CUSTOMERORDERSEQ" prepend=",">
+            CUSTOMER_ORDER_SEQ = #CUSTOMERORDERSEQ#
+        </isNotEmpty>
+        <isEmpty property="CUSTOMERORDERSEQ" prepend=",">
+            CUSTOMER_ORDER_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="COMPLETEYN" prepend=",">
+            COMPLETE_YN = #COMPLETEYN#
+        </isNotEmpty>
+        <isEmpty property="COMPLETEYN" prepend=",">
+            COMPLETE_YN = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>       
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #Orgid#
+          AND COMPANY_ID = #CompanyId# 
+          AND SO_NO = #SoNo#
+          AND SO_SEQ = $SOSEQ$
+        ]]>
+    </update>
+    
+    <delete id="order.manage.ordermanagestatelist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SALES_ORDER_H
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND SO_NO = #SONO#
+    </delete>
+    
+    <delete id="order.manage.ordermanagestatelist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SALES_ORDER_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND SO_NO = #SONO#
+          AND SO_SEQ = $SOSEQ$
+    </delete>
+    
+  <sql id="order.manage.orderstatelist.sql-select">
+	<![CDATA[
+	SELECT ROW_NUMBER() OVER(ORDER BY SOH.ORG_ID, SOH.COMPANY_ID, SOH.SO_DATE DESC, SOH.SO_NO DESC, SOD.SO_SEQ) AS RN
+		      ,SOH.ORG_ID AS ORGID
+		      ,SOH.COMPANY_ID AS COMPANYID
+		      ,SOH.SO_NO AS SONO
+		      ,SOD.SO_SEQ AS SOSEQ
+		      ,SOH.CUSTOMER_CODE AS CUSTOMERCODE
+		      ,(SELECT CC.CUSTOMER_NAME
+		          FROM CB_CUSTOMER CC
+		         WHERE CC.ORG_ID = SOH.ORG_ID
+		           AND CC.COMPANY_ID = SOH.COMPANY_ID
+		           AND CC.CUSTOMER_CODE = SOH.CUSTOMER_CODE) AS CUSTOMERNAME
+		      ,TO_CHAR(SOH.SO_DATE, 'YYYY-MM-DD') AS SODATE
+		      ,SOH.SO_TYPE AS SOTYPE
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(SOH.ORG_ID
+		                                                  ,SOH.COMPANY_ID
+		                                                  ,'OM'
+		                                                  ,'SO_TYPE'
+		                                                  ,SOH.SO_TYPE
+		                                                  ,'LABEL') AS SOTYPENAME
+		      ,IM.SMALL_CODE AS SMALLCODE
+		      ,IM.ITEM_CODE AS ITEMCODE
+		      ,IM.ORDER_NAME AS ORDERNAME
+		      ,IM.DRAWING_NO AS DRAWINGNO
+		      ,IM.ITEM_NAME AS ITEMNAME
+		      ,IM.CAR_TYPE AS CARTYPE
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+		                                                  ,IM.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'MODEL'
+		                                                  ,IM.CAR_TYPE
+		                                                  ,'LABEL') AS CARTYPENAME
+		      ,IM.MATERIAL_TYPE AS MATERIALTYPE
+		      ,IM.UOM AS UOM
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+		                                                  ,IM.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'UOM'
+		                                                  ,IM.UOM
+		                                                  ,'LABEL') AS UOMNAME
+		      ,IM.WEIGHT AS WEIGHT
+		      ,IM.WEIGHT * SOD.SO_QTY AS SUMWEIGHT
+		      ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		      ,SOD.SO_QTY AS SOQTY
+		      ,NVL((SELECT SUM(CSD.SHIP_QTY)
+		              FROM CB_SHIPPING_D CSD
+		             WHERE SOD.ORG_ID = CSD.ORG_ID
+		               AND SOD.COMPANY_ID = CSD.COMPANY_ID
+		               AND SOD.SO_NO = CSD.SO_NO
+		               AND SOD.SO_SEQ = CSD.SO_SEQ), 0) AS SHIPQTY
+		      ,SOD.SO_QTY - NVL((SELECT SUM(CSD.SHIP_QTY)
+		                           FROM CB_SHIPPING_D CSD
+		                          WHERE SOD.ORG_ID = CSD.ORG_ID
+		                            AND SOD.COMPANY_ID = CSD.COMPANY_ID
+		                            AND SOD.SO_NO = CSD.SO_NO
+		                            AND SOD.SO_SEQ = CSD.SO_SEQ), 0) AS BEFOREQTY
+		      ,SOD.UNIT_PRICE AS UNITPRICE
+		      ,SOD.SUPPLY_PRICE AS SUPPLYPRICE
+		      ,SOD.ADDITIONAL_TAX AS ADDITIONALTAX
+		      ,(NVL(SOD.SUPPLY_PRICE, 0) + NVL(SOD.ADDITIONAL_TAX, 0)) AS TOTAL
+		      ,TO_CHAR(SOD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+		      ,TO_CHAR(SOD.CAST_END_PLAN_DATE, 'YYYY-MM-DD') AS CASTENDPLANDATE
+		      ,TO_CHAR(SOD.WORK_END_PLAN_DATE, 'YYYY-MM-DD') AS WORKENDPLANDATE
+		      ,SOH.TAX_DIV AS TAXDIV
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(SOH.ORG_ID
+		                                                  ,SOH.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'TAX_DIV'
+		                                                  ,SOH.TAX_DIV
+		                                                  ,'LABEL') AS TAXDIVNAME
+		      ,SOH.PAYMENT_TERMS AS PAYMENTTERMS
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(SOH.ORG_ID
+		                                                  ,SOH.COMPANY_ID
+		                                                  ,'CMM'
+		                                                  ,'PAYMENT_TERMS'
+		                                                  ,SOH.PAYMENT_TERMS
+		                                                  ,'LABEL') AS PAYMENTTERMSNAME
+		      ,DECODE(SOD.WORK_ORDER_DIV, 'Y', '작업의뢰', '미의뢰') AS WORKORDERDIV
+		      ,SOH.SO_STATUS AS SOSTATUS
+		      ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(SOH.ORG_ID
+		                                                  ,SOH.COMPANY_ID
+		                                                  ,'OM'
+		                                                  ,'SO_STATUS'
+		                                                  ,SOH.SO_STATUS
+		                                                  ,'LABEL') AS SOSTATUSNAME
+		      ,SOH.SALES_PERSON AS SALESPERSON
+		      ,(SELECT HM.KR_NAME
+		          FROM CB_HUMANRESOURCE_MANAGER HM
+		         WHERE HM.EMPLOYEE_NUMBER = SOH.SALES_PERSON) AS SALESPERSONNAME
+		      ,SOD.REMARKS AS REMARKS
+		      ,DECODE(SOH.SO_STATUS
+		             ,'STAND BY', (CASE WHEN SOD.DUE_DATE - TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= 7 THEN
+		                                  'RED'
+		                                WHEN SOD.DUE_DATE - TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= 14 THEN
+		                                  'BLUE'
+		                                END)
+		              ) AS COLORCHK
+		  FROM CB_SALES_ORDER_H         SOH
+		      ,CB_SALES_ORDER_D         SOD
+		      ,CB_ITEM_MASTER            IM
+	]]>
+  </sql>
+
+  <sql id="order.manage.orderstatelist.sql-where">
+		 WHERE SOH.ORG_ID = SOD.ORG_ID
+		   AND SOH.COMPANY_ID = SOD.COMPANY_ID
+		   AND SOH.SO_NO = SOD.SO_NO
+		   AND SOD.ORG_ID = IM.ORG_ID
+		   AND SOD.COMPANY_ID = IM.COMPANY_ID
+		   AND SOD.ITEM_CODE = IM.ITEM_CODE
+        <isNotEmpty property="ORGID" prepend="AND">
+            SOH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            SOH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="DATETO">
+	        <isNotEmpty property="DATEFROM" prepend="AND">
+	            SOH.SO_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+	        </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            SOH.CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SOTYPE" prepend="AND">
+            SOH.SO_TYPE = #SOTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="SMALLCODE" prepend="AND">
+            IM.SMALL_CODE = #SMALLCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SALESPERSON" prepend="AND">
+            SOH.SALES_PERSON = #SALESPERSON#
+        </isNotEmpty>
+        <isNotEmpty property="DUETO">
+          <isNotEmpty property="DUEFROM" prepend="AND">
+              SOD.DUE_DATE BETWEEN TO_DATE(#DUEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DUETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>     
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SOSTATUS" prepend="AND">
+            SOH.SO_STATUS = #SOSTATUS#
+        </isNotEmpty>
+  </sql>
+
+  <select id="order.manage.orderstatelist.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.manage.orderstatelist.sql-select" />
+    <include refid="order.manage.orderstatelist.sql-where" />
+  </select>
+
+  <select id="order.manage.orderstatelist.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.manage.orderstatelist.sql-select" />
+      <include refid="order.manage.orderstatelist.sql-where" />
+        )TOT
+  </select>
+</sqlMap>

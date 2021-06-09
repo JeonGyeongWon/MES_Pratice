@@ -1,0 +1,1443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="prod">
+
+    <!-- 외주입고등록 Header 조회 -->
+    <parameterMap class="java.util.Map" id="procWorkOrderParams">
+        <parameter property="ORGID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="OUTTRANSNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="OUTTRANSSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_LOGIN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RS_CODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="RS_STATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="prodWorkOrderCreate.call.Procedure" parameterClass="java.util.Map"  parameterMap="procWorkOrderParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_OUTSIDE_ORDER_PKG.CB_WORK_ORDER_CREATE( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+     <!-- 외주입고등록 Header 조회 -->
+    <sql id="prod.outtrans.list.sql-select">
+        SELECT   RANK() OVER(ORDER BY TH.OUT_TRANS_NO DESC) AS RN
+                   ,TH.ORG_ID AS ORGID
+                   ,TH.COMPANY_ID AS COMPANYID
+						       ,TH.OUT_TRANS_NO AS OUTTRANSNO
+						       ,TO_CHAR(TH.OUT_TRANS_DATE, 'YYYY-MM-DD') AS OUTTRANSDATE
+						       ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+						       ,(SELECT CC.CUSTOMER_NAME
+						           FROM CB_CUSTOMER CC
+						          WHERE CC.CUSTOMER_CODE = TH.CUSTOMER_CODE) AS CUSTOMERNAME
+						       ,TH.TRANS_PERSON AS TRANSPERSON
+						       ,(SELECT HM.KR_NAME
+						           FROM CB_HUMANRESOURCE_MANAGER HM
+						          WHERE 1 = 1
+						            AND HM.EMPLOYEE_NUMBER = TH.TRANS_PERSON) AS TRANSPERSONNAME
+						       ,TH.TRADE_DATE AS TRADEDATE
+                   ,(SELECT TD.ITEM_CODE
+                      FROM CB_OUT_TRANS_D TD
+                     WHERE TH.ORG_ID = TD.ORG_ID
+                       AND TH.COMPANY_ID = TD.COMPANY_ID
+                       AND TH.OUT_TRANS_NO = TD.OUT_TRANS_NO
+                       AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                             FROM CB_OUT_TRANS_D T
+                                                            WHERE T.ORG_ID = TH.ORG_ID
+                                                              AND T.COMPANY_ID = TH.COMPANY_ID
+                                                              AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                           )) AS ITEMCODE 
+                  ,(SELECT IM.ORDER_NAME
+                      FROM CB_ITEM_MASTER_V IM
+                     WHERE IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                             FROM CB_OUT_TRANS_D TD
+                                            WHERE TD.ORG_ID = TH.ORG_ID
+                                               AND TD.COMPANY_ID = TH.COMPANY_ID
+                                               AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                              AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                    FROM CB_OUT_TRANS_D T
+                                                                                   WHERE T.ORG_ID = TH.ORG_ID
+                                                                                     AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                     AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                  ))
+                   ) AS ORDERNAME 
+                  ,(SELECT IM.DRAWING_NO
+                      FROM CB_ITEM_MASTER_V IM
+                     WHERE IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                             FROM CB_OUT_TRANS_D TD
+                                            WHERE TD.ORG_ID = TH.ORG_ID
+                                               AND TD.COMPANY_ID = TH.COMPANY_ID
+                                               AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                              AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                    FROM CB_OUT_TRANS_D T
+                                                                                   WHERE T.ORG_ID = TH.ORG_ID
+                                                                                     AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                     AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                  ))
+                   ) AS DRAWINGNO 
+                  ,(SELECT IM.ITEM_NAME
+                     FROM CB_ITEM_MASTER_V IM
+                    WHERE IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                                      FROM CB_OUT_TRANS_D TD
+                                                     WHERE TD.ORG_ID = TH.ORG_ID
+                                                        AND TD.COMPANY_ID = TH.COMPANY_ID
+                                                        AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                        AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                              FROM CB_OUT_TRANS_D T
+                                                                                             WHERE T.ORG_ID = TH.ORG_ID
+                                                                                               AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                               AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                            ))
+				          ) AS ITEMNAME
+                  ,(SELECT IM.CAR_TYPE_NAME
+                     FROM CB_ITEM_MASTER_V IM
+                    WHERE IM.ITEM_CODE = (SELECT TD.ITEM_CODE
+                                                      FROM CB_OUT_TRANS_D TD
+                                                     WHERE TD.ORG_ID = TH.ORG_ID
+                                                        AND TD.COMPANY_ID = TH.COMPANY_ID
+                                                        AND TD.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                        AND TD.OUT_TRANS_SEQ = (SELECT MIN(OUT_TRANS_SEQ)
+                                                                                              FROM CB_OUT_TRANS_D T
+                                                                                             WHERE T.ORG_ID = TH.ORG_ID
+                                                                                               AND T.COMPANY_ID = TH.COMPANY_ID
+                                                                                               AND T.OUT_TRANS_NO = TH.OUT_TRANS_NO
+                                                                                            ))
+                  ) AS CARTYPENAME				          
+						       ,(SELECT SUM(TD2.TRANS_QTY)
+						           FROM CB_OUT_TRANS_D TD2
+						          WHERE TH.ORG_ID               = TD2.ORG_ID 
+                         AND TH.COMPANY_ID       = TD2.COMPANY_ID 
+                         AND TH.OUT_TRANS_NO    = TD2.OUT_TRANS_NO
+						       GROUP BY TD2.OUT_TRANS_NO) AS TRANSQTYSUM
+						       ,(SELECT SUM(NVL(TD2.SUPPLY_PRICE, 0) + NVL(TD2.ADDITIONAL_TAX, 0))
+						           FROM CB_OUT_TRANS_D TD2
+						          WHERE TH.ORG_ID              = TD2.ORG_ID
+                         AND TH.COMPANY_ID       = TD2.COMPANY_ID
+                         AND TH.OUT_TRANS_NO   = TD2.OUT_TRANS_NO
+						      GROUP BY TD2.OUT_TRANS_NO) AS TOTALSUM
+						       ,TH.REMARKS
+						  FROM CB_OUT_TRANS_H TH
+    </sql>
+
+    <sql id="prod.outtrans.list.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+           TH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+           TH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSTO">
+             <isNotEmpty property="OUTTRANSFROM" prepend="AND">
+                TH.OUT_TRANS_DATE BETWEEN TO_DATE(#OUTTRANSFROM#,'YYYY-MM-DD')  AND TO_DATE(#OUTTRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="OUTTRANSFROM" prepend="AND">
+                TH.OUT_TRANS_DATE = TO_DATE(#OUTTRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="OUTTRANSNO" prepend="AND">
+            TH.OUT_TRANS_NO = #OUTTRANSNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            TH.OUT_TRANS_NO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="keyword" prepend="AND">
+          OUT_TRANS_NO LIKE '%' || #keyword# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            TH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            TH.CUSTOMERNAME = #CUSTOMERNAME#
+         </isNotEmpty>
+         
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+		         (TH.ORG_ID , TH.COMPANY_ID ,TH.OUT_TRANS_NO ) IN (SELECT RD.ORGID , RD.COMPANYID , RD.OUTTRANSNO
+																		                                                 FROM CB_OUT_TRANS_DETAIL_V RD
+																		                                                WHERE 1=1
+		        <isNotEmpty property="ORGID" prepend="AND">
+		          RD.ORGID = #ORGID#
+		        </isNotEmpty>
+		        <isNotEmpty property="COMPANYID" prepend="AND">
+		          RD.COMPANYID = #COMPANYID#
+		        </isNotEmpty>
+		         <isNotEmpty property="ITEMCODE" prepend="AND">
+		            RD.ITEMCODE LIKE '%'|| #ITEMCODE# ||'%'
+		         </isNotEmpty>
+		         <isNotEmpty property="ITEMNAME" prepend="AND">
+		            RD.ITEMNAME LIKE '%'|| #ITEMNAME# ||'%'
+		         </isNotEmpty>
+		         <isNotEmpty property="ORDERNAME" prepend="AND">
+		            RD.ORDERNAME LIKE '%'|| #ORDERNAME# ||'%'
+		         </isNotEmpty>
+		                                               )
+		      </isNotEmpty>
+
+         ORDER BY TH.OUT_TRANS_NO DESC
+    </sql>
+
+    <select id="prod.outtrans.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.outtrans.list.sql-select" />
+        <include refid="prod.outtrans.list.sql-where" />
+    </select>
+
+    <select id="prod.outtrans.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.outtrans.list.sql-select" />
+            <include refid="prod.outtrans.list.sql-where" />
+        ) TOT
+    </select>
+
+    <select id="prod.outtrans.detail.first.select" parameterClass="java.util.Map"
+            resultClass="java.util.HashMap">
+            SELECT OUTTRANSNO,ORGID,COMPANYID
+              FROM (
+              <include refid="prod.outtrans.list.sql-select" />
+              <include refid="prod.outtrans.list.sql-where" />
+            )
+            WHERE 1=1
+              AND ROWNUM = 1
+
+     </select>
+
+
+    <!-- 외주입고등록 Detail 조회 -->
+    <sql id="prod.outtrans.detail.sql-select">
+        SELECT   RANK() OVER(ORDER BY OUTTRANSNO, OUTTRANSSEQ) AS RN
+						       ,OUTTRANSNO
+						       ,OUTTRANSSEQ
+						       ,OUTTRANSNOSEQ
+						       ,ORGID
+						       ,COMPANYID
+						       ,ITEMCODE
+						       ,ORDERNAME
+						       ,DRAWINGNO
+						       ,ITEMNAME
+						       ,CARTYPE
+						       ,CARTYPENAME
+						       ,MATERIALTYPE
+						       ,UOM
+						       ,UOMNAME
+						       ,WORKORDERID
+						       ,WORKORDERSEQ
+						       ,ORDERQTY
+						       ,TRANSQTY
+						       ,(SELECT NVL(SUM(TD.TRANS_QTY), 0)
+			 		            FROM CB_OUT_TRANS_D TD
+					           WHERE TD.OUT_PO_NO  = OUTPONO
+					              AND TD.OUT_PO_SEQ = OUTPOSEQ
+					          ) AS EXTRANSQTY
+						       ,UNITPRICE
+						       ,SUPPLYPRICE
+						       ,ADDITIONALTAX
+						       ,TOTAL
+						       ,OUTPONO
+						       ,OUTPOSEQ
+						       ,OUTPONOSEQ
+						       ,FINISHYN
+						       ,FINISHYNNAME
+						       ,REMARKS
+						       ,ROUTINGCODE
+						       ,ROUTINGNAME
+						       ,POSTATUS
+						       ,WORKSTATUS
+						       ,TRANSYN
+						       ,TRANSYNNAME
+							      ,CON1
+							      ,CON2
+							      ,CON3
+							      ,CON4
+							      ,CON5
+							      ,CON6
+							      ,CON7
+							      ,CON8
+							      ,CON9
+							      ,CON10
+							      ,CON11
+							      ,CON12
+							      ,CON13
+							      ,CON14
+							      ,CON15
+							      ,CON16
+							      ,CON17
+							      ,CON18
+							      ,CON19
+							      ,CON20
+							      ,CON21
+							      ,CON22
+							      ,CON23
+							      ,CON24
+							      ,CON25
+							      ,CON26
+							      ,CON27
+							      ,CON28
+							      ,CON29
+							      ,CON30
+							      ,CON31
+							      ,CON32
+							      ,CON33
+							      ,CON34
+							      ,CON35
+							      ,CON36
+							      ,CON37
+							      ,CON38
+							      ,CON39
+							      ,CON40
+							      ,TOTALFAULTQTY
+			  	  FROM CB_OUT_TRANS_DETAIL_V
+    </sql>
+
+    <sql id="prod.outtrans.detail.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSNO" prepend="AND">
+          OUTTRANSNO = #OUTTRANSNO#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEMCODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEMNAME LIKE #ITEMNAME# || '%'
+         </isNotEmpty>
+    </sql>
+
+    <select id="prod.outtrans.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.outtrans.detail.sql-select" />
+        <include refid="prod.outtrans.detail.sql-where" />
+    </select>
+
+    <select id="prod.outtrans.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.outtrans.detail.sql-select" />
+            <include refid="prod.outtrans.detail.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- 외주입고 대기리스트 조회 -->
+    <sql id="prod.outtrans.list.pop.sql-select">
+        SELECT   RANK() OVER(ORDER BY A.OUT_PO_NO, B.OUT_PO_SEQ) AS RN
+                   ,A.ORG_ID
+                   ,A.COMPANY_ID 
+						       ,TO_CHAR(A.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE                            
+						       ,A.OUT_PO_NO AS OUTPONO                                 
+						       ,B.OUT_PO_SEQ AS OUTPOSEQ
+						       ,B.WORK_ORDER_ID AS WORKORDERID
+                   ,B.WORK_ORDER_SEQ AS WORKORDERSEQ
+						       ,B.ITEM_CODE AS ITEMCODE                               
+                   ,V.ORDERNAME                               
+                   ,V.DRAWINGNO
+						       ,V.ITEMNAME
+						       ,V.CARTYPE
+						       ,V.CARTYPENAME                               
+                   ,V.MATERIALTYPE                                         
+						       ,V.UOM                                                  
+						       ,V.UOMNAME                                            
+						       ,V.ROUTINGCODE
+						       ,V.ROUTINGNAME                                         
+						       ,B.ORDER_QTY AS ORDERQTY                              
+						       ,(SELECT NVL(SUM(TRANSQTY), 0)
+						           FROM CB_OUT_TRANS_DETAIL_V T
+						          WHERE T.OUTPONO  = A.OUT_PO_NO
+						            AND T.OUTPOSEQ = B.OUT_PO_SEQ) AS TRANSQTY      
+						       ,(B.ORDER_QTY - (SELECT NVL(SUM(TRANSQTY), 0)
+						                         FROM CB_OUT_TRANS_DETAIL_V T
+						                        WHERE T.OUTPONO  = A.OUT_PO_NO
+						                          AND T.OUTPOSEQ = B.OUT_PO_SEQ)) AS EXTRANSQTY
+						       ,B.UNIT_PRICE AS UNITPRICE
+						       ,NVL(B.UNIT_PRICE, 0) *  (SELECT NVL(SUM(TRANSQTY), 0)
+									                                 FROM CB_OUT_TRANS_DETAIL_V T
+									                                WHERE T.OUTPONO = A.OUT_PO_NO
+									                                  AND T.OUTPOSEQ = B.OUT_PO_SEQ) AS SUPPLYPRICE
+						       ,(NVL(B.UNIT_PRICE, 0) * (SELECT NVL(SUM(TRANSQTY), 0)
+						                                 FROM CB_OUT_TRANS_DETAIL_V T
+						                                WHERE T.OUTPONO = A.OUT_PO_NO
+						                                  AND T.OUTPOSEQ = B.OUT_PO_SEQ)) / 10 AS ADDITIONALTAX
+						       ,(NVL(B.UNIT_PRICE, 0) * (SELECT NVL(SUM(TRANSQTY), 0)
+						                                 FROM CB_OUT_TRANS_DETAIL_V T
+						                                WHERE T.OUTPONO = A.OUT_PO_NO
+						                                  AND T.OUTPOSEQ = B.OUT_PO_SEQ)) + ((NVL(B.UNIT_PRICE, 0) * (SELECT NVL(SUM(TRANSQTY), 0)
+						                                                                                                FROM CB_OUT_TRANS_DETAIL_V T
+						                                                                                               WHERE T.OUTPONO = A.OUT_PO_NO
+						                                                                                                 AND T.OUTPOSEQ = B.OUT_PO_SEQ)) / 10) AS TOTAL
+						          ,V.CUSTOMERCODEOUT
+                      ,V.CUSTOMERNAMEOUT
+                      ,A.OUT_PO_STATUS AS POSTATUS
+                      ,V.WORKSTATUS
+						  FROM CB_OUT_ORDER_H A
+						          ,CB_OUT_ORDER_D B
+						          ,CB_WORK_ORDER_LIST_V V
+    </sql>
+
+    <sql id="prod.outtrans.list.pop.sql-where">
+         WHERE 1 = 1
+         AND A.OUT_PO_NO = B.OUT_PO_NO
+         AND B.WORK_ORDER_ID = V.WORKORDERID
+         AND B.WORK_ORDER_SEQ = V.WORKORDERSEQ
+         AND V.OUTSIDEORDERGUBUN = 'Y'
+        <isNotEmpty property="OUTPONO" prepend="AND">
+          A.OUT_PO_NO  LIKE #OUTPONO# || '%'
+        </isNotEmpty>
+       <isNotEmpty property="ORGID" prepend="AND">
+          A.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          A.COMPANY_ID  = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="POTO">
+             <isNotEmpty property="POFROM" prepend="AND">
+                B.DUE_DATE BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD')  AND TO_DATE(#POTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="POTO" prepend="AND">
+                B.DUE_DATE = TO_DATE(#POTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            B.ITEM_CODE LIKE #ITEMCODE# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            A.CUSTOMER_CODE LIKE #CUSTOMERCODE# || '%'
+         </isNotEmpty>
+    </sql>
+
+    <select id="prod.outtrans.list.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT  RANK() OVER(ORDER BY R.OUTPONO, R.OUTPOSEQ) AS RN
+						      ,R.ORG_ID
+						      ,R.COMPANY_ID
+						      ,R.OUTPODATE
+						      ,R.OUTPONO
+						      ,R.OUTPOSEQ
+						      ,R.WORKORDERID
+						      ,R.WORKORDERSEQ
+						      ,R.ITEMCODE
+                  ,R.ORDERNAME
+                  ,R.DRAWINGNO
+						      ,R.ITEMNAME
+						      ,R.CARTYPE
+						      ,R.CARTYPENAME
+                  ,R.MATERIALTYPE
+						      ,R.UOM
+						      ,R.UOMNAME
+						      ,R.ROUTINGCODE
+						      ,R.ROUTINGNAME
+						      ,R.ORDERQTY
+						      ,R.TRANSQTY
+						      ,R.EXTRANSQTY
+						      ,R.UNITPRICE
+						      ,R.SUPPLYPRICE
+						      ,R.ADDITIONALTAX
+						      ,R.TOTAL
+						      ,R.CUSTOMERCODEOUT
+						      ,R.CUSTOMERNAMEOUT
+						      ,R.POSTATUS
+						      ,R.WORKSTATUS
+         FROM (
+					        <include refid="prod.outtrans.list.pop.sql-select" />
+					        <include refid="prod.outtrans.list.pop.sql-where" />
+					       ) R
+		    WHERE R.EXTRANSQTY != 0
+		       AND R.ORDERQTY != R.TRANSQTY 
+    </select>
+
+    <select id="prod.outtrans.list.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.outtrans.list.pop.sql-select" />
+            <include refid="prod.outtrans.list.pop.sql-where" />
+        ) TOT
+    </select>
+    
+    
+    <select id="prod.outtrans.new.outtransno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'OT' || TO_CHAR(TO_DATE(#OutTransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS OUTTRANSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(OUT_TRANS_NO), -3)), 0) AS NUM 
+                  FROM CB_OUT_TRANS_H
+                 WHERE ORG_ID = #searchOrgId#
+                   AND COMPANY_ID = #searchCompanyId#
+                   AND OUT_TRANS_NO LIKE 'OT' || TO_CHAR(TO_DATE(#OutTransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <!--     입고등록 상세 화면에서 마스터 정보 isnert -->
+    <insert id="prod.outtrans.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_OUT_TRANS_H (
+                ORG_ID
+               ,COMPANY_ID
+               ,OUT_TRANS_NO
+	             ,OUT_TRANS_DATE
+        ]]>
+        <isNotEmpty property="PersonCode" prepend=",">
+               TRANS_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES (
+               #searchOrgId#
+               ,#searchCompanyId#
+               ,#OUTTRANSNO#
+               ,TO_DATE(#OutTransDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="PersonCode" prepend=",">
+               #PersonCode#
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!--     입고등록 상세 화면에서 마스터 정보 isnert 끝  -->
+    
+    <!-- 입하등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="prod.outtrans.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_OUT_TRANS_D
+              ( OUT_TRANS_NO
+		           ,OUT_TRANS_SEQ
+		           ,ORG_ID
+		           ,COMPANY_ID
+		           ,ITEM_CODE
+		           ,OUT_PO_NO
+		           ,OUT_PO_SEQ
+		           ,TRANS_QTY
+		           ,TRANS_UNIT_PRICE
+		           ,SUPPLY_PRICE
+		           ,ADDITIONAL_TAX
+		           ,FINISH_YN
+		           ,CONFIRM_DATE
+		           ,TRANS_YN
+        ]]>
+        <isNotEmpty property="CON1" prepend=",">
+              CON1
+        </isNotEmpty>
+        <isNotEmpty property="CON2" prepend=",">
+              CON2
+        </isNotEmpty>
+        <isNotEmpty property="CON3" prepend=",">
+              CON3
+        </isNotEmpty>
+        <isNotEmpty property="CON4" prepend=",">
+              CON4
+        </isNotEmpty>
+        <isNotEmpty property="CON5" prepend=",">
+              CON5
+        </isNotEmpty>
+        <isNotEmpty property="CON6" prepend=",">
+              CON6
+        </isNotEmpty>
+        <isNotEmpty property="CON7" prepend=",">
+              CON7
+        </isNotEmpty>
+        <isNotEmpty property="CON8" prepend=",">
+              CON8
+        </isNotEmpty>
+        <isNotEmpty property="CON9" prepend=",">
+              CON9
+        </isNotEmpty>
+        <isNotEmpty property="CON10" prepend=",">
+              CON10
+        </isNotEmpty>
+        <isNotEmpty property="CON11" prepend=",">
+              CON11
+        </isNotEmpty>
+        <isNotEmpty property="CON12" prepend=",">
+              CON12
+        </isNotEmpty>
+        <isNotEmpty property="CON13" prepend=",">
+              CON13
+        </isNotEmpty>
+        <isNotEmpty property="CON14" prepend=",">
+              CON14
+        </isNotEmpty>
+        <isNotEmpty property="CON15" prepend=",">
+              CON15
+        </isNotEmpty>
+        <isNotEmpty property="CON16" prepend=",">
+              CON16
+        </isNotEmpty>
+        <isNotEmpty property="CON17" prepend=",">
+              CON17
+        </isNotEmpty>
+        <isNotEmpty property="CON18" prepend=",">
+              CON18
+        </isNotEmpty>
+        <isNotEmpty property="CON19" prepend=",">
+              CON19
+        </isNotEmpty>
+        <isNotEmpty property="CON20" prepend=",">
+              CON20
+        </isNotEmpty>
+        <isNotEmpty property="CON21" prepend=",">
+              CON21
+        </isNotEmpty>
+        <isNotEmpty property="CON22" prepend=",">
+              CON22
+        </isNotEmpty>
+        <isNotEmpty property="CON23" prepend=",">
+              CON23
+        </isNotEmpty>
+        <isNotEmpty property="CON24" prepend=",">
+              CON24
+        </isNotEmpty>
+        <isNotEmpty property="CON25" prepend=",">
+              CON25
+        </isNotEmpty>
+        <isNotEmpty property="CON26" prepend=",">
+              CON26
+        </isNotEmpty>
+        <isNotEmpty property="CON27" prepend=",">
+              CON27
+        </isNotEmpty>
+        <isNotEmpty property="CON28" prepend=",">
+              CON28
+        </isNotEmpty>
+        <isNotEmpty property="CON29" prepend=",">
+              CON29
+        </isNotEmpty>
+        <isNotEmpty property="CON30" prepend=",">
+              CON30
+        </isNotEmpty>
+        <isNotEmpty property="CON31" prepend=",">
+              CON31
+        </isNotEmpty>
+        <isNotEmpty property="CON32" prepend=",">
+              CON32
+        </isNotEmpty>
+        <isNotEmpty property="CON33" prepend=",">
+              CON33
+        </isNotEmpty>
+        <isNotEmpty property="CON34" prepend=",">
+              CON34
+        </isNotEmpty>
+        <isNotEmpty property="CON35" prepend=",">
+              CON35
+        </isNotEmpty>
+        <isNotEmpty property="CON36" prepend=",">
+              CON36
+        </isNotEmpty>
+        <isNotEmpty property="CON37" prepend=",">
+              CON37
+        </isNotEmpty>
+        <isNotEmpty property="CON38" prepend=",">
+              CON38
+        </isNotEmpty>
+        <isNotEmpty property="CON39" prepend=",">
+              CON39
+        </isNotEmpty>
+        <isNotEmpty property="CON40" prepend=",">
+              CON40
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <isNotEmpty property="OUTPRODLOT" prepend=",">
+               OUT_PROD_LOT
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONPLANNO" prepend=",">
+               INSPECTION_PLAN_NO
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #OUTTRANSNO#
+               ,(SELECT NVL(MAX(OUT_TRANS_SEQ),0)+1
+                   FROM CB_OUT_TRANS_D 
+                  WHERE OUT_TRANS_NO = #OUTTRANSNO#
+                    AND ORG_ID = #ORGID#
+                    AND COMPANY_ID = #COMPANYID#)
+               ,#ORGID#
+               ,#COMPANYID#
+               ,#ITEMCODE#
+               ,#OUTPONO#
+               ,#OUTPOSEQ#
+               ,$TRANSQTY$
+               ,$UNITPRICE$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,'Y'
+               ,#CONFIRMDATE#
+               ,'Y'
+        ]]>
+        <isNotEmpty property="CON1" prepend=",">
+              $CON1$
+          <isNotEmpty property="INPUTCON1" prepend="+">
+               $INPUTCON1$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON2" prepend=",">
+              $CON2$
+          <isNotEmpty property="INPUTCON2" prepend="+">
+               $INPUTCON2$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON3" prepend=",">
+              $CON3$
+          <isNotEmpty property="INPUTCON3" prepend="+">
+               $INPUTCON3$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON4" prepend=",">
+              $CON4$
+          <isNotEmpty property="INPUTCON4" prepend="+">
+               $INPUTCON4$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON5" prepend=",">
+              $CON5$
+          <isNotEmpty property="INPUTCON5" prepend="+">
+               $INPUTCON5$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON6" prepend=",">
+              $CON6$
+          <isNotEmpty property="INPUTCON6" prepend="+">
+               $INPUTCON6$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON7" prepend=",">
+              $CON7$
+          <isNotEmpty property="INPUTCON7" prepend="+">
+               $INPUTCON7$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON8" prepend=",">
+              $CON8$
+          <isNotEmpty property="INPUTCON8" prepend="+">
+               $INPUTCON8$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON9" prepend=",">
+              $CON9$
+          <isNotEmpty property="INPUTCON9" prepend="+">
+               $INPUTCON9$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON10" prepend=",">
+              $CON10$
+          <isNotEmpty property="INPUTCON10" prepend="+">
+               $INPUTCON10$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON11" prepend=",">
+              $CON11$
+          <isNotEmpty property="INPUTCON11" prepend="+">
+               $INPUTCON11$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON12" prepend=",">
+              $CON12$
+          <isNotEmpty property="INPUTCON12" prepend="+">
+               $INPUTCON12$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON13" prepend=",">
+              $CON13$
+          <isNotEmpty property="INPUTCON13" prepend="+">
+               $INPUTCON13$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON14" prepend=",">
+              $CON14$
+          <isNotEmpty property="INPUTCON14" prepend="+">
+               $INPUTCON14$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON15" prepend=",">
+              $CON15$
+          <isNotEmpty property="INPUTCON15" prepend="+">
+               $INPUTCON15$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON16" prepend=",">
+              $CON16$
+          <isNotEmpty property="INPUTCON16" prepend="+">
+               $INPUTCON16$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON17" prepend=",">
+              $CON17$
+          <isNotEmpty property="INPUTCON17" prepend="+">
+               $INPUTCON17$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON18" prepend=",">
+              $CON18$
+          <isNotEmpty property="INPUTCON18" prepend="+">
+               $INPUTCON18$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON19" prepend=",">
+              $CON19$
+          <isNotEmpty property="INPUTCON19" prepend="+">
+               $INPUTCON19$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON20" prepend=",">
+              $CON20$
+          <isNotEmpty property="INPUTCON20" prepend="+">
+               $INPUTCON20$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON21" prepend=",">
+              $CON21$
+          <isNotEmpty property="INPUTCON21" prepend="+">
+               $INPUTCON21$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON22" prepend=",">
+              $CON22$
+          <isNotEmpty property="INPUTCON22" prepend="+">
+               $INPUTCON22$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON23" prepend=",">
+              $CON23$
+          <isNotEmpty property="INPUTCON23" prepend="+">
+               $INPUTCON23$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON24" prepend=",">
+              $CON24$
+          <isNotEmpty property="INPUTCON24" prepend="+">
+               $INPUTCON24$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON25" prepend=",">
+              $CON25$
+          <isNotEmpty property="INPUTCON25" prepend="+">
+               $INPUTCON25$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON26" prepend=",">
+              $CON26$
+          <isNotEmpty property="INPUTCON26" prepend="+">
+               $INPUTCON26$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON27" prepend=",">
+              $CON27$
+          <isNotEmpty property="INPUTCON27" prepend="+">
+               $INPUTCON27$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON28" prepend=",">
+              $CON28$
+          <isNotEmpty property="INPUTCON28" prepend="+">
+               $INPUTCON28$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON29" prepend=",">
+              $CON29$
+          <isNotEmpty property="INPUTCON29" prepend="+">
+               $INPUTCON29$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON30" prepend=",">
+              $CON30$
+          <isNotEmpty property="INPUTCON30" prepend="+">
+               $INPUTCON30$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON31" prepend=",">
+              $CON31$
+          <isNotEmpty property="INPUTCON31" prepend="+">
+               $INPUTCON31$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON32" prepend=",">
+              $CON32$
+          <isNotEmpty property="INPUTCON32" prepend="+">
+               $INPUTCON32$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON33" prepend=",">
+              $CON33$
+          <isNotEmpty property="INPUTCON33" prepend="+">
+               $INPUTCON33$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON34" prepend=",">
+              $CON34$
+          <isNotEmpty property="INPUTCON34" prepend="+">
+               $INPUTCON34$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON35" prepend=",">
+              $CON35$
+          <isNotEmpty property="INPUTCON35" prepend="+">
+               $INPUTCON35$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON36" prepend=",">
+              $CON36$
+          <isNotEmpty property="INPUTCON36" prepend="+">
+               $INPUTCON36$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON37" prepend=",">
+              $CON37$
+          <isNotEmpty property="INPUTCON37" prepend="+">
+               $INPUTCON37$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON38" prepend=",">
+              $CON38$
+          <isNotEmpty property="INPUTCON38" prepend="+">
+               $INPUTCON38$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON39" prepend=",">
+              $CON39$
+          <isNotEmpty property="INPUTCON39" prepend="+">
+               $INPUTCON39$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON40" prepend=",">
+              $CON40$
+          <isNotEmpty property="INPUTCON40" prepend="+">
+               $INPUTCON40$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <isNotEmpty property="OUTPRODLOT" prepend=",">
+               #OUTPRODLOT#
+        </isNotEmpty>
+        <isNotEmpty property="INSPECTIONPLANNO" prepend=",">
+               #INSPECTIONPLANNO#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    <!-- 입하등록 상세 화면에서 그리드 정보 insert 끝 -->
+    
+    
+    <!-- 입하등록 상세 화면에서 Header 정보 update  -->
+     <update id="prod.outtrans.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_TRANS_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , OUT_TRANS_DATE = TO_DATE(#OutTransDate#, 'YYYY-MM-DD')
+               , REMARKS = #Remarks#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="PersonCode" prepend=",">
+            TRANS_PERSON = #PersonCode#
+        </isNotEmpty>
+        <isEmpty property="PersonCode" prepend=",">
+            TRANS_PERSON = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND OUT_TRANS_NO = #OutTransNo#
+        ]]>
+    </update>
+    <!-- 입하등록 상세 화면에서 Header 정보 update 끝 -->
+    
+    <sql id="prod.outtrans.detail.find.sql-select">
+        SELECT COUNT(PD.OUT_TRANS_NO) AS COUNT
+          FROM CB_OUT_TRANS_H PH, CB_OUT_TRANS_D PD
+    </sql>
+
+    <sql id="prod.outtrans.detail.find.sql-where">
+        WHERE PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+           AND PH.OUT_TRANS_NO = PD.OUT_TRANS_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSNO" prepend="AND">
+          PD.OUT_TRANS_NO = #OUTTRANSNO#
+        </isNotEmpty>
+        <isNotEmpty property="OUTTRANSSEQ" prepend="AND">
+          PD.OUT_TRANS_SEQ = #OUTTRANSSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.outtrans.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.outtrans.detail.find.sql-select" />
+        <include refid="prod.outtrans.detail.find.sql-where" />
+    </select>
+    
+    <!-- 입고등록 상세 화면에서 Detail 정보 update -->
+   <update id="prod.outtrans.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_TRANS_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , TRANS_QTY = $TRANSQTY$
+				       , TRANS_UNIT_PRICE =  $UNITPRICE$
+				       , SUPPLY_PRICE = $SUPPLYPRICE$
+				       , ADDITIONAL_TAX = $ADDITIONALTAX$
+				       , FINISH_YN = #FINISHYN#
+               , TRANS_YN = #TRANSYN#
+        ]]>
+        <isNotEmpty property="CON1" prepend=",">
+              CON1 = #CON1#
+          <isNotEmpty property="INPUTCON1" prepend="+">
+               $INPUTCON1$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON2" prepend=",">
+              CON2 = #CON2#
+          <isNotEmpty property="INPUTCON2" prepend="+">
+               $INPUTCON2$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON3" prepend=",">
+              CON3 = #CON3#
+          <isNotEmpty property="INPUTCON3" prepend="+">
+               $INPUTCON3$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON4" prepend=",">
+              CON4 = #CON4#
+          <isNotEmpty property="INPUTCON4" prepend="+">
+               $INPUTCON4$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON5" prepend=",">
+              CON5 = #CON5#
+          <isNotEmpty property="INPUTCON5" prepend="+">
+               $INPUTCON5$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON6" prepend=",">
+              CON6 = #CON6#
+          <isNotEmpty property="INPUTCON6" prepend="+">
+               $INPUTCON6$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON7" prepend=",">
+              CON7 = #CON7#
+          <isNotEmpty property="INPUTCON7" prepend="+">
+               $INPUTCON7$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON8" prepend=",">
+              CON8 = #CON8#
+          <isNotEmpty property="INPUTCON8" prepend="+">
+               $INPUTCON8$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON9" prepend=",">
+              CON9 = #CON9#
+          <isNotEmpty property="INPUTCON9" prepend="+">
+               $INPUTCON9$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON10" prepend=",">
+              CON10 = #CON10#
+          <isNotEmpty property="INPUTCON10" prepend="+">
+               $INPUTCON10$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON11" prepend=",">
+              CON11 = #CON11#
+          <isNotEmpty property="INPUTCON11" prepend="+">
+               $INPUTCON11$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON12" prepend=",">
+              CON12 = #CON12#
+          <isNotEmpty property="INPUTCON12" prepend="+">
+               $INPUTCON12$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON13" prepend=",">
+              CON13 = #CON13#
+          <isNotEmpty property="INPUTCON13" prepend="+">
+               $INPUTCON13$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON14" prepend=",">
+              CON14 = #CON14#
+          <isNotEmpty property="INPUTCON14" prepend="+">
+               $INPUTCON14$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON15" prepend=",">
+              CON15 = #CON15#
+          <isNotEmpty property="INPUTCON15" prepend="+">
+               $INPUTCON15$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON16" prepend=",">
+              CON16 = #CON16#
+          <isNotEmpty property="INPUTCON16" prepend="+">
+               $INPUTCON16$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON17" prepend=",">
+              CON17 = #CON17#
+          <isNotEmpty property="INPUTCON17" prepend="+">
+               $INPUTCON17$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON18" prepend=",">
+              CON18 = #CON18#
+          <isNotEmpty property="INPUTCON18" prepend="+">
+               $INPUTCON18$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON19" prepend=",">
+              CON19 = #CON19#
+          <isNotEmpty property="INPUTCON19" prepend="+">
+               $INPUTCON19$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON20" prepend=",">
+              CON20 = #CON20#
+          <isNotEmpty property="INPUTCON20" prepend="+">
+               $INPUTCON20$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON21" prepend=",">
+              CON21 = #CON21#
+          <isNotEmpty property="INPUTCON21" prepend="+">
+               $INPUTCON21$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON22" prepend=",">
+              CON22 = #CON22#
+          <isNotEmpty property="INPUTCON22" prepend="+">
+               $INPUTCON22$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON23" prepend=",">
+              CON23 = #CON23#
+          <isNotEmpty property="INPUTCON23" prepend="+">
+               $INPUTCON23$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON24" prepend=",">
+              CON24 = #CON24#
+          <isNotEmpty property="INPUTCON24" prepend="+">
+               $INPUTCON24$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON25" prepend=",">
+              CON25 = #CON25#
+          <isNotEmpty property="INPUTCON25" prepend="+">
+               $INPUTCON25$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON26" prepend=",">
+              CON26 = #CON26#
+          <isNotEmpty property="INPUTCON26" prepend="+">
+               $INPUTCON26$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON27" prepend=",">
+              CON27 = #CON27#
+          <isNotEmpty property="INPUTCON27" prepend="+">
+               $INPUTCON27$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON28" prepend=",">
+              CON28 = #CON28#
+          <isNotEmpty property="INPUTCON28" prepend="+">
+               $INPUTCON28$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON29" prepend=",">
+              CON29 = #CON29#
+          <isNotEmpty property="INPUTCON29" prepend="+">
+               $INPUTCON29$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON30" prepend=",">
+              CON30 = #CON30#
+          <isNotEmpty property="INPUTCON30" prepend="+">
+               $INPUTCON30$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON31" prepend=",">
+              CON31 = #CON31#
+          <isNotEmpty property="INPUTCON31" prepend="+">
+               $INPUTCON31$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON32" prepend=",">
+              CON32 = #CON32#
+          <isNotEmpty property="INPUTCON32" prepend="+">
+               $INPUTCON32$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON33" prepend=",">
+              CON33 = #CON33#
+          <isNotEmpty property="INPUTCON33" prepend="+">
+               $INPUTCON33$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON34" prepend=",">
+              CON34 = #CON34#
+          <isNotEmpty property="INPUTCON34" prepend="+">
+               $INPUTCON34$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON35" prepend=",">
+              CON35 = #CON35#
+          <isNotEmpty property="INPUTCON35" prepend="+">
+               $INPUTCON35$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON36" prepend=",">
+              CON36 = #CON36#
+          <isNotEmpty property="INPUTCON36" prepend="+">
+               $INPUTCON36$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON37" prepend=",">
+              CON37 = #CON37#
+          <isNotEmpty property="INPUTCON37" prepend="+">
+               $INPUTCON37$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON38" prepend=",">
+              CON38 = #CON38#
+          <isNotEmpty property="INPUTCON38" prepend="+">
+               $INPUTCON38$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON39" prepend=",">
+              CON39 = #CON39#
+          <isNotEmpty property="INPUTCON39" prepend="+">
+               $INPUTCON39$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="CON40" prepend=",">
+              CON40 = #CON40#
+          <isNotEmpty property="INPUTCON40" prepend="+">
+               $INPUTCON40$
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <isNotEmpty property="OUTPRODLOT" prepend=",">
+               OUT_PROD_LOT = #OUTPRODLOT#
+        </isNotEmpty>
+        <isEmpty property="OUTPRODLOT" prepend=",">
+            OUT_PROD_LOT = NULL
+        </isEmpty>
+        <isNotEmpty property="INSPECTIONPLANNO" prepend=",">
+            INSPECTION_PLAN_NO = #INSPECTIONPLANNO#
+        </isNotEmpty>
+        <isEmpty property="INSPECTIONPLANNO" prepend=",">
+            INSPECTION_PLAN_NO = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND OUT_TRANS_NO = #OUTTRANSNO#
+           AND OUT_TRANS_SEQ = $OUTTRANSSEQ$
+        ]]>
+    </update>
+    <!-- 입고등록 상세 화면에서 Detail 정보 update 끝 -->
+    
+    <delete id="prod.outtrans.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_TRANS_D
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND OUT_TRANS_NO = #OUTTRANSNO#
+           AND OUT_TRANS_SEQ = $OUTTRANSSEQ$
+    </delete>
+    
+    <delete id="prod.outtrans.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_OUT_TRANS_H
+       WHERE ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND OUT_TRANS_NO = #OutTransNo#
+    </delete>
+    
+    <!-- 입고등록 상세 화면에서 완료 체크시
+          외주발주 헤더의 완료상태 필드(OUT_PO_STATUS ) 'COMPLETE'로 update -->
+   <update id="prod.outtrans.postatus.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_ORDER_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="CHANGESTATUS" prepend=",">
+            OUT_PO_STATUS = #CHANGESTATUS#
+        </isNotEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND OUT_PO_NO = #OUTPONO#
+        ]]>
+    </update>
+    <!-- 외주발주 OUT_PO_STATUS update 끝 -->
+    
+    <!-- 입고등록 상세 화면에서 완료 체크시
+          작업지시의 시작일자 필드(WORK_END_DATE ) SYSDATE로 update -->
+   <update id="prod.outtrans.workorder.enddate.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_WORK_ORDER
+			 		    SET  LAST_UPDATE_DATE = SYSDATE
+					          ,LAST_UPDATED_BY = #UPDATEID#
+        ]]> 
+        <isNotEmpty property="ENDDATE" prepend=",">
+            WORK_END_DATE = DECODE(#ENDDATE#, 'Y', SYSDATE, 'N', NULL)
+        </isNotEmpty>
+        <isNotEmpty property="WORKSTATUS" prepend=",">
+            WORK_STATUS = #WORKSTATUS#
+        </isNotEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+				   AND COMPANY_ID = #COMPANYID#
+				   AND WORK_ORDER_ID = #WORKORDERID#
+				   AND WORK_ORDER_SEQ = $WORKORDERSEQ$
+        ]]>
+    </update>
+    <!-- 작업지시 WORK_END_DATE update 끝 -->
+    
+    <!-- 입고등록 상세 화면에서 내역정보 삭제시
+          외주발주 Header의 확정상태 필드(OUT_PO_STATUS) 'N'으로 update -->
+   <update id="prod.outtrans.header.delete.outorderflagupdate" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_OUT_ORDER_H
+           SET LAST_UPDATED_BY  = #REGISTID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="CHANGESTATUS" prepend=",">
+            OUT_PO_STATUS = #CHANGESTATUS#
+        </isNotEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND OUT_PO_NO = #OUTPONO#
+        ]]>
+    </update>
+    <!-- 외주발주 OUT_PO_STATUS update 끝 -->
+
+    <!--  외주입고 데이터 제거시 -->
+    <delete id="prod.outtrans.header.delete.outorderflagdelete" parameterClass="java.util.Map">
+        DELETE FROM CB_WORK_ORDER_D OD
+        WHERE 1=1
+          AND OD.WORK_ORDER_ID = #WORKORDERID#
+          AND OD.WORK_ORDER_SEQ = $WORKORDERSEQ$
+          AND OD.SEQ_NO = (SELECT MAX(COD.SEQ_NO)
+                             FROM CB_WORK_ORDER_D COD
+                            WHERE 1=1
+                              AND COD.ORG_ID = OD.ORG_ID
+                              AND COD.COMPANY_ID = OD.COMPANY_ID
+                              AND COD.WORK_ORDER_ID = OD.WORK_ORDER_ID
+                              AND COD.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ
+                              AND COD.WORK_CENTER_CODE = OD.WORK_CENTER_CODE
+                              AND COD.QTY = $TRANSQTY$)
+    </delete>
+    <!--  외주입고 데이터 제거시 -->
+    
+    <!-- 외주입고시 계획수량과 해당 작지의 총 외주입고수량 체크 시작 -->
+    <select id="prod.outtrans.workplanqty.check.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+      SELECT SUM(TD.TRANS_QTY) AS SUMQTY
+            ,NVL(MAX((SELECT WO.WORK_ORDER_QTY
+                    FROM CB_WORK_ORDER WO
+                   WHERE 1=1
+                     AND WO.ORG_ID = OD.ORG_ID
+                     AND WO.COMPANY_ID = OD.COMPANY_ID
+                     AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+                     AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ)), 0) AS ORDERQTY
+                
+        FROM CB_OUT_ORDER_H OH
+            ,CB_OUT_ORDER_D OD
+            ,CB_OUT_TRANS_D TD
+       WHERE 1=1
+         AND OH.ORG_ID = OD.ORG_ID
+         AND OH.COMPANY_ID = OD.COMPANY_ID
+         AND OH.OUT_PO_NO = OD.OUT_PO_NO
+         AND OD.ORG_ID = TD.ORG_ID
+         AND OD.COMPANY_ID = TD.COMPANY_ID
+         AND OD.OUT_PO_NO = TD.OUT_PO_NO
+         AND OD.OUT_PO_SEQ = TD.OUT_PO_SEQ
+         AND (OD.WORK_ORDER_ID, OD.WORK_ORDER_SEQ) IN (SELECT OD.WORK_ORDER_ID
+                                                             ,OD.WORK_ORDER_SEQ
+                                                         FROM CB_OUT_ORDER_H OH
+                                                             ,CB_OUT_ORDER_D OD
+                                                        WHERE 1=1
+                                                          AND OH.ORG_ID = OD.ORG_ID
+                                                          AND OH.COMPANY_ID = OD.COMPANY_ID
+                                                          AND OH.OUT_PO_NO = OD.OUT_PO_NO
+                                                          AND (OD.OUT_PO_NO, OD.OUT_PO_SEQ) = (SELECT TD.OUT_PO_NO, TD.OUT_PO_SEQ
+                                                                                                  FROM CB_OUT_TRANS_D TD
+                                                                                                 WHERE 1=1
+                                                                                                   AND TD.ORG_ID = $ORGID$
+                                                                                                   AND TD.COMPANY_ID = $COMPANYID$
+                                                                                                   AND TD.OUT_TRANS_NO = #OUTTRANSNO#
+                                                                                                   AND TD.OUT_TRANS_SEQ = $OUTTRANSSEQ$))
+    </select>
+    <!-- 외주입고시 계획수량과 해당 작지의 총 외주입고수량 체크 끝 -->
+</sqlMap>

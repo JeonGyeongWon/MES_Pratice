@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProdSheetReport_Sub2" language="groovy" pageWidth="850" pageHeight="575" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="850" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryWithPageHeaderAndFooter="true" uuid="e2242a9b-b8ad-4216-8cab-ab0a57587992">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHDATE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT SC.ORG_ID AS ORGID
+      ,SC.COMPANY_ID AS COMPANYID
+      ,SC.SMALL_CODE AS ITEMTYPE
+      ,SC.SMALL_NAME AS ITEMTYPPENAME
+      ,TO_CHAR(TMP.SEARCH_MONTH, 'MM') || '월' AS SEARCHMONTH
+      ,CB_REPORT_PKG.CB_PURCHASE_AMOUNT_FIND(TMP.ORG_ID
+                                            ,TMP.COMPANY_ID
+                                            ,(CASE WHEN TMP.SEARCH_MONTH < TRUNC(TMP.SEARCH_NOW, 'MM') THEN
+                                                     TMP.SEARCH_MONTH_LAST
+                                                   WHEN TMP.SEARCH_MONTH = TRUNC(TMP.SEARCH_NOW, 'MM') THEN
+                                                     TMP.SEARCH_NOW
+                                                   ELSE
+                                                     NULL
+                                                   END)
+                                            ,SC.SMALL_CODE
+                                            ,NULL
+                                             ) AS AMOUNT
+  FROM CB_SMALL_CODE SC
+      ,(SELECT $P{ORGID} AS ORG_ID
+              ,$P{COMPANYID} AS COMPANY_ID
+              ,TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'YYYY') AS SEARCH_FIRST
+              ,TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD') AS SEARCH_NOW
+              ,ADD_MONTHS(TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'YYYY'), LEVEL - 1) AS SEARCH_MONTH
+              ,LAST_DAY(ADD_MONTHS(TRUNC(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'YYYY'), LEVEL - 1)) AS SEARCH_MONTH_LAST
+          FROM DUAL
+       CONNECT BY LEVEL <= 12) TMP
+ WHERE 1=1
+   AND SC.ORG_ID = TMP.ORG_ID
+   AND SC.COMPANY_ID = TMP.COMPANY_ID
+   AND SC.BIG_CODE = 'CMM'
+   AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+   AND SC.USE_YN = 'Y'
+   AND SC.REMARKS IN ('M', 'Z', 'T')
+ ORDER BY SC.ORG_ID, SC.COMPANY_ID, TMP.SEARCH_MONTH, (CASE WHEN SC.SMALL_NAME = '기타' THEN
+                                                              'ZZZ'
+                                                            ELSE
+                                                              SC.SMALL_CODE
+                                                            END)]]>
+	</queryString>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="ITEMTYPE" class="java.lang.String"/>
+	<field name="ITEMTYPPENAME" class="java.lang.String"/>
+	<field name="SEARCHMONTH" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<summary>
+		<band height="575" splitType="Stretch">
+			<stackedBarChart>
+				<chart>
+					<reportElement x="0" y="0" width="850" height="575" uuid="fd79b7dd-c8a4-41e8-8a37-e3398da41f2c"/>
+					<box>
+						<topPen lineWidth="3.0"/>
+						<leftPen lineWidth="3.0"/>
+						<bottomPen lineWidth="3.0"/>
+						<rightPen lineWidth="3.0"/>
+					</box>
+					<chartTitle position="Top">
+						<font fontName="맑은 고딕" size="28" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+						<titleExpression><![CDATA["구매 현황"]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend position="Bottom">
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{ITEMTYPPENAME}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{SEARCHMONTH}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{AMOUNT}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<barPlot>
+					<plot>
+						<seriesColor seriesOrder="0" color="#4F81BD"/>
+						<seriesColor seriesOrder="1" color="#C0504D"/>
+						<seriesColor seriesOrder="2" color="#9BBB59"/>
+						<seriesColor seriesOrder="3" color="#8064A2"/>
+						<seriesColor seriesOrder="4" color="#4097AE"/>
+						<seriesColor seriesOrder="5" color="#DB843D"/>
+					</plot>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</barPlot>
+			</stackedBarChart>
+		</band>
+	</summary>
+</jasperReport>

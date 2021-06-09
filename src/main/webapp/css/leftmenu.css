@@ -1,0 +1,39 @@
+.egovframe_leftmenu_style {
+    background: url("../../../images/egovframework/adt/left_menu/bg_leftmenu.gif") no-repeat left; width: 179px; height: 658px; padding-top: 20px; padding-left: 11px;
+}
+.egovframe_leftmenu_style .leftmenu_title_area {
+
+}
+.leftmenu_ul_div {
+    color: rgb(162, 162, 162); letter-spacing: -1px; font-family: "돋움",dotum,AppleGothic, Sans-serif; font-size: 12px; font-weight: bold; text-decoration: none;
+}
+.leftmenu_ul_div ul {
+    padding-top: 10px; list-style-type: none;
+}
+.leftmenu_ul_div ul li {
+    width: 155px; color: rgb(162, 162, 162); padding-top: 8px; padding-bottom: 8px; display: block;
+}
+.leftmenu_ul_div a {
+    background: url("../../../images/egovframework/adt/bl_gray_arrow.gif") no-repeat 0px 3px; color: rgb(162, 162, 162) !important; padding-left: 6px; font-family: "돋움",dotum,arial,sans-serif,verdana; font-size: 12px; font-weight: bold; text-decoration: none; cursor: pointer;
+}
+.leftmenu_ul_div a:hover {
+    background: url("../../../images/egovframework/adt/bl_orange_arrow.gif") no-repeat 0px 3px; color: rgb(102, 102, 102) !important; padding-left: 6px; font-family: "돋움",dotum,arial,sans-serif,verdana; font-size: 12px; font-weight: bold; text-decoration: none; cursor: pointer;
+}
+
+/* 모바일디바이스 API 메뉴 수정 */
+.leftmenu_ul_div .left_space {
+    padding-left:6px; line-height:15px;
+}
+
+.egovframe_submenu_style {
+    padding-top: 0px; font-family: "돋움",dotum,AppleGothic, Sans-serif; font-weight: normal; margin-top: 3px; border-top-color: rgb(191, 201, 210); border-bottom-color: rgb(191, 201, 210); border-top-width: 1px; border-bottom-width: 1px; border-top-style: dotted; border-bottom-style: dotted; background-color: rgb(245, 245, 247);
+}
+.egovframe_submenu_style a {
+    color: rgb(67, 150, 205); font-family: "돋움",dotum,AppleGothic, Sans-serif; font-size: 1em; font-weight: normal;
+}
+.egovframe_submenu_style a:hover {
+    font-family: "돋움",dotum,AppleGothic, Sans-serif; font-size: 1em; font-weight: normal;
+}
+.bottom_border {
+    border-bottom-color: rgb(233, 233, 233); border-bottom-width: 1px; border-bottom-style: solid;
+}

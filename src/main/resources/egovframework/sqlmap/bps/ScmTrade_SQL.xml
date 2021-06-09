@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="scm.trade">
+
+    <parameterMap class="java.util.Map" id="procScmTradeParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRADENO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRADESEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="scm.outproctrade.detail.manage.call.Procedure" parameterClass="java.util.Map"  parameterMap="procScmTradeParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SCM_PKG.CB_SCM_TRADE_D_MANAGE( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <!-- 외주공정 거래명세서 시작 -->
+    <sql id="scm.outproctrade.master.sql-select">
+      SELECT RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO DESC) AS RN
+            ,TH.ORG_ID AS ORGID
+            ,TH.COMPANY_ID AS COMPANYID
+            ,TH.TRADE_NO AS TRADENO
+            ,TO_CHAR(TH.TRADE_DATE, 'YYYY-MM-DD') AS TRADEDATE
+            ,TH.TRADE_DATE AS TRADEDATE
+            ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+            ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+            ,TH.TRANSACTION_YN AS TRANSACTIONYN
+            ,TH.TRANSACTION_PERSON AS TRANSACTIONPERSON
+            ,HM.KR_NAME AS KRNAME
+            ,(SELECT IM.ITEM_NAME
+                FROM CB_SCM_TRADE_D TD
+                    ,CB_ITEM_MASTER IM
+               WHERE TD.ORG_ID = IM.ORG_ID
+                 AND TD.COMPANY_ID = IM.COMPANY_ID
+                 AND TD.ITEM_CODE = IM.ITEM_CODE
+                 AND TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO
+                 AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                       FROM CB_SCM_TRADE_D TD1
+                                      WHERE TD1.ORG_ID = TH.ORG_ID
+                                        AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                        AND TD1.TRADE_NO = TH.TRADE_NO)) AS ITEMNAME
+            ,(SELECT IM.ORDER_NAME
+                FROM CB_SCM_TRADE_D TD
+                    ,CB_ITEM_MASTER IM
+               WHERE TD.ORG_ID = IM.ORG_ID
+                 AND TD.COMPANY_ID = IM.COMPANY_ID
+                 AND TD.ITEM_CODE = IM.ITEM_CODE
+                 AND TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO
+                 AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                       FROM CB_SCM_TRADE_D TD1
+                                      WHERE TD1.ORG_ID = TH.ORG_ID
+                                        AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                        AND TD1.TRADE_NO = TH.TRADE_NO)) AS ORDERNAME
+            ,(SELECT CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+																	                                                          ,IM.COMPANY_ID
+																	                                                          ,'CMM'
+																	                                                          ,'MODEL'
+																	                                                          ,IM.CAR_TYPE
+																	                                                          ,'LABEL')
+                FROM CB_SCM_TRADE_D TD
+                    ,CB_ITEM_MASTER IM
+               WHERE TD.ORG_ID = IM.ORG_ID
+                 AND TD.COMPANY_ID = IM.COMPANY_ID
+                 AND TD.ITEM_CODE = IM.ITEM_CODE
+                 AND TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO
+                 AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                       FROM CB_SCM_TRADE_D TD1
+                                      WHERE TD1.ORG_ID = TH.ORG_ID
+                                        AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                        AND TD1.TRADE_NO = TH.TRADE_NO)) AS MODELNAME
+            ,(SELECT ITEM_STANDARD_DETAIL
+                FROM CB_SCM_TRADE_D TD
+                    ,CB_ITEM_MASTER IM
+               WHERE TD.ORG_ID = IM.ORG_ID
+                 AND TD.COMPANY_ID = IM.COMPANY_ID
+                 AND TD.ITEM_CODE = IM.ITEM_CODE
+                 AND TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO
+                 AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                       FROM CB_SCM_TRADE_D TD1
+                                      WHERE TD1.ORG_ID = TH.ORG_ID
+                                        AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                        AND TD1.TRADE_NO = TH.TRADE_NO)) AS ITEMSTANDARDDETAIL
+            ,(SELECT SUM(TD.TRANSACTION_QTY)
+                FROM CB_SCM_TRADE_D TD
+               WHERE TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO) AS TRANSACTIONQTY
+            ,(SELECT SUM(TD.SUPPLY_PRICE + TD.ADDITIONAL_TAX)
+                FROM CB_SCM_TRADE_D TD
+               WHERE TD.ORG_ID = TH.ORG_ID
+                 AND TD.COMPANY_ID = TH.COMPANY_ID
+                 AND TD.TRADE_NO = TH.TRADE_NO) AS TOTALQTY
+            ,TH.MOD_QTY AS MODQTY
+            ,TH.REMARKS AS REMARKS 
+        FROM CB_SCM_TRADE_H TH
+            ,CB_CUSTOMER CC
+            ,CB_HUMANRESOURCE_MANAGER_V HM
+    </sql>
+
+    <sql id="scm.outproctrade.master.sql-where">
+       WHERE CC.ORG_ID = TH.ORG_ID
+         AND CC.COMPANY_ID = TH.COMPANY_ID
+         AND CC.CUSTOMER_CODE = TH.CUSTOMER_CODE
+         AND TH.ORG_ID = HM.ORG_ID (+)
+         AND TH.COMPANY_ID = HM.COMPANY_ID (+)
+         AND TH.TRANSACTION_PERSON = HM.EMPLOYEE_NUMBER (+)
+         /*AND TH.TRADE_NO IN (SELECT TD.TRADE_NO
+                                        FROM CB_SCM_TRADE_D TD
+                                       WHERE TD.ORG_ID = TH.ORG_ID
+                                         AND TD.COMPANY_ID = TH.COMPANY_ID
+                                         AND TD.TRADE_NO = TH.TRADE_NO
+                                         AND TD.OUT_PO_NO IS NOT NULL
+                                         AND TD.OUT_PO_SEQ IS NOT NULL)*/
+       <isNotEmpty property="ORGID" prepend="AND">
+            TH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            TH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            TH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="TRADENO" prepend="AND">
+            TH.TRADE_NO = #TRADENO#
+         </isNotEmpty>
+         <isNotEmpty property="SEARCHTO">
+           <isNotEmpty property="SEARCHFROM" prepend="AND">
+              TH.TRADE_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isNotEmpty>
+           <isEmpty property="SEARCHFROM" prepend="AND">
+              TH.TRADE_DATE = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+           </isEmpty>
+         </isNotEmpty>
+         <isEmpty property="SEARCHTO">
+           <isNotEmpty property="SEARCHFROM" prepend="AND">
+              TH.TRADE_DATE = TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')
+           </isNotEmpty>
+         </isEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+             ( TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO ) IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO
+                                                                 FROM CB_SCM_TRADE_D TD
+                                                                WHERE 1=1
+                                                              <isNotEmpty property="ORGID" prepend="AND">
+                                                                TD.ORG_ID = #ORGID#
+                                                              </isNotEmpty>
+                                                              <isNotEmpty property="COMPANYID" prepend="AND">
+                                                                TD.COMPANY_ID = #COMPANYID#
+                                                              </isNotEmpty>
+                                                                AND ITEM_CODE = #ITEMCODE#
+                                                                    )
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+             ( TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO ) IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO
+                                                                 FROM CB_SCM_TRADE_D TD
+                                                                         ,CB_ITEM_MASTER IM
+                                                                WHERE TD.ORG_ID = IM.ORG_ID
+                                                                  AND TD.COMPANY_ID = IM.COMPANY_ID
+                                                                  AND TD.ITEM_CODE = IM.ITEM_CODE
+                                                              <isNotEmpty property="ORGID" prepend="AND">
+                                                                TD.ORG_ID = #ORGID#
+                                                              </isNotEmpty>
+                                                              <isNotEmpty property="COMPANYID" prepend="AND">
+                                                                TD.COMPANY_ID = #COMPANYID#
+                                                              </isNotEmpty>
+                                                                AND IM.ORDER_NAME LIKE '%'||#ORDERNAME#||'%'
+                                                                    )
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+             ( TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO ) IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO
+                                                                 FROM CB_SCM_TRADE_D TD
+                                                                         ,CB_ITEM_MASTER IM
+                                                                WHERE TD.ORG_ID = IM.ORG_ID
+                                                                  AND TD.COMPANY_ID = IM.COMPANY_ID
+                                                                  AND TD.ITEM_CODE = IM.ITEM_CODE
+                                                              <isNotEmpty property="ORGID" prepend="AND">
+                                                                TD.ORG_ID = #ORGID#
+                                                              </isNotEmpty>
+                                                              <isNotEmpty property="COMPANYID" prepend="AND">
+                                                                TD.COMPANY_ID = #COMPANYID#
+                                                              </isNotEmpty>
+                                                                AND IM.ITEM_NAME LIKE '%'||#ITEMNAME#||'%'
+                                                                    )
+         </isNotEmpty>
+    </sql>
+
+    <select id="scm.outproctrade.master.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outproctrade.master.sql-select" />
+        <include refid="scm.outproctrade.master.sql-where" />
+    </select>
+
+    <select id="scm.outproctrade.master.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outproctrade.master.sql-select" />
+            <include refid="scm.outproctrade.master.sql-where" />
+        ) TOT
+    </select>
+
+    <sql id="scm.outproctrade.detail.sql-select">
+      SELECT TD.ORG_ID AS ORGID
+	            ,TD.COMPANY_ID AS COMPANYID
+	            ,TD.TRADE_NO AS TRADENO
+	            ,TD.TRADE_SEQ AS TRADESEQ
+	            ,TD.ITEM_CODE AS ITEMCODE
+	            ,IM.ORDER_NAME AS ORDERNAME
+	            ,IM.ITEM_NAME AS ITEMNAME
+	            ,IM.CAR_TYPE AS MODEL
+	            ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+	                                                        ,IM.COMPANY_ID
+	                                                        ,'CMM'
+	                                                        ,'MODEL'
+	                                                        ,IM.CAR_TYPE
+	                                                        ,'LABEL') AS MODELNAME
+	            ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+	            ,IM.UOM AS UOM
+	            ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+	                                                        ,IM.COMPANY_ID
+	                                                        ,'CMM'
+	                                                        ,'UOM'
+	                                                        ,IM.UOM
+	                                                        ,'LABEL') AS UOMNAME
+	            ,NVL((SELECT SUM(OD.ORDER_QTY)
+	                    FROM CB_OUT_ORDER_H OH
+	                        ,CB_OUT_ORDER_D OD
+	                   WHERE OH.ORG_ID = OD.ORG_ID
+	                     AND OH.COMPANY_ID = OD.COMPANY_ID
+	                     AND OH.OUT_PO_NO = OD.OUT_PO_NO
+	                     AND OD.ORG_ID = TD.ORG_ID
+	                     AND OD.COMPANY_ID = TD.COMPANY_ID
+	                     AND OD.OUT_PO_NO = TD.OUT_PO_NO
+	                     AND OD.OUT_PO_SEQ = TD.OUT_PO_SEQ), 0) AS ORDERQTY
+	            ,DECODE(TD.OUT_PO_NO
+	                   ,'', NVL((SELECT SUM(CTD.TRANSACTION_QTY)
+	                               FROM CB_SCM_TRADE_D CTD
+	                              WHERE CTD.ORG_ID = TD.ORG_ID
+	                                AND CTD.COMPANY_ID = TD.COMPANY_ID
+	                                AND CTD.OUT_PO_NO = TD.OUT_PO_NO
+	                                AND CTD.OUT_PO_SEQ = TD.OUT_PO_SEQ
+	                                AND CTD.TRADE_NO || CTD.TRADE_SEQ != TD.TRADE_NO || TD.TRADE_SEQ), 0)
+	                   ,NVL((SELECT SUM(CTD.TRANSACTION_QTY)
+	                           FROM CB_SCM_TRADE_D CTD
+	                          WHERE CTD.ORG_ID = TD.ORG_ID
+	                            AND CTD.COMPANY_ID = TD.COMPANY_ID
+	                            AND CTD.OUT_PO_NO = TD.OUT_PO_NO
+	                            AND CTD.OUT_PO_SEQ = TD.OUT_PO_SEQ
+	                            AND CTD.TRADE_NO || CTD.TRADE_SEQ != TD.TRADE_NO || TD.TRADE_SEQ), 0)) AS BEFOREQTY
+	            ,TD.TRANSACTION_QTY AS TRANSACTIONQTY
+	            ,TD.FAULT_QTY AS FAULTQTY
+	            ,TD.UNIT_PRICE AS UNITPRICE
+	            ,TD.SUPPLY_PRICE AS SUPPLYPRICE
+	            ,TD.ADDITIONAL_TAX AS ADDITIONALTAX
+	            ,(NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0)) AS TOTALQTY
+	            ,TD.OUT_PO_NO AS OUTPONO
+	            ,TD.OUT_PO_SEQ AS OUTPOSEQ
+	            ,(SELECT (SELECT WV.ROUTINGNAME
+	                        FROM CB_WORK_ORDER_LIST_V WV
+	                       WHERE WV.ORGID = OD.ORG_ID
+	                         AND WV.COMPANYID = OD.COMPANY_ID
+	                         AND WV.WORKORDERID = OD.WORK_ORDER_ID
+	                         AND WV.WORKORDERSEQ = OD.WORK_ORDER_SEQ)
+	                FROM CB_OUT_ORDER_D OD
+	               WHERE OD.ORG_ID = TD.ORG_ID
+	                 AND OD.COMPANY_ID = TD.COMPANY_ID
+	                 AND OD.OUT_PO_NO = TD.OUT_PO_NO
+	                 AND OD.OUT_PO_SEQ = TD.OUT_PO_SEQ) AS ROUTINGNAME
+	            ,TD.END_DATE AS ENDDATE
+	            ,TD.FORWARD_YN AS FORWARDYN
+	            ,TD.REMARKS AS REMARKS
+	            ,TD.CHARGE_QTY AS CHARGEQTY
+	            ,TD.CHARGE_TYPE AS CHARGETYPE
+	            ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(TD.ORG_ID
+	                                                        ,TD.COMPANY_ID
+	                                                        ,'MFG'
+	                                                        ,'CHARGE_TYPE'
+	                                                        ,TD.CHARGE_TYPE
+	                                                        ,'LABEL') AS CHARGETYPENAME
+              ,(CASE WHEN (TD.TRANSACTION_QTY - NVL((SELECT SUM(TD1.TRANS_QTY)
+                                                      FROM CB_OUT_ORDER_D OD
+                                                          ,CB_OUT_TRANS_D TD1
+                                                     WHERE TD1.ORG_ID = OD.ORG_ID
+                                                       AND TD1.COMPANY_ID = OD.COMPANY_ID
+                                                       AND TD1.OUT_PO_NO = OD.OUT_PO_NO
+                                                       AND TD1.OUT_PO_SEQ = OD.OUT_PO_SEQ
+                                                       AND TD1.ORG_ID = TD.ORG_ID
+                                                       AND TD1.COMPANY_ID = TD.COMPANY_ID
+                                                       AND TD1.OUT_PO_NO = TD.OUT_PO_NO
+                                                       AND TD1.OUT_PO_SEQ = TD.OUT_PO_SEQ), 0)) > 0 THEN
+                       'N'
+                     ELSE
+                       'Y'
+                     END) AS OUTTRANSYN
+        FROM CB_SCM_TRADE_D TD
+            ,CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="scm.outproctrade.detail.sql-where">
+       WHERE TD.ORG_ID = IM.ORG_ID
+         AND TD.COMPANY_ID = IM.COMPANY_ID
+         AND TD.ITEM_CODE = IM.ITEM_CODE
+         AND TD.OUT_PO_NO IS NOT NULL
+         AND TD.OUT_PO_SEQ IS NOT NULL
+       <isNotEmpty property="ORGID" prepend="AND">
+          TD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          TD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRADENO" prepend="AND">
+          TD.TRADE_NO = #TRADENO#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+           TD.ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        ORDER BY TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO DESC, TD.TRADE_SEQ
+    </sql>
+
+    <select id="scm.outproctrade.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outproctrade.detail.sql-select" />
+        <include refid="scm.outproctrade.detail.sql-where" />
+    </select>
+
+    <select id="scm.outproctrade.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="scm.outproctrade.detail.sql-select" />
+            <include refid="scm.outproctrade.detail.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="scm.outproctrade.new.tradeno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'TR' || TO_CHAR(TO_DATE(#TradeDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS TRADENO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(TRADE_NO), -3)), 0) AS NUM 
+                  FROM CB_SCM_TRADE_H
+                 WHERE TRADE_NO LIKE 'TR' || TO_CHAR(TO_DATE(#TradeDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="scm.outproctrade.master.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_SCM_TRADE_H
+              ( ORG_ID
+               ,COMPANY_ID
+               ,TRADE_NO
+               ,TRADE_DATE
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="ModQty" prepend=",">
+               MOD_QTY
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #searchOrgId#
+               ,#searchCompanyId#
+               ,#TRADENO#
+               ,TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="ModQty" prepend=",">
+               #ModQty#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+     <insert id="scm.outproctrade.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SCM_TRADE_D
+              ( ORG_ID
+               ,COMPANY_ID
+               ,TRADE_NO
+               ,TRADE_SEQ
+               ,OUT_PO_NO
+               ,OUT_PO_SEQ
+               ,ITEM_CODE
+               ,UNIT_PRICE
+               ,TRANSACTION_QTY
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,FAULT_QTY
+        ]]>
+        <isNotEmpty property="CHARGEQTY" prepend=",">
+               CHARGE_QTY
+        </isNotEmpty>
+        <isNotEmpty property="CHARGETYPE" prepend=",">
+               CHARGE_TYPE
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #ORGID#
+               ,#COMPANYID#
+               ,#TRADENO#
+               ,#TRADESEQ#
+               ,#OUTPONO#
+               ,#OUTPOSEQ#
+               ,#ITEMCODE#
+               ,$UNITPRICE$
+               ,$TRANSACTIONQTY$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,$FAULTQTY$
+        ]]>
+        <isNotEmpty property="CHARGEQTY" prepend=",">
+               #CHARGEQTY#
+        </isNotEmpty>
+        <isNotEmpty property="CHARGETYPE" prepend=",">
+               #CHARGETYPE#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+     <update id="scm.outproctrade.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SCM_TRADE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , MOD_QTY = #ModQty#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND TRADE_NO = #TradeNo#
+        ]]>
+    </update>
+    
+    <sql id="scm.outproctrade.detail.find.sql-select">
+        SELECT COUNT(TD.TRADE_NO) AS COUNT
+          FROM CB_SCM_TRADE_H TH, CB_SCM_TRADE_D TD
+    </sql>
+
+    <sql id="scm.outproctrade.detail.find.sql-where">
+         WHERE TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.TRADE_NO = TD.TRADE_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          TD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          TD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRADENO" prepend="AND">
+          TD.TRADE_NO = #TRADENO#
+        </isNotEmpty>
+        <isNotEmpty property="TRADESEQ" prepend="AND">
+          TD.TRADE_SEQ = #TRADESEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="scm.outproctrade.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="scm.outproctrade.detail.find.sql-select" />
+        <include refid="scm.outproctrade.detail.find.sql-where" />
+    </select>
+    
+   <update id="scm.outproctrade.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SCM_TRADE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , UNIT_PRICE = $UNITPRICE$
+               , TRANSACTION_QTY = $TRANSACTIONQTY$
+               , SUPPLY_PRICE = $SUPPLYPRICE$
+               , ADDITIONAL_TAX = $ADDITIONALTAX$
+               , FAULT_QTY = $FAULTQTY$
+        ]]>
+        <isNotEmpty property="CHARGEQTY" prepend=",">
+            CHARGE_QTY = #CHARGEQTY#
+        </isNotEmpty>
+        <isEmpty property="CHARGEQTY" prepend=",">
+            CHARGE_QTY = NULL
+        </isEmpty>
+        <isNotEmpty property="CHARGETYPE" prepend=",">
+            CHARGE_TYPE = #CHARGETYPE#
+        </isNotEmpty>
+        <isEmpty property="CHARGETYPE" prepend=",">
+            CHARGE_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRADE_NO = #TRADENO#
+           AND TRADE_SEQ = $TRADESEQ$
+        ]]>
+    </update>
+    
+    <delete id="scm.outproctrade.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SCM_TRADE_H
+        WHERE ORG_ID =  #searchOrgId#
+           AND COMPANY_ID  =  #searchCompanyId#
+           AND TRADE_NO = #TradeNo#
+    </delete>
+    
+    <delete id="scm.outproctrade.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SCM_TRADE_D
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRADE_NO = #TRADENO#
+           AND TRADE_SEQ = $TRADESEQ$
+    </delete>
+</sqlMap>

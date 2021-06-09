@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SemiItemLotReport" language="groovy" pageWidth="302" pageHeight="226" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="292" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="cf970ea7-fbff-4045-ac1a-26413fde7c13">
+	<property name="ireport.zoom" value="2.8531167061100033"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.math.BigDecimal"/>
+	<parameter name="COMPANYID" class="java.math.BigDecimal"/>
+	<parameter name="WORKORDERID" class="java.lang.String"/>
+	<parameter name="WORKORDERSEQ" class="java.math.BigDecimal"/>
+	<parameter name="SEQNO" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[SELECT WV.ORG_ID AS ORGID
+      ,WV.COMPANY_ID AS COMPANYID
+      ,WV.WORK_ORDER_ID AS WORKORDERID
+      ,WV.WORK_ORDER_SEQ AS WORKORDERSEQ
+      ,WV.SEQ_NO AS SEQNO
+      ,WV.EQUIPMENT_CODE AS EQUIPMENTCODE
+      ,WV.EQUIPMENT_NAME AS EQUIPMENTNAME
+      ,WV.ITEM_CODE AS ITEMCODE
+      ,WV.ITEM_NAME AS ITEMNAME
+      ,WV.QTY AS QTY
+      ,WV.PRINT_DATE AS PRINTDATE
+  FROM CB_WO_LOT_REPORT_V WV
+ WHERE 1 = 1
+   AND WV.ORG_ID = $P{ORGID}
+   AND WV.COMPANY_ID = $P{COMPANYID}
+   AND WV.WORK_ORDER_ID = $P{WORKORDERID}
+   AND WV.WORK_ORDER_SEQ = $P{WORKORDERSEQ}
+   AND WV.SEQ_NO = $P{SEQNO}]]>
+	</queryString>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="WORKORDERID" class="java.lang.String"/>
+	<field name="WORKORDERSEQ" class="java.math.BigDecimal"/>
+	<field name="SEQNO" class="java.math.BigDecimal"/>
+	<field name="EQUIPMENTCODE" class="java.lang.String"/>
+	<field name="EQUIPMENTNAME" class="java.lang.String"/>
+	<field name="ITEMCODE" class="java.lang.String"/>
+	<field name="ITEMNAME" class="java.lang.String"/>
+	<field name="QTY" class="java.math.BigDecimal"/>
+	<field name="PRINTDATE" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="216" splitType="Stretch">
+			<image onErrorType="Blank">
+				<reportElement x="5" y="6" width="55" height="55" uuid="0eedaa82-fdde-40f9-b00d-463f5ea516d3"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(
+    new com.google.zxing.qrcode.QRCodeWriter().encode(
+        new String( ($F{WORKORDERID} + '+' + $F{SEQNO} + '+' + $F{ITEMNAME} + '+' + $F{ITEMCODE} + '+' + $F{EQUIPMENTNAME} + '+' + $F{QTY} + '+' + $F{PRINTDATE}).getBytes("UTF-8"), "ISO-8859-1"),
+        com.google.zxing.BarcodeFormat.QR_CODE, 300, 300
+    )
+)]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="0" y="0" width="292" height="66" uuid="fa553473-7642-4539-b215-6ca236030ead"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="20" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[반제품 식별표]]></text>
+			</staticText>
+			<image onErrorType="Blank">
+				<reportElement x="232" y="6" width="55" height="55" uuid="69bb85be-93b3-41f1-8d05-b94f5c333d5b"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(
+    new com.google.zxing.qrcode.QRCodeWriter().encode(
+        $F{WORKORDERID} + '+' + $F{SEQNO} + '+' + $F{ITEMNAME} + '+' + $F{ITEMCODE} + '+' + $F{EQUIPMENTNAME} + '+' + $F{QTY} + '+' + $F{PRINTDATE},
+        com.google.zxing.BarcodeFormat.QR_CODE, 300, 300
+    )
+)]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="0" y="66" width="69" height="30" uuid="0ee98d00-728d-4745-bb54-a7fd3bb1bbe4"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[품명]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="69" y="66" width="223" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="143348b0-3943-4cc0-a4a5-b3ed8f79ee29"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ITEMNAME}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="96" width="69" height="30" uuid="b64cbf2e-48ef-46b3-906c-185aa04f9bc9"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[품번]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="69" y="96" width="223" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="314de88e-2baa-4827-9af7-3641f4b5ff83"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ITEMCODE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="126" width="69" height="30" uuid="6d06c47d-f381-4008-b439-12b3bfce7ea0"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[작지번호]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="69" y="126" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="794ff130-3520-42b1-b1ab-0006b63cf1aa"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{WORKORDERID}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="146" y="126" width="69" height="30" uuid="eed2d59c-8436-42f8-9e96-2a2cc77e208c"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[설비명]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="215" y="126" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="dad1a9cd-0da0-454b-85fd-aceafcc4b0df"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{EQUIPMENTNAME}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="156" width="69" height="30" uuid="e8127f72-ce9d-4592-b3ea-fc54616497cb"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[생산완료일]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="69" y="156" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="bc869484-7379-4dbe-a3e0-e3a563d78c3e"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PRINTDATE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="146" y="156" width="69" height="30" uuid="c3d1c739-6556-4576-8c80-08f39011ac78"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[적입 수량]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="215" y="156" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="3e3f56c5-a957-43f1-acd9-bbdce71e13b5"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{QTY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="186" width="69" height="30" uuid="1b292a68-d8fc-4167-8d79-68ac124dd286"/>
+				<box>
+					<pen lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[박스 순번]]></text>
+			</staticText>
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="69" y="186" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="3c638453-98a6-4371-a8b7-61343baa4a77"/>
+				<box>
+					<pen lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{SEQNO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="146" y="186" width="69" height="30" uuid="1a8a6f01-8981-4cd0-b861-5830f568a461"/>
+				<box>
+					<pen lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="215" y="186" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="ddccae22-797c-41d9-bf90-f7abcb98a7d0"/>
+				<box>
+					<pen lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+			</textField>
+		</band>
+	</pageHeader>
+</jasperReport>

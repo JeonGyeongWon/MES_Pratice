@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="org">
+
+    <!-- org select -->
+    <sql id="org.sql-select">
+        SELECT ROWNUM as RNUM
+		        ,ORG_ID AS ORGID
+            ,ORG_CODE AS ORGCODE
+            ,ORG_NAME AS ORGNAME
+		        ,REMARKS AS REMARKS
+            ,TO_CHAR(EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+            ,TO_CHAR(EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+		        ,CREATED_BY AS CRBY
+		        ,TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CRDATE
+		        ,LAST_UPDATED_BY AS LUBY
+		        ,TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LUDATE
+		        
+	        FROM CB_ORG
+    </sql>
+
+    <sql id="org.sql-where">
+        WHERE 1=1
+        ORDER BY ORG_ID
+    </sql>
+
+    <select id="org.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="org.sql-select" />
+        <include refid="org.sql-where" />
+    </select>
+
+    <select id="org.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="org.sql-select" />
+	        <include refid="org.sql-where" />
+        ) TOT
+    </select>
+
+   
+    <!-- org sql -->
+    <insert id="org.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_ORG
+        (
+	        ORG_ID
+          ,ORG_CODE
+          ,ORG_NAME
+          ,REMARKS
+          ,EFFECTIVE_START_DATE
+          ,EFFECTIVE_END_DATE
+	        ,CREATION_DATE
+	        ,CREATED_BY
+	        ,LAST_UPDATE_DATE
+	        ,LAST_UPDATED_BY
+        )
+        VALUES
+        (
+          #ORGID#
+          ,#ORGCODE#
+	        ,#ORGNAME#
+          ,#REMARKS#
+          ,TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+          ,TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,SYSDATE
+	        ,#REGISTID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="org.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_ORG
+            SET ORG_NAME = #ORGNAME#
+                ,ORG_CODE = #ORGCODE#
+                ,EFFECTIVE_START_DATE = #EFFECTIVESTARTDATE#
+                ,EFFECTIVE_END_DATE = #EFFECTIVEENDDATE#
+                ,REMARKS = #REMARKS#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+                
+          WHERE ORG_ID = #ORGID#
+    ]]>
+    </update>
+    
+    <delete id="org.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_ORG
+         WHERE ORG_ID = #ORGID#
+    </delete>
+    
+ 
+</sqlMap>

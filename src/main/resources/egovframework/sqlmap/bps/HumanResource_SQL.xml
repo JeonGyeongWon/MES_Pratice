@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="human">
+    <parameterMap class="java.util.Map" id="procHumanParams">
+        <parameter property="EMPLOYEENUMBER" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="human.manage.call.Procedure" parameterClass="java.util.Map"  parameterMap="procHumanParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_HUMAN_PKG.CB_HUMAN_MANAGER( ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+  <!-- 검사자관리 시작 -->
+  <sql id="human.list.sql-select">
+    SELECT RANK()OVER(ORDER BY DECODE(NVL((SELECT COUNT(*)
+                                       FROM CB_HUMANRESOURCE_MANAGER CHM
+                                      WHERE CHM.EMPLOYEE_NUMBER = HM.EMPLOYEE_NUMBER
+                                        AND TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN CHM.EFFECTIVE_START_DATE
+                                        AND CHM.EFFECTIVE_END_DATE), 0), 0, 'Y', 'N'), NVL(HM.POSITION_CODE, '99999999'), HM.INSPECTOR_TYPE, HM.EMPLOYEE_NUMBER) AS RN
+          ,HM.DEPARTMENT_CODE AS DEPARTMENTCODE
+          ,(SELECT MIN(SC.SMALL_NAME)
+              FROM CB_SMALL_CODE SC
+             WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'DEPT_CODE'
+               AND SC.SMALL_CODE = HM.DEPARTMENT_CODE) AS DEPARTMENTNAME
+          ,HM.POSITION_CODE AS POSITIONCODE
+          ,(SELECT MIN(SC.SMALL_NAME)
+              FROM CB_SMALL_CODE SC
+             WHERE SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'POSITION_CODE'
+               AND SC.SMALL_CODE = HM.POSITION_CODE) AS POSITIONNAME
+          ,HM.INSPECTOR_TYPE AS INSPECTORTYPE
+          ,NVL((SELECT MIN(SC.SMALL_NAME)
+                  FROM CB_SMALL_CODE SC
+                 WHERE SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'INSPECTOR_TYPE'
+                   AND SC.SMALL_CODE = HM.INSPECTOR_TYPE),
+                '') AS INSPECTORTYPENAME
+          ,HM.EQ_SETUP AS EQSETUP
+          ,NVL((SELECT MIN(SC.SMALL_NAME)
+                  FROM CB_SMALL_CODE SC
+                 WHERE SC.BIG_CODE = 'CMM'
+                   AND SC.MIDDLE_CODE = 'EQ_SETUP'
+                   AND SC.SMALL_CODE = HM.EQ_SETUP),
+                '') AS EQSETUPNAME
+          ,HM.EMPLOYEE_NUMBER AS EMPLOYEENUMBER
+          ,HM.KR_NAME AS KRNAME
+          ,HM.UPPER_EMPLOYEE_NUMBER AS UPPEREMPLOYEENUMBER
+          ,(SELECT HM1.KR_NAME
+              FROM CB_HUMANRESOURCE_MANAGER HM1
+             WHERE HM1.EMPLOYEE_NUMBER = HM.UPPER_EMPLOYEE_NUMBER) AS UPPERKRNAME
+          ,TO_CHAR(HM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+          ,TO_CHAR(HM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+          ,HM.EMAIL AS EMAIL
+          ,HM.PHONE_NUMBER AS PHONENUMBER
+          ,HM.USE_YN AS USEYN
+          ,HM.LEADER_YN AS LEADERYN
+          ,HM.TOP_SIZE AS TOPSIZE
+          ,HM.PANTS_SIZE AS PANTSSIZE
+          ,CASE WHEN TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN HM.EFFECTIVE_START_DATE AND HM.EFFECTIVE_END_DATE THEN
+                     'Y'
+                ELSE
+                     'N'
+                END AS RESIGNYN
+      FROM CB_HUMANRESOURCE_MANAGER HM, CB_HUMANRESOURCE_MANAGER_V HV
+  </sql>
+
+  <sql id="human.list.sql-where">
+    WHERE HM.EMPLOYEE_NUMBER = HV.EMPLOYEE_NUMBER(+)
+    <isNotEmpty property="person" prepend="AND">
+      HM.INSPECTOR_TYPE  = #person#
+    </isNotEmpty>
+    <isNotEmpty property="departname" prepend="AND">
+      HM.DEPARTMENT_CODE = (SELECT SMALL_CODE FROM CB_SMALL_CODE
+                                        WHERE BIG_CODE = 'CMM'
+                                           AND MIDDLE_CODE = 'DEPT_CODE'
+                                           AND SMALL_CODE = #departname#)
+    </isNotEmpty>
+    <isNotEmpty property="depname" prepend="AND">
+      HM.KR_NAME LIKE '%'||#depname#||'%'
+    </isNotEmpty>
+      ORDER BY DECODE(NVL((SELECT COUNT(*)
+                                       FROM CB_HUMANRESOURCE_MANAGER CHM
+                                      WHERE CHM.EMPLOYEE_NUMBER = HM.EMPLOYEE_NUMBER
+                                        AND TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') BETWEEN CHM.EFFECTIVE_START_DATE
+                                        AND CHM.EFFECTIVE_END_DATE), 0), 0, 'Y', 'N'), NVL(HM.POSITION_CODE, '99999999'), HM.INSPECTOR_TYPE, HM.EMPLOYEE_NUMBER
+  </sql>
+
+  <select id="human.list.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+      <include refid="human.list.sql-select" />
+      <include refid="human.list.sql-where" />
+  </select>
+  
+  <select id="human.list.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="human.list.sql-select" />
+      <include refid="human.list.sql-where" />
+    ) TOT
+  </select>
+  <!-- 검사자 관리 끝 -->
+  
+  <insert id="human.list.insert" parameterClass="java.util.Map">
+    <![CDATA[    
+         INSERT INTO CB_HUMANRESOURCE_MANAGER (
+				   DEPARTMENT_CODE,
+				   POSITION_CODE,
+				   INSPECTOR_TYPE,
+				   EQ_SETUP,
+				   EMPLOYEE_NUMBER,
+				   KR_NAME,
+				   PHONE_NUMBER,
+				   EMAIL,
+				   LEADER_YN,
+				   UPPER_EMPLOYEE_NUMBER,
+				   TOP_SIZE,
+				   PANTS_SIZE,
+				   EFFECTIVE_START_DATE,
+				   EFFECTIVE_END_DATE,
+				   USE_YN,
+				   CREATED_BY,
+				   CREATION_DATE,
+				   LAST_UPDATED_BY,
+				   LAST_UPDATE_DATE)
+				VALUES (
+				   #DEPARTMENTCODE#,
+				   #POSITIONCODE#,
+				   #INSPECTORTYPE#,
+				   #EQSETUP#,
+				   #EMPLOYEENUMBER#,
+				   #KRNAME#,
+				   #PHONENUMBER#,
+				   #EMAIL#,
+				   #LEADERYN#,
+				   #UPPEREMPLOYEENUMBER#,
+           #TOPSIZE#,
+           $PANTSSIZE$,
+				   TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD'),
+				   TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD'),
+				   #USEYN#,
+				   #REGISTID#,
+				   SYSDATE,
+				   #REGISTID#,
+				   SYSDATE
+				   )
+        ]]>        
+    </insert>
+    
+    <!-- 수정 -->
+    <update id="human.list.update" parameterClass="java.util.Map">
+    <![CDATA[  
+        UPDATE CB_HUMANRESOURCE_MANAGER
+              SET  LAST_UPDATED_BY = #UPDATETID#
+                    ,LAST_UPDATE_DATE = SYSDATE
+                    ,DEPARTMENT_CODE = #DEPARTMENTCODE#
+		                ,POSITION_CODE = #POSITIONCODE#
+		                ,INSPECTOR_TYPE = #INSPECTORTYPE#
+		                ,EQ_SETUP = #EQSETUP#
+		                ,KR_NAME = #KRNAME#
+		                ,PHONE_NUMBER = #PHONENUMBER#
+		                ,EMAIL = #EMAIL#
+		                ,LEADER_YN = #LEADERYN#
+		                ,UPPER_EMPLOYEE_NUMBER = #UPPEREMPLOYEENUMBER#
+		                ,TOP_SIZE = #TOPSIZE#
+		                ,PANTS_SIZE = $PANTSSIZE$
+		                ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+		                ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+		                ,USE_YN = #USEYN#
+        WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+                 ]]>
+    </update>
+        
+    <!-- 삭제 -->
+    <delete id="human.list.delete" parameterClass="java.util.Map">
+     <![CDATA[  
+        DELETE FROM CB_HUMANRESOURCE_MANAGER
+           WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+       ]]>
+    </delete>
+    
+    <!-- 2016.12.07 사원별 사업장 연결 시작 -->
+    <sql id="human.org.sql-select">
+	    SELECT RANK() OVER(ORDER BY COC.ORG_ID,COC.COMPANY_ID) AS RN
+	            ,COC.ORG_ID AS ORGID
+	            ,COC.ORG_CODE AS ORGCODE
+	            ,COC.ORG_NAME AS ORGNAME
+	            ,COC.COMPANY_ID AS COMPANYID
+	            ,COC.COMPANY_NAME AS COMPANYNAME
+	            ,CHMA.EMPLOYEE_NUMBER AS EMPLOYEENUMBER
+              ,(CASE WHEN CHMA.USE_YN = 'Y' THEN
+                       'Y'
+                     ELSE
+                       'N'
+                     END) AS CHK
+	            ,CHMA.REMARKS AS REMARKS
+	      FROM CB_ORG_COMPANY_V COC
+	             ,CB_HUMANRESOURCE_MANAGER_AUTH CHMA
+	  </sql>
+
+  <sql id="human.org.sql-where">
+    WHERE COC.ORG_ID = CHMA.ORG_ID (+)
+       AND COC.COMPANY_ID = CHMA.COMPANY_ID (+)
+       AND CHMA.EMPLOYEE_NUMBER (+) = #EMPLOYEENUMBER#
+  </sql>
+
+  <select id="human.org.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+      <include refid="human.org.sql-select" />
+      <include refid="human.org.sql-where" />
+  </select>
+  
+  <select id="human.org.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="human.org.sql-select" />
+      <include refid="human.org.sql-where" />
+    ) TOT
+  </select>
+ 
+  <insert id="human.org.insert" parameterClass="java.util.Map">
+    <![CDATA[    
+         INSERT INTO CB_HUMANRESOURCE_MANAGER_AUTH (
+		       EMPLOYEE_NUMBER
+		      ,ORG_ID
+		      ,COMPANY_ID
+		      ,USE_YN
+		      ,REMARKS
+		      ,CREATED_BY
+		      ,CREATION_DATE
+		      ,LAST_UPDATED_BY
+		      ,LAST_UPDATE_DATE
+               )
+       VALUES (
+		      #EMPLOYEENUMBER#
+		      ,#ORGID#
+		      ,#COMPANYID#
+		      ,#CHK#
+		      ,#REMARKS#
+		      ,#REGISTID#
+		      ,SYSDATE
+		      ,#REGISTID#
+		      ,SYSDATE
+               )
+        ]]>        
+    </insert>
+    
+    <!-- 수정 -->
+    <update id="human.org.update" parameterClass="java.util.Map">
+    <![CDATA[  
+        UPDATE CB_HUMANRESOURCE_MANAGER_AUTH
+              SET  LAST_UPDATED_BY = #UPDATETID#
+                    ,LAST_UPDATE_DATE = SYSDATE
+                    
+                    ,USE_YN = #CHK#
+                    ,REMARKS = #REMARKS#
+        WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+           AND ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+     ]]>
+    </update>
+        
+    <!-- 삭제 -->
+    <delete id="human.org.delete" parameterClass="java.util.Map">
+     <![CDATA[  
+        DELETE FROM CB_HUMANRESOURCE_MANAGER_AUTH
+           WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+           AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+       ]]>
+    </delete>
+  <!-- 2016.12.07 사원별 사업장 연결 끝 -->
+
+    
+  <!-- 2016.12.28 사원별 설비 연결 시작 -->
+  <sql id="human.equip.sql-select">
+    SELECT RANK() OVER(ORDER BY WC.SEQ, WC.WORK_CENTER_CODE) AS RN
+            ,WC.ORG_ID AS ORGID
+            ,WC.COMPANY_ID AS COMPANYID
+            ,WC.WORK_CENTER_CODE AS WORKCENTERCODE
+            ,WC.WORK_CENTER_NAME AS WORKCENTERNAME
+            ,HME.EMPLOYEE_NUMBER AS EMPLOYEENUMBER
+            ,(CASE WHEN HME.USE_YN = 'Y' THEN
+                     'TRUE'
+                   ELSE
+                     NULL
+                   END) AS CHK
+            ,HME.REMARKS AS REMARKS
+      FROM CB_WORK_CENTER WC
+             ,CB_HUMANRESOURCE_MANAGER_EQUIP HME
+  </sql>
+
+  <sql id="human.equip.sql-where">
+    WHERE WC.ORG_ID = HME.ORG_ID (+)
+       AND WC.COMPANY_ID = HME.COMPANY_ID (+)
+       AND WC.WORK_CENTER_CODE = HME.WORK_CENTER_CODE (+)
+       AND SYSDATE BETWEEN WC.EFFECTIVE_START_DATE AND WC.EFFECTIVE_END_DATE
+       AND HME.EMPLOYEE_NUMBER (+) = #EMPLOYEENUMBER#
+  </sql>
+
+  <select id="human.equip.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+      <include refid="human.equip.sql-select" />
+      <include refid="human.equip.sql-where" />
+  </select>
+  
+  <select id="human.equip.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="human.equip.sql-select" />
+      <include refid="human.equip.sql-where" />
+    ) TOT
+  </select>
+ 
+  <insert id="human.equip.insert" parameterClass="java.util.Map">
+    <![CDATA[    
+    INSERT INTO CB_HUMANRESOURCE_MANAGER_EQUIP (
+		       EMPLOYEE_NUMBER
+		      ,ORG_ID
+		      ,COMPANY_ID
+		      ,WORK_CENTER_CODE
+		      ,USE_YN
+		      ,REMARKS
+		      ,CREATED_BY
+		      ,CREATION_DATE
+		      ,LAST_UPDATED_BY
+		      ,LAST_UPDATE_DATE
+    )
+    VALUES (
+		       #EMPLOYEENUMBER#
+		      ,#ORGID#
+		      ,#COMPANYID#
+		      ,#WORKCENTERCODE#
+		      ,#USEYN#
+		      ,#REMARKS#
+		      ,#REGISTID#
+		      ,SYSDATE
+		      ,#REGISTID#
+		      ,SYSDATE
+    )
+    ]]>        
+    </insert>
+    
+    <!-- 수정 -->
+    <update id="human.equip.update" parameterClass="java.util.Map">
+    <![CDATA[  
+        UPDATE CB_HUMANRESOURCE_MANAGER_EQUIP
+              SET  LAST_UPDATED_BY = #UPDATETID#
+                    ,LAST_UPDATE_DATE = SYSDATE
+                    
+                    ,USE_YN = #USEYN#
+                    ,REMARKS = #REMARKS#
+        WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND WORK_CENTER_CODE = #WORKCENTERCODE#
+    ]]>
+    </update>
+        
+    <!-- 삭제 -->
+    <delete id="human.equip.delete" parameterClass="java.util.Map">
+     <![CDATA[  
+        DELETE FROM CB_HUMANRESOURCE_MANAGER_EQUIP
+           WHERE EMPLOYEE_NUMBER = #EMPLOYEENUMBER#
+           AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND WORK_CENTER_CODE = #WORKCENTERCODE#
+       ]]>
+    </delete>
+  <!-- 2016.12.28 사원별 설비 연결 끝 -->
+
+       
+</sqlMap>

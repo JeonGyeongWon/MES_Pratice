@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orderTrans">
+    
+    <parameterMap class="java.util.Map" id="procTradeYnParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRADENO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRADESEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="order.trans.ship.transyn.update.call.Procedure" parameterClass="java.util.Map"  parameterMap="procTradeYnParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_TRADE_PKG.CB_SHIPPING_TRADE_YN_UPDATE ( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+  <sql id="order.trans.transdetaillist.master.list.sql-select">
+				SELECT RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_DATE DESC, TH.TRADE_NO DESC) AS RN
+                ,TH.ORG_ID AS ORGID
+                ,TH.COMPANY_ID AS COMPANYID
+                ,TH.TRADE_NO AS TRADENO
+                ,TO_CHAR(TH.TRADE_DATE, 'YYYY-MM-DD') AS TRADEDATE
+                ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = TH.ORG_ID
+                     AND CC.COMPANY_ID = TH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = TH.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,TH.TRANSACTION_PERSON AS TRANSACTIONPERSON
+                ,(SELECT HM.KR_NAME
+                    FROM CB_HUMANRESOURCE_MANAGER HM
+                   WHERE HM.EMPLOYEE_NUMBER = TH.TRANSACTION_PERSON) AS KRNAME
+                ,(SELECT SUM(NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0))
+                    FROM CB_TRADE_D TD
+                   WHERE TD.ORG_ID = TH.ORG_ID
+                      AND TD.COMPANY_ID = TH.COMPANY_ID
+                      AND TD.TRADE_NO = TH.TRADE_NO) AS TOTAL
+                ,TH.REMARKS AS REMARKS
+                ,(SELECT (SELECT MAX(SH.TAX_DIV)
+                            FROM CB_SHIPPING_H SH
+                                ,CB_SHIPPING_D SD
+                           WHERE SH.ORG_ID = SD.ORG_ID
+                             AND SH.COMPANY_ID = SD.COMPANY_ID
+                             AND SH.SHIP_NO = SD.SHIP_NO
+                             AND SD.ORG_ID = TD.ORG_ID
+                             AND SD.COMPANY_ID = TD.COMPANY_ID
+                             AND SD.SHIP_NO = TD.SHIP_NO
+                             AND SD.SHIP_SEQ = TD.SHIP_SEQ)
+                   FROM CB_TRADE_D TD
+                  WHERE TD.ORG_ID = TH.ORG_ID
+                    AND TD.COMPANY_ID = TH.COMPANY_ID
+                    AND TD.TRADE_NO = TH.TRADE_NO
+                    AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                          FROM CB_TRADE_D TD1
+                                         WHERE TD1.ORG_ID = TH.ORG_ID
+                                           AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                           AND TD1.TRADE_NO = TH.TRADE_NO)) AS SHIPGUBUN
+                ,(SELECT (SELECT MAX(CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(SH.ORG_ID
+                                                                                                                ,SH.COMPANY_ID
+                                                                                                                ,'OM'
+                                                                                                                ,'SHIP_GUBUN'
+                                                                                                                ,SH.TAX_DIV
+                                                                                                                ,'LABEL'))
+                            FROM CB_SHIPPING_H SH
+                                ,CB_SHIPPING_D SD
+                           WHERE SH.ORG_ID = SD.ORG_ID
+                             AND SH.COMPANY_ID = SD.COMPANY_ID
+                             AND SH.SHIP_NO = SD.SHIP_NO
+                             AND SD.ORG_ID = TD.ORG_ID
+                             AND SD.COMPANY_ID = TD.COMPANY_ID
+                             AND SD.SHIP_NO = TD.SHIP_NO
+                             AND SD.SHIP_SEQ = TD.SHIP_SEQ)
+                   FROM CB_TRADE_D TD
+                  WHERE TD.ORG_ID = TH.ORG_ID
+                    AND TD.COMPANY_ID = TH.COMPANY_ID
+                    AND TD.TRADE_NO = TH.TRADE_NO
+                    AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                          FROM CB_TRADE_D TD1
+                                         WHERE TD1.ORG_ID = TH.ORG_ID
+                                           AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                           AND TD1.TRADE_NO = TH.TRADE_NO)) AS SHIPGUBUNNAME
+                ,(SELECT (SELECT SD.ITEM_CODE
+                            FROM CB_SHIPPING_D_POST_V SD
+                           WHERE SD.ORG_ID = TD.ORG_ID
+                             AND SD.COMPANY_ID = TD.COMPANY_ID
+                             AND SD.SHIP_NO = TD.SHIP_NO
+                             AND SD.SHIP_SEQ = TD.SHIP_SEQ)
+                   FROM CB_TRADE_D TD
+                  WHERE TD.ORG_ID = TH.ORG_ID
+                    AND TD.COMPANY_ID = TH.COMPANY_ID
+                    AND TD.TRADE_NO = TH.TRADE_NO
+                    AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                          FROM CB_TRADE_D TD1
+                                         WHERE TD1.ORG_ID = TH.ORG_ID
+                                           AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                           AND TD1.TRADE_NO = TH.TRADE_NO)) AS ITEMCODE
+                ,(SELECT (SELECT SD.ITEM_NAME
+                            FROM CB_SHIPPING_D_POST_V SD
+                           WHERE SD.ORG_ID = TD.ORG_ID
+                             AND SD.COMPANY_ID = TD.COMPANY_ID
+                             AND SD.SHIP_NO = TD.SHIP_NO
+                             AND SD.SHIP_SEQ = TD.SHIP_SEQ)
+                   FROM CB_TRADE_D TD
+                  WHERE TD.ORG_ID = TH.ORG_ID
+                    AND TD.COMPANY_ID = TH.COMPANY_ID
+                    AND TD.TRADE_NO = TH.TRADE_NO
+                    AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                          FROM CB_TRADE_D TD1
+                                         WHERE TD1.ORG_ID = TH.ORG_ID
+                                           AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                           AND TD1.TRADE_NO = TH.TRADE_NO)) AS ITEMNAME
+                ,(SELECT (SELECT SD.ORDER_NAME
+                            FROM CB_SHIPPING_D_POST_V SD
+                           WHERE SD.ORG_ID = TD.ORG_ID
+                             AND SD.COMPANY_ID = TD.COMPANY_ID
+                             AND SD.SHIP_NO = TD.SHIP_NO
+                             AND SD.SHIP_SEQ = TD.SHIP_SEQ)
+                   FROM CB_TRADE_D TD
+                  WHERE TD.ORG_ID = TH.ORG_ID
+                    AND TD.COMPANY_ID = TH.COMPANY_ID
+                    AND TD.TRADE_NO = TH.TRADE_NO
+                    AND TD.TRADE_SEQ = (SELECT MIN(TD1.TRADE_SEQ)
+                                          FROM CB_TRADE_D TD1
+                                         WHERE TD1.ORG_ID = TH.ORG_ID
+                                           AND TD1.COMPANY_ID = TH.COMPANY_ID
+                                           AND TD1.TRADE_NO = TH.TRADE_NO)) AS ORDERNAME
+                ,NVL((SELECT SUM(TD.TRANSACTION_QTY)
+                         FROM CB_TRADE_D TD
+                        WHERE TD.ORG_ID = TH.ORG_ID
+                          AND TD.COMPANY_ID = TH.COMPANY_ID
+                          AND TD.TRADE_NO = TH.TRADE_NO), 0) AS TOTALQTY
+         FROM CB_TRADE_H TH
+  </sql>
+
+  <sql id="order.trans.transdetaillist.master.list.sql-where">
+	       WHERE 1=1
+				    <isNotEmpty property="ORGID" prepend="AND">
+				      TH.ORG_ID = #ORGID#
+				    </isNotEmpty>
+				    <isNotEmpty property="COMPANYID" prepend="AND">
+				      TH.COMPANY_ID = #COMPANYID#
+				    </isNotEmpty>
+            <isNotEmpty property="TRADENO" prepend="AND">
+              TH.TRADE_NO = #TRADENO#
+            </isNotEmpty>
+            <isNotEmpty property="DATETO">
+	            <isNotEmpty property="DATEFROM" prepend="AND">
+	                TH.TRADE_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+	            </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TH.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+            <isNotEmpty property="TRANSACTIONPERSON" prepend="AND">
+              TH.TRANSACTION_PERSON = #TRANSACTIONPERSON#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              TH.TRADE_NO IN (SELECT TD.TRADE_NO
+                                       FROM CB_TRADE_D TD
+                                              ,CB_SHIPPING_D_POST_V SD
+                                      WHERE TD.ORG_ID = SD.ORG_ID
+                                        AND TD.COMPANY_ID = SD.COMPANY_ID
+                                        AND TD.SHIP_NO = SD.SHIP_NO
+                                        AND TD.SHIP_SEQ = SD.SHIP_SEQ
+                                         AND SD.ORG_ID = TH.ORG_ID
+                                         AND SD.COMPANY_ID = TH.COMPANY_ID
+                                         AND NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = #ITEMCODE#)
+            </isNotEmpty>
+			ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_DATE DESC, TH.TRADE_NO DESC
+  </sql>
+
+  <select id="order.trans.transdetaillist.master.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.trans.transdetaillist.master.list.sql-select" />
+    <include refid="order.trans.transdetaillist.master.list.sql-where" />
+  </select>
+
+  <select id="order.trans.transdetaillist.master.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.trans.transdetaillist.master.list.sql-select" />
+      <include refid="order.trans.transdetaillist.master.list.sql-where" />
+        )TOT
+  </select>
+
+
+  <sql id="order.trans.transdetaillist.detail.list.sql-select">
+         SELECT RANK() OVER(ORDER BY TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO, TD.TRADE_SEQ) AS RN
+		              ,TD.ORG_ID AS ORGID
+		              ,TD.COMPANY_ID AS COMPANYID
+		              ,TD.TRADE_NO AS TRADENO
+		              ,TD.TRADE_SEQ AS TRADESEQ
+		              ,(SELECT TO_NUMBER(REPLACE(SC.SMALL_NAME, '일', ''))
+		                 FROM CB_SMALL_CODE SC
+		                WHERE 1=1
+		                  AND SC.ORG_ID = TD.ORG_ID
+		                  AND SC.COMPANY_ID = TD.COMPANY_ID
+		                  AND SC.BIG_CODE = 'CMM'
+		                  AND SC.MIDDLE_CODE = 'CLOSING_DATE'
+		                  AND SC.SMALL_CODE = '01') AS CLOSINGDATE
+		              ,IM.SMALL_CODE AS SMALLCODE
+		              ,IM.SMALL_NAME AS SMALLNAME
+		              ,TD.ITEM_CODE AS ITEMCODE
+		              ,IM.ORDER_NAME AS ORDERNAME
+		              ,IM.DRAWING_NO AS DRAWINGNO
+		              ,IM.ITEM_NAME AS ITEMNAME
+		              ,IM.CAR_TYPE AS CARTYPE
+		              ,IM.CAR_TYPE_NAME AS CARTYPENAME
+		              ,IM.MATERIAL_TYPE AS MATERIALTYPE
+		              ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		              ,IM.UOM AS UOM
+		              ,IM.UOM_NAME AS UOMNAME
+		              
+		              ,DECODE(TD.SHIP_NO, '', NVL(OD.SO_QTY, 0), (SELECT SUM(CSHD.SHIP_QTY)
+		                                                            FROM CB_SHIPPING_D CSHD
+		                                                           WHERE 1=1
+		                                                             AND CSHD.ORG_ID = TD.ORG_ID
+		                                                             AND CSHD.COMPANY_ID = TD.COMPANY_ID
+		                                                             AND CSHD.SO_NO = TD.SO_NO
+		                                                             AND CSHD.SO_SEQ = TD.SO_SEQ)) AS SHIPQTY
+		              
+		              ,DECODE(TD.SHIP_NO, '', (SELECT NVL(SUM(CTD.TRANSACTION_QTY), 0)
+		                                          FROM CB_TRADE_D CTD
+		                                         WHERE 1=1
+		                                            AND CTD.ORG_ID = OD.ORG_ID
+		                                            AND CTD.COMPANY_ID = OD.COMPANY_ID
+		                                            AND CTD.SO_NO = OD.SO_NO
+		                                            AND CTD.SO_SEQ = OD.SO_SEQ
+		                                            AND CTD.TRADE_NO||CTD.TRADE_SEQ != TD.TRADE_NO||TD.TRADE_SEQ), (SELECT NVL(SUM(CTD.TRANSACTION_QTY), 0)
+		                                                                                                              FROM CB_TRADE_D CTD
+		                                                                                                             WHERE 1=1
+		                                                                                                                AND CTD.ORG_ID = TD.ORG_ID
+		                                                                                                                AND CTD.COMPANY_ID = TD.COMPANY_ID
+		                                                                                                                AND CTD.SHIP_NO = TD.SHIP_NO
+		                                                                                                                AND CTD.SHIP_SEQ = TD.SHIP_SEQ
+		                                                                                                                AND CTD.TRADE_NO||CTD.TRADE_SEQ != TD.TRADE_NO||TD.TRADE_SEQ)) AS BEFOREQTY
+		              ,DECODE(TD.SHIP_NO, '', NVL(OD.SO_QTY, 0) - NVL((SELECT SUM(TD.TRANSACTION_QTY)
+		                                                                  FROM CB_TRADE_D TD
+		                                                                 WHERE 1=1
+		                                                                    AND TD.ORG_ID = OD.ORG_ID
+		                                                                    AND TD.COMPANY_ID = OD.COMPANY_ID
+		                                                                    AND TD.SO_NO = OD.SO_NO
+		                                                                    AND TD.SO_SEQ = OD.SO_SEQ), 0), NVL(SD.SHIP_QTY, 0) - NVL((SELECT SUM(TD.TRANSACTION_QTY)
+		                                                                                                                                  FROM CB_TRADE_D TD
+		                                                                                                                                 WHERE 1=1
+		                                                                                                                                    AND TD.ORG_ID = SD.ORG_ID
+		                                                                                                                                    AND TD.COMPANY_ID = SD.COMPANY_ID
+		                                                                                                                                    AND TD.SHIP_NO = SD.SHIP_NO
+		                                                                                                                                    AND TD.SHIP_SEQ = SD.SHIP_SEQ), 0)) AS QTY
+		
+		              ,TD.TRANSACTION_QTY AS TRANSACTIONQTY
+		              ,IM.WEIGHT AS WEIGHT
+		              ,(IM.WEIGHT * TD.TRANSACTION_QTY) AS SUMWEIGHT
+		              ,TD.UNIT_PRICE AS UNITPRICE
+		              ,TD.SUPPLY_PRICE AS SUPPLYPRICE
+		              ,TD.ADDITIONAL_TAX AS ADDITIONALTAX
+		              ,(TD.SUPPLY_PRICE + TD.ADDITIONAL_TAX) AS TOTAL
+		              ,TD.SHIP_NO AS SHIPNO
+		              ,TD.SHIP_SEQ AS SHIPSEQ
+		              ,TD.SO_NO AS SONO
+		              ,TD.SO_SEQ AS SOSEQ
+		              ,TO_CHAR(TD.END_DATE, 'YYYY-MM-DD') AS ENDDATE
+		              ,TD.REMARKS AS REMARKS
+          FROM CB_TRADE_D TD
+		              ,CB_SHIPPING_D_POST_V SD
+		              ,CB_SALES_ORDER_D OD
+		              ,CB_ITEM_MASTER_V IM
+  </sql>
+
+  <sql id="order.trans.transdetaillist.detail.list.sql-where">
+        WHERE 1=1
+	          AND SD.ORG_ID = IM.ORG_ID
+	          AND SD.COMPANY_ID = IM.COMPANY_ID
+	          AND NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = IM.ITEM_CODE
+	          AND TD.ORG_ID = SD.ORG_ID
+	          AND TD.COMPANY_ID = SD.COMPANY_ID
+	          AND TD.SHIP_NO = SD.SHIP_NO
+	          AND TD.SHIP_SEQ = SD.SHIP_SEQ
+	          AND TD.ORG_ID = OD.ORG_ID(+)
+	          AND TD.COMPANY_ID = OD.COMPANY_ID(+)
+            AND TD.SO_NO = OD.SO_NO (+)
+            AND TD.SO_SEQ = OD.SO_SEQ (+)
+          <isNotEmpty property="ORGID" prepend="AND">
+            TD.ORG_ID = #ORGID#
+          </isNotEmpty>
+          <isNotEmpty property="COMPANYID" prepend="AND">
+            TD.COMPANY_ID = #COMPANYID#
+          </isNotEmpty>
+          <isNotEmpty property="TRADENO" prepend="AND">
+            TD.TRADE_NO = #TRADENO#
+          </isNotEmpty>
+            ORDER BY TD.ORG_ID, TD.COMPANY_ID, TD.TRADE_NO, TD.TRADE_SEQ
+  </sql>
+
+  <select id="order.trans.transdetaillist.detail.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.trans.transdetaillist.detail.list.sql-select" />
+    <include refid="order.trans.transdetaillist.detail.list.sql-where" />
+  </select>
+
+  <select id="order.trans.transdetaillist.detail.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="order.trans.transdetaillist.detail.list.sql-select" />
+      <include refid="order.trans.transdetaillist.detail.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <select id="order.trans.transdetaillist.transno.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'TR' || TO_CHAR(TO_DATE(#TradeDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS FINDTRADENO
+          FROM (SELECT COUNT(*) AS NUM
+                  FROM CB_TRADE_H C
+                 WHERE 1 = 1
+                   AND TRADE_NO LIKE 'TR' || TO_CHAR(TO_DATE(#TradeDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '%')
+    </select>
+    
+    <sql id="order.trans.transdetaillist.transseq.sql-select">
+				SELECT COUNT(TD.TRADE_NO) AS COUNT
+				  FROM CB_TRADE_D TD
+    </sql>
+
+    <sql id="order.trans.transdetaillist.transseq.sql-where">
+         WHERE 1=1
+           AND TD.ORG_ID = #ORGID#
+           AND TD.COMPANY_ID = #COMPANYID#
+           AND TD.TRADE_NO = #TRADENO#
+           AND TD.TRADE_SEQ = $TRADESEQ$
+    </sql>
+
+    <select id="order.trans.transdetaillist.transseq.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.trans.transdetaillist.transseq.sql-select" />
+        <include refid="order.trans.transdetaillist.transseq.sql-where" />
+    </select>
+    
+    <insert id="order.trans.transdetaillist.master.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TRADE_H
+              (ORG_ID
+							,COMPANY_ID
+							,TRADE_NO
+							,TRANSACTION_YN
+        ]]>
+        <isNotEmpty property="TRADEDATE" prepend=",">
+               TRADE_DATE
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="TransactionPerson" prepend=",">
+               TRANSACTION_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+             (#searchOrgId#
+             ,#searchCompanyId#
+             ,#Tradeno#
+             ,'N'
+        ]]>
+        <isNotEmpty property="TRADEDATE" prepend=",">
+               TO_DATE(#TRADEDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="TransactionPerson" prepend=",">
+               #TransactionPerson#
+        </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+              #ReMarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+        
+    <insert id="order.trans.transdetaillist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TRADE_D
+              (ORG_ID
+				      ,COMPANY_ID
+				      ,TRADE_NO
+				      ,TRADE_SEQ
+        ]]>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE
+        </isNotEmpty>
+        <isNotEmpty property="TRANSACTIONQTY" prepend=",">
+              TRANSACTION_QTY
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX
+        </isNotEmpty>
+        <isNotEmpty property="SHIPNO" prepend=",">
+              SHIP_NO
+        </isNotEmpty>
+        <isNotEmpty property="SHIPSEQ" prepend=",">
+              SHIP_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="SONO" prepend=",">
+              SO_NO
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              SO_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="ENDDATE" prepend=",">
+              END_DATE
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES              
+              ($ORGID$
+              ,$COMPANYID$
+              ,#TRADENO#
+              ,$TRADESEQ$
+        ]]>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSACTIONQTY" prepend=",">
+              $TRANSACTIONQTY$
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              $UNITPRICE$
+        </isNotEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              $SUPPLYPRICE$
+        </isNotEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              $ADDITIONALTAX$
+        </isNotEmpty>
+        <isNotEmpty property="SHIPNO" prepend=",">
+              #SHIPNO#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPSEQ" prepend=",">
+              $SHIPSEQ$
+        </isNotEmpty>
+        <isNotEmpty property="SONO" prepend=",">
+              #SONO#
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              $SOSEQ$
+        </isNotEmpty>
+        <isNotEmpty property="ENDDATE" prepend=",">
+              TO_DATE(#ENDDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="order.trans.transdetaillist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRADE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="TradeDate" prepend=",">
+               TRADE_DATE = TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+        </isNotEmpty>    
+        <isEmpty property="TradeDate" prepend=",">
+               TRADE_DATE = NULL
+        </isEmpty>    
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE = NULL
+        </isEmpty>    
+        <isNotEmpty property="TransactionPerson" prepend=",">
+               TRANSACTION_PERSON = #TransactionPerson#
+        </isNotEmpty>
+        <isEmpty property="TransactionPerson" prepend=",">
+               TRANSACTION_PERSON = NULL
+        </isEmpty>   
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS = #ReMarks#
+        </isNotEmpty>
+        <isEmpty property="ReMarks" prepend=",">
+               REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId# 
+          AND TRADE_NO = #TradeNo#
+        ]]>
+    </update>
+    
+    <update id="order.trans.transdetaillist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRADE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>      
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="TRANSACTIONQTY" prepend=",">
+              TRANSACTION_QTY = $TRANSACTIONQTY$
+        </isNotEmpty>
+        <isEmpty property="TRANSACTIONQTY" prepend=",">
+              TRANSACTION_QTY = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE = $UNITPRICE$
+        </isNotEmpty>
+        <isEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE = NULL
+        </isEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE = $SUPPLYPRICE$
+        </isNotEmpty>
+        <isEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE = NULL
+        </isEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX = $ADDITIONALTAX$
+        </isNotEmpty>
+        <isEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX = NULL
+        </isEmpty>
+        <isNotEmpty property="SHIPNO" prepend=",">
+              SHIP_NO = #SHIPNO#
+        </isNotEmpty>
+        <isEmpty property="SHIPNO" prepend=",">
+              SHIP_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="SHIPSEQ" prepend=",">
+              SHIP_SEQ = $SHIPSEQ$
+        </isNotEmpty>
+        <isEmpty property="SHIPSEQ" prepend=",">
+              SHIP_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="SONO" prepend=",">
+              SO_NO = #SONO#
+        </isNotEmpty>
+        <isEmpty property="SONO" prepend=",">
+              SO_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              SO_SEQ = $SOSEQ$
+        </isNotEmpty>
+        <isEmpty property="SOSEQ" prepend=",">
+              SO_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="ENDDATE" prepend=",">
+              END_DATE = TO_DATE(#ENDDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="ENDDATE" prepend=",">
+              END_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+              REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TRADE_NO = #TRADENO#
+          AND TRADE_SEQ = $TRADESEQ$
+        ]]>
+    </update>
+    
+    <delete id="order.trans.transdetaillist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRADE_H
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TRADE_NO = #TRADENO#
+    </delete>
+    
+    <delete id="order.trans.transdetaillist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRADE_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TRADE_NO = #TRADENO#
+          AND TRADE_SEQ = $TRADESEQ$
+    </delete>
+    
+  <sql id="order.trans.transexcellist.excel.list.sql-select">
+        SELECT RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO, TD.TRADE_SEQ) AS RN
+              ,TH.ORG_ID AS ORGID
+              ,TH.COMPANY_ID AS COMPANYID
+              ,TH.TRADE_NO AS TRADENO
+              ,TD.TRADE_SEQ AS TRADESEQ
+              ,TO_CHAR(TH.TRADE_DATE, 'YYYY-MM-DD') AS TRADEDATE
+              ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+              ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+              ,TH.TRANSACTION_PERSON AS TRANSACTIONPERSON
+              ,HM.KR_NAME AS KRNAME
+              ,TO_CHAR(TD.END_DATE, 'YYYY-MM-DD') AS ENDDATE
+              ,IM.SMALL_CODE AS SMALLCODE
+              ,IM.SMALL_NAME AS SMALLNAME
+              ,TD.ITEM_CODE AS ITEMCODE
+              ,IM.ITEM_NAME AS ITEMNAME
+              ,IM.ORDER_NAME AS ORDERNAME
+              ,IM.CAR_TYPE AS CARTYPE
+              ,IM.CAR_TYPE_NAME AS CARTYPENAME
+              ,IM.UOM AS UOM
+              ,IM.UOM_NAME AS UOMNAME
+              ,TD.TRANSACTION_QTY AS TRANSACTIONQTY
+              ,IM.WEIGHT AS WEIGHT
+              ,(TD.TRANSACTION_QTY * IM.WEIGHT) AS SUMWEIGHT
+              ,TD.UNIT_PRICE AS UNITPRICE
+              ,TD.SUPPLY_PRICE AS SUPPLYPRICE
+              ,TD.ADDITIONAL_TAX AS ADDITIONALTAX
+              ,(TD.SUPPLY_PRICE + TD.ADDITIONAL_TAX) AS TOTAL
+              ,TD.SHIP_NO AS SHIPNO
+              ,TD.SHIP_SEQ AS SHIPSEQ
+              ,TD.REMARKS AS REMARKS
+          FROM CB_TRADE_H TH
+              ,CB_TRADE_D TD
+              ,CB_ITEM_MASTER_V IM
+              ,CB_CUSTOMER CC
+              ,CB_HUMANRESOURCE_MANAGER HM
+  </sql>
+
+  <sql id="order.trans.transexcellist.excel.list.sql-where">
+         WHERE 1=1
+           AND TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.TRADE_NO = TD.TRADE_NO
+           AND TD.ORG_ID = IM.ORG_ID
+           AND TD.COMPANY_ID = IM.COMPANY_ID
+           AND TD.ITEM_CODE = IM.ITEM_CODE
+           AND TH.ORG_ID = CC.ORG_ID
+           AND TH.COMPANY_ID = CC.COMPANY_ID
+           AND TH.CUSTOMER_CODE = CC.CUSTOMER_CODE
+           AND TH.TRANSACTION_PERSON = HM.EMPLOYEE_NUMBER
+            <isNotEmpty property="ORGID" prepend="AND">
+              TH.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              TH.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="TRADENO" prepend="AND">
+              TH.TRADE_NO = #TRADENO#
+            </isNotEmpty>
+            <isNotEmpty property="DATETO">
+              <isNotEmpty property="DATEFROM" prepend="AND">
+                  TH.TRADE_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+              </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              TH.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+            <isNotEmpty property="TRANSACTIONPERSON" prepend="AND">
+              TH.TRANSACTION_PERSON = #TRANSACTIONPERSON#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              TH.TRADE_NO IN (SELECT TD.TRADE_NO
+                                       FROM CB_TRADE_D TD
+                                      WHERE 1=1
+                                         AND TD.ORG_ID = TH.ORG_ID
+                                         AND TD.COMPANY_ID = TH.COMPANY_ID
+                                         AND TD.ITEM_CODE = #ITEMCODE#)
+            </isNotEmpty>
+            ORDER BY TH.ORG_ID, TH.COMPANY_ID,TH.TRADE_DATE, TH.TRADE_NO
+  </sql>
+
+  <select id="order.trans.transexcellist.excel.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.trans.transexcellist.excel.list.sql-select" />
+    <include refid="order.trans.transexcellist.excel.list.sql-where" />
+  </select>
+  
+  <sql id="order.trans.transdetailstatus.list.sql-select">
+			SELECT RANK() OVER(ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO) AS RN
+            ,TH.ORG_ID AS ORGID
+            ,TH.COMPANY_ID AS COMPANYID
+            ,TH.TRADE_NO AS TRADENO
+            ,TO_CHAR(TD.END_DATE, 'YYYY-MM-DD') AS ENDDATE
+            ,TO_CHAR(TH.TRADE_DATE, 'YYYY-MM-DD') AS TRADEDATE
+            ,SD.SHIP_GUBUN AS SHIPGUBUN
+            ,SD.SHIP_GUBUN_NAME AS SHIPGUBUNNAME
+            ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+            ,(SELECT CC.CUSTOMER_NAME
+                FROM CB_CUSTOMER CC
+               WHERE CC.ORG_ID = TH.ORG_ID
+                 AND CC.COMPANY_ID = TH.COMPANY_ID
+                 AND CC.CUSTOMER_CODE = TH.CUSTOMER_CODE) AS CUSTOMERNAME
+            ,TH.TRANSACTION_PERSON AS TRANSACTIONPERSON
+            ,(SELECT HM.KR_NAME
+                FROM CB_HUMANRESOURCE_MANAGER HM
+               WHERE HM.EMPLOYEE_NUMBER = TH.TRANSACTION_PERSON) AS KRNAME
+            ,TD.ITEM_CODE AS ITEMCODE
+            ,IM.ITEM_NAME AS ITEMNAME
+            ,IM.ORDER_NAME AS ORDERNAME
+            ,IM.CAR_TYPE AS CARTYPE
+            ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                        ,IM.COMPANY_ID
+                                                        ,'CMM'
+                                                        ,'MODEL'
+                                                        ,IM.CAR_TYPE
+                                                        ,'LABEL') AS CARTYPENAME
+            ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+            ,IM.UOM AS UOM
+            ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                        ,IM.COMPANY_ID
+                                                        ,'CMM'
+                                                        ,'UOM'
+                                                        ,IM.UOM
+                                                        ,'LABEL') AS UOMNAME
+            ,SUM(NVL(SD.SHIP_QTY, 0)) AS SHIPQTY
+            ,SUM(NVL(TD.TRANSACTION_QTY, 0)) AS TRANSACTIONQTY
+            ,TD.UNIT_PRICE AS UNITPRICE
+            ,SUM(NVL(TD.SUPPLY_PRICE, 0)) AS SUPPLYPRICE
+            ,SUM(NVL(TD.ADDITIONAL_TAX, 0)) AS ADDITIONALTAX
+            ,SUM(NVL(TD.SUPPLY_PRICE, 0) + NVL(TD.ADDITIONAL_TAX, 0)) AS TOTAL
+            ,TD.SHIP_NO AS SHIPNO
+            ,'' AS REMARKS
+        FROM CB_TRADE_H TH
+            ,CB_TRADE_D TD
+            ,CB_SHIPPING_D_POST_V SD
+            ,CB_ITEM_MASTER IM
+  </sql>
+
+  <sql id="order.trans.transdetailstatus.list.sql-where">
+       WHERE TH.ORG_ID = TD.ORG_ID
+           AND TH.COMPANY_ID = TD.COMPANY_ID
+           AND TH.TRADE_NO = TD.TRADE_NO
+           AND TD.ORG_ID = SD.ORG_ID
+           AND TD.COMPANY_ID = SD.COMPANY_ID
+           AND TD.SHIP_NO = SD.SHIP_NO
+           AND TD.SHIP_SEQ = SD.SHIP_SEQ
+           AND SD.ORG_ID = IM.ORG_ID
+           AND SD.COMPANY_ID = IM.COMPANY_ID
+           AND NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = IM.ITEM_CODE
+        <isNotEmpty property="ORGID" prepend="AND">
+          TH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          TH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRADENO" prepend="AND">
+          TH.TRADE_NO = #TRADENO#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+          TH.CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="DATETO">
+          <isNotEmpty property="DATEFROM" prepend="AND">
+              TH.TRADE_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="ENDTO">
+          <isNotEmpty property="ENDFROM" prepend="AND">
+              TD.END_DATE BETWEEN TO_DATE(#ENDFROM#, 'YYYY-MM-DD') AND TO_DATE(#ENDTO#, 'YYYY-MM-DD')
+          </isNotEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+          NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPGUBUN" prepend="AND">
+          SD.SHIP_GUBUN = #SHIPGUBUN#
+        </isNotEmpty>
+       GROUP BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO, TO_CHAR(TH.TRADE_DATE, 'YYYY-MM-DD')
+               ,TO_CHAR(TD.END_DATE, 'YYYY-MM-DD'), SD.SHIP_GUBUN, SD.SHIP_GUBUN_NAME, TH.CUSTOMER_CODE
+               ,TH.TRANSACTION_PERSON, TD.ITEM_CODE, IM.ORG_ID, IM.COMPANY_ID
+               ,IM.ITEM_NAME, IM.ORDER_NAME, IM.CAR_TYPE, IM.ITEM_STANDARD_DETAIL, IM.UOM
+               ,TD.UNIT_PRICE, TD.SHIP_NO
+       ORDER BY TH.ORG_ID, TH.COMPANY_ID, TH.TRADE_NO
+  </sql>
+
+  <select id="order.trans.transdetailstatus.list.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.trans.transdetailstatus.list.sql-select" />
+    <include refid="order.trans.transdetailstatus.list.sql-where" />
+  </select>
+
+  <select id="order.trans.transdetailstatus.list.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.trans.transdetailstatus.list.sql-select" />
+      <include refid="order.trans.transdetailstatus.list.sql-where" />
+        )TOT
+  </select>
+  
+    <update id="order.trans.transdetailstatus.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRADE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="ENDDATE" prepend=",">
+               END_DATE = TO_DATE(#ENDDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>    
+        <isEmpty property="ENDDATE" prepend=",">
+               END_DATE = NULL
+        </isEmpty>    
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TRADE_NO = #TRADENO#
+        ]]>
+    </update>
+</sqlMap>

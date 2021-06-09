@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="sys">
+
+    <!-- Dummy Lov 시작 -->
+    <sql id="sys.user.dummy.month.sql-select">
+       SELECT  TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+        FROM DUAL
+    </sql>
+
+    <sql id="sys.user.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="sys.user.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="sys.user.dummy.month.sql-select" />
+        <include refid="sys.user.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+    
+    <!-- 사용자 관리 조회 시작 -->
+    <sql id="sys.user.list.sql-select">
+        SELECT RANK() OVER(ORDER BY EMPLYR_ID) AS RN
+                ,GROUP_ID AS GROUPID
+                ,ORGNZT_ID AS ORGID
+                ,ESNTL_ID AS UNIQID
+                ,EMPLYR_ID AS USERID
+                ,USER_NM AS USERNAME
+                ,MBTLNUM AS MOBILENO
+                ,EMAIL_ADRES AS EMAILADDR
+                ,TO_CHAR(SBSCRB_DE, 'YYYY-MM-DD HH24:MI:SS') AS CREATIONDATE
+        FROM LETTNEMPLYRINFO
+    </sql>
+
+    <sql id="sys.user.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="GUBUN">
+            <isEqual property="GUBUN" compareValue="ID">
+                <isNotEmpty property="KEYWORD" prepend="AND">
+                    EMPLYR_ID LIKE '%' ||  #KEYWORD# || '%'
+                </isNotEmpty>
+            </isEqual>
+            <isNotEqual property="GUBUN" compareValue="ID">
+                <isNotEmpty property="KEYWORD" prepend="AND">
+                    USER_NM LIKE '%' ||  #KEYWORD# || '%'
+                </isNotEmpty>
+            </isNotEqual>
+         </isNotEmpty>
+         ORDER BY EMPLYR_ID
+    </sql>
+
+    <select id="sys.user.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="sys.user.list.sql-select" />
+        <include refid="sys.user.list.sql-where" />
+    </select>
+    
+    <select id="sys.user.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="sys.user.list.sql-select" />
+            <include refid="sys.user.list.sql-where" />
+        )
+    </select>
+    <!-- 사용자 관리 조회 종료 -->
+ 
+    <!-- 사용자별 사용현황 조회 시작 -->
+    <sql id="sys.user.userlist.sql-select">
+        SELECT RANK() OVER(ORDER BY START_DATE1 DESC, USER_NAME) AS RN
+           ,START_DATE AS STARTDATE
+           ,USER_NAME AS USERNAME
+           ,NOTE
+           ,FUNC_ID AS FUNCID
+           ,FUNC_NAME AS FUNCNAME
+           ,REMARKS AS REMARK
+       FROM CB_JOB_CHK_V
+    </sql>
+  
+    <sql id="sys.user.userlist.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="DTFROM" >
+         <isNotEmpty property="DTTO"   prepend="AND">
+             START_DATE1 BETWEEN TO_DATE(#DTFROM#||' 0800','YYYY-MM-DD HHMI') AND  TO_DATE(TO_CHAR(TO_DATE(#DTTO#) + 1,'YYYY-MM-DD')|| ' 08:00','YYYY-MM-DD HH:MI')
+         </isNotEmpty>
+         </isNotEmpty>
+          <isNotEmpty property="USERNAME" prepend="AND">
+              USER_NAME LIKE '%' ||  #USERNAME# || '%'
+          </isNotEmpty>
+          <isNotEmpty property="PROGRAMNAME" prepend="AND">
+              NOTE LIKE '%' ||  #PROGRAMNAME# || '%'
+          </isNotEmpty>
+         ORDER BY START_DATE1 DESC, USER_NAME
+    </sql>
+    
+    <select id="sys.user.userlist.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="sys.user.userlist.sql-select" />
+        <include refid="sys.user.userlist.sql-where" />
+    </select>
+    
+    <select id="sys.user.userlist.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="sys.user.userlist.sql-select" />
+            <include refid="sys.user.userlist.sql-where" />
+        )
+    </select>
+    <!-- 사용자별 사용현황 조회 종료 -->
+    
+</sqlMap>

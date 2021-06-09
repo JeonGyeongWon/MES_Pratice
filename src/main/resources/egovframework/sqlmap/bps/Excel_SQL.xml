@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="excel">
+
+    <parameterMap class="java.util.Map" id="procExcelUploadParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="excel.so.upload.call.Procedure" parameterClass="java.util.Map"  parameterMap="procExcelUploadParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_EXCEL_UPLOAD_PKG.CB_SALES_ORDER_CREATE( ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="excel.ship.upload.call.Procedure" parameterClass="java.util.Map"  parameterMap="procExcelUploadParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_EXCEL_UPLOAD_PKG.CB_SHIPPING_CREATE( ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="excel.invoice.upload.call.Procedure" parameterClass="java.util.Map"  parameterMap="procExcelUploadParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_EXCEL_UPLOAD_PKG.CB_INVOICE_CREATE( ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+  <insert id="excel.so.insert" parameterClass="java.util.Map">
+       <![CDATA[
+           INSERT INTO CB_SALES_ORDER_TEMP
+          (
+              ORG_ID
+						 ,COMPANY_ID
+						 ,CUSTOMER_NAME
+						 ,ITEM_NAME
+						 ,SO_QTY
+						 ,SO_DATE
+          ]]>
+          <isNotEmpty property="ORDERNAME" prepend=",">
+              ORDER_NAME
+          </isNotEmpty>
+          <isNotEmpty property="DRAWINGNO" prepend=",">
+              DRAWING_NO
+          </isNotEmpty>
+          <isNotEmpty property="DUEDATE" prepend=",">
+              DUE_DATE
+          </isNotEmpty>
+          <isNotEmpty property="CUSTOMERORDER" prepend=",">
+              CUSTOMER_ORDER
+          </isNotEmpty>
+          <isNotEmpty property="CUSTOMERORDERSEQ" prepend=",">
+              CUSTOMER_ORDER_SEQ
+          </isNotEmpty>
+          <isNotEmpty property="CARTYPENAME" prepend=",">
+              CAR_TYPE_NAME
+          </isNotEmpty>
+       <![CDATA[
+          )
+          VALUES
+          (
+              #ORGID#
+             ,#COMPANYID#
+             ,#CUSTOMERNAME#
+             ,#ITEMNAME#
+             ,#SOQTY#
+             ,#SODATE#
+          ]]>
+          <isNotEmpty property="ORDERNAME" prepend=",">
+              #ORDERNAME#
+          </isNotEmpty>
+          <isNotEmpty property="DRAWINGNO" prepend=",">
+              #DRAWINGNO#
+          </isNotEmpty>
+          <isNotEmpty property="DUEDATE" prepend=",">
+              #DUEDATE#
+          </isNotEmpty>
+          <isNotEmpty property="CUSTOMERORDER" prepend=",">
+              #CUSTOMERORDER#
+          </isNotEmpty>
+          <isNotEmpty property="CUSTOMERORDERSEQ" prepend=",">
+              #CUSTOMERORDERSEQ#
+          </isNotEmpty>
+          <isNotEmpty property="CARTYPENAME" prepend=",">
+              #CARTYPENAME#
+          </isNotEmpty>
+       <![CDATA[
+          )
+          ]]>
+  </insert>
+  
+  <select id="excel.so.find.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT COUNT(*) AS COUNT
+       FROM CB_SALES_ORDER_TEMP
+      WHERE 1=1
+  </select>
+  
+  <delete id="excel.so.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_SALES_ORDER_TEMP
+       WHERE 1=1
+  </delete>
+  
+  <insert id="excel.ship.insert" parameterClass="java.util.Map">
+       <![CDATA[
+           INSERT INTO CB_SHIPPING_TEMP
+          (
+             ORG_ID
+						,COMPANY_ID
+						,CUSTOMER_NAME
+						,ORDER_NAME
+						,ITEM_NAME
+						,SHIP_QTY
+						,SHIP_DATE
+						,UNIT_PRICE
+						,SUPPLY_PRICE
+						,SHIP_GUBUN
+          ]]>
+          <isNotEmpty property="CARTYPENAME" prepend=",">
+              CAR_TYPE_NAME
+          </isNotEmpty>
+          <isNotEmpty property="WAREHOUSING" prepend=",">
+              CUSTOMER_WAREHOUSING
+          </isNotEmpty>
+       <![CDATA[
+          )
+          VALUES
+          (
+             #ORGID#
+            ,#COMPANYID#
+            ,#CUSTOMERNAME#
+            ,#ORDERNAME#
+            ,#ITEMNAME#
+            ,#SHIPQTY#
+            ,#SHIPDATE#
+            ,#UNITPRICE#
+            ,#SUPPLYPRICE#
+            ,NVL(#SHIPGUBUN#,'01')
+          ]]>
+          <isNotEmpty property="CARTYPENAME" prepend=",">
+              #CARTYPENAME#
+          </isNotEmpty>
+          <isNotEmpty property="WAREHOUSING" prepend=",">
+              #WAREHOUSING#
+          </isNotEmpty>
+       <![CDATA[
+          )
+          ]]>
+  </insert>
+  
+  <select id="excel.ship.find.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT COUNT(*) AS COUNT
+       FROM CB_SHIPPING_TEMP
+      WHERE 1=1
+  </select>
+  
+  <delete id="excel.ship.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_SHIPPING_TEMP
+       WHERE 1=1
+  </delete>
+  
+  
+  <insert id="excel.invoice.insert" parameterClass="java.util.Map">
+       <![CDATA[
+           INSERT INTO CB_INVOICE_TEMP
+          (
+             ORG_ID
+            ,COMPANY_ID
+            ,CUSTOMER_NAME
+            ,INVOICE_DATE
+            ,SUPPLY_PRICE
+            ,ADDITIONAL_TAX
+            ,E_TAX
+						,REPORT_NUMBER
+						,DIRECTION
+						,SALES_BUY_TYPE
+						,TAX_TYPE
+						,CHARGE_TYPE
+          ]]>
+          <isNotEmpty property="CURRENCYCODE" prepend=",">
+              CURRENCY_CODE
+          </isNotEmpty>
+          <isNotEmpty property="TAXDIV" prepend=",">
+              TAX_DIV
+          </isNotEmpty>
+          <isNotEmpty property="DOCUNUMBER" prepend=","> 
+            DOCU_NUMBER 
+            </isNotEmpty>
+            <isNotEmpty property="ISSUENUMBER" prepend=","> 
+            ISSUE_NUMBER
+            </isNotEmpty>
+            <isNotEmpty property="SERIALNUMBER" prepend=","> 
+            SERIAL_NUMBER 
+            </isNotEmpty>
+            <isNotEmpty property="ITEMNAME" prepend=","> 
+            ITEM_NAME
+            </isNotEmpty>
+       <![CDATA[
+          )
+          VALUES
+          (
+             #ORGID#
+            ,#COMPANYID#
+            ,#CUSTOMERNAME#
+            ,#INVOICEDATE#
+            ,#SUPPLYPRICE#
+            ,#ADDITIONALTAX#
+            ,#ETAX#
+            ,#REPORTNUMBER#
+            ,#DIRECTION#
+            ,#SALESBUYTYPE#
+            ,#TAXTYPE#
+            ,#CHARGETYPE#
+          ]]>
+          <isNotEmpty property="CURRENCYCODE" prepend=",">
+              #CURRENCYCODE#
+          </isNotEmpty>
+          <isNotEmpty property="TAXDIV" prepend=",">
+              #TAXDIV#
+          </isNotEmpty>
+          <isNotEmpty property="DOCUNUMBER" prepend=",">
+            #DOCUNUMBER# 
+            </isNotEmpty>
+          <isNotEmpty property="ISSUENUMBER" prepend=",">
+            #ISSUENUMBER#
+            </isNotEmpty>
+          <isNotEmpty property="SERIALNUMBER" prepend=",">
+            #SERIALNUMBER#
+            </isNotEmpty>
+            <isNotEmpty property="ITEMNAME" prepend=","> 
+            #ITEMNAME#
+            </isNotEmpty>
+       <![CDATA[
+          )
+          ]]>
+  </insert>
+  
+  <select id="excel.invoice.find.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT COUNT(*) AS COUNT
+       FROM CB_INVOICE_TEMP
+      WHERE 1=1
+  </select>
+  
+  <delete id="excel.invoice.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_INVOICE_TEMP
+       WHERE 1=1
+  </delete>
+  
+</sqlMap>

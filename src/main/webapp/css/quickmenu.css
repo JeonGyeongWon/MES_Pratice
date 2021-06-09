@@ -1,0 +1,30 @@
+#quickmenu_wrap {
+    left: 0px; width: 92px; height: 258px; float: left; position: absolute;
+}
+#quickmenu_bgarea {
+    background: url("../../../images/egovframework/adt/quick_menu/bg_quickmenu.gif") no-repeat top; width: 92px; height: 258px; float: left;
+}
+.quick_bottom_border {
+    border-bottom-color: rgb(231, 231, 231); border-bottom-width: 1px; border-bottom-style: solid;
+}
+#quickmenu_div {
+    padding-top: 30px; padding-left: 7px; float: left;
+}
+#quickmenu_div ul {
+    width: 76px; list-style-type: none;
+}
+#quickmenu_div ul li {
+    list-style-type: none;
+}
+#quickmenu_top_btn {
+    width: 92px; text-align: center; float: left;
+}
+.btn_qtop_ul {
+    margin-top: 10px;
+}
+.btn_qtop_li {
+    margin: 0px auto;
+}
+.hidden {
+    left: -1000px; top: -1000px; position: absolute;
+}

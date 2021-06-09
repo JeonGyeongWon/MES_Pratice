@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="pda">
+
+    <sql id="pda.outtrans.lot.check.sql-select">
+    <![CDATA[
+      SELECT (CASE WHEN (SELECT COUNT(*)
+												   FROM CB_ORG_COMPANY_V OV
+												       ,CB_SCM_TRADE_H   STH
+												       ,CB_SCM_TRADE_D   STD
+												       ,CB_OUT_ORDER_D OD
+													 WHERE OV.ORG_ID = STH.ORG_ID
+													   AND OV.COMPANY_ID = STH.COMPANY_ID
+													   AND STH.ORG_ID = STD.ORG_ID
+													   AND STH.COMPANY_ID = STD.COMPANY_ID
+													   AND STH.TRADE_NO = STD.TRADE_NO
+													   AND STD.ORG_ID = OD.ORG_ID
+													   AND STD.COMPANY_ID = OD.COMPANY_ID
+													   AND STD.OUT_PO_NO = OD.OUT_PO_NO
+													   AND STD.OUT_PO_SEQ = OD.OUT_PO_SEQ
+													   AND STD.TRADE_NO = #LOTNO#
+													   AND (STD.TRADE_NO,STD.TRADE_SEQ) NOT IN (SELECT TRADE_NO,TRADE_SEQ 
+	                                                FROM CB_OUT_TRANS_D TD
+	                                               WHERE STD.TRADE_NO =  TD.TRADE_NO 
+	                                                 AND STD.TRADE_SEQ = TD.TRADE_SEQ
+	                                                 AND STD.ORG_ID = TD.ORG_ID
+	                                                 AND STD.COMPANY_ID = TD.COMPANY_ID)
+													   AND OD.ORDER_QTY > (SELECT NVL(SUM(TD.TRANS_QTY),0) 
+													                         FROM CB_OUT_TRANS_D TD
+													                        WHERE STD.OUT_PO_NO =  TD.OUT_PO_NO 
+													                          AND STD.OUT_PO_SEQ = TD.OUT_PO_SEQ
+													                          AND STD.ORG_ID = TD.ORG_ID
+													                          AND STD.COMPANY_ID = TD.COMPANY_ID)  
+													   AND (OD.ORG_ID, OD.COMPANY_ID, OD.OUT_PO_NO, OD.OUT_PO_SEQ) NOT IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.OUT_PO_NO, TD.OUT_PO_SEQ
+                                                                             FROM CB_OUT_TRANS_D TD
+                                                                            WHERE TD.ORG_ID = OD.ORG_ID
+                                                                              AND TD.COMPANY_ID = OD.COMPANY_ID
+                                                                              AND TD.FINISH_YN = 'Y')                       
+													                          
+													                          ) > 0  THEN
+					                'Y'
+					              ELSE
+					                'N'
+					              END) AS LOTNOCHK
+		  FROM DUAL
+    ]]>
+    </sql>
+    
+    <select id="pda.outtrans.lot.check.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+          <include refid="pda.outtrans.lot.check.sql-select" />
+    </select>
+
+    <select id="pda.outtrans.lot.check.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+            SELECT COUNT(*) FROM (
+            <include refid="pda.outtrans.lot.check.sql-select" />
+           ) TOT
+    </select>
+    
+    
+    <sql id="pda.outtrans.lot.detail.list.sql-sub">
+    <![CDATA[
+        SELECT ROW_NUMBER() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, OH.OUT_PO_DATE, OH.OUT_PO_NO, OD.OUT_PO_SEQ) AS RNUM
+          ,ROW_NUMBER() OVER(ORDER BY OH.ORG_ID, OH.COMPANY_ID, STD.TRADE_NO, STD.TRADE_SEQ) AS OUTTRANSSEQ
+          ,OH.ORG_ID AS ORGID
+          ,OH.COMPANY_ID AS COMPANYID
+          ,TO_CHAR(OH.OUT_PO_DATE, 'YYYY-MM-DD') AS OUTPODATE
+          ,TO_CHAR(OD.DUE_DATE, 'YYYY-MM-DD') AS DUEDATE
+          ,TO_CHAR(SYSDATE, 'YYYY-MM-DD') AS TRANSDATE
+          ,OH.OUT_PO_NO AS OUTPONO
+          ,OD.OUT_PO_SEQ AS OUTPOSEQ
+          ,OD.WORK_ORDER_ID AS WORKORDERID
+          ,OD.WORK_ORDER_SEQ AS WORKORDERSEQ
+          ,OD.ITEM_CODE AS ITEMCODE
+          ,IM.ITEM_NAME AS ITEMNAME
+          ,IM.DRAWING_NO AS DRAWINGNO
+          ,IM.ORDER_NAME AS ORDERNAME
+          ,IM.CAR_TYPE AS MODEL
+          ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID,
+                                                       IM.COMPANY_ID,
+                                                       'CMM',
+                                                       'MODEL',
+                                                       IM.CAR_TYPE,
+                                                       'LABEL') AS MODELNAME
+          ,IM.UOM
+          ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID,
+                                                       IM.COMPANY_ID,
+                                                       'CMM',
+                                                       'UOM',
+                                                       IM.UOM,
+                                                       'LABEL') AS UOMNAME
+          ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+          ,(CASE
+             WHEN OD.ROUTING_NO IS NULL THEN
+              (SELECT RC.ROUTING_NO
+                 FROM CB_WORK_ORDER WO, CB_ROUTING_CONTROL RC
+                WHERE WO.ORG_ID = OD.ORG_ID
+                  AND WO.COMPANY_ID = OD.COMPANY_ID
+                  AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+                  AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ
+                  AND WO.ORG_ID = RC.ORG_ID
+                  AND WO.COMPANY_ID = RC.COMPANY_ID
+                  AND WO.ROUTING_CODE = RC.ROUTING_ID)
+             ELSE
+              OD.ROUTING_NO
+           END) AS ROUTINGNO
+          ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(OD.ORG_ID,
+                                                       OD.COMPANY_ID,
+                                                       'MFG',
+                                                       'ROUTING_NAME',
+                                                       (CASE
+                                                         WHEN OD.ROUTING_NO IS NULL THEN
+                                                          (SELECT RC.ROUTING_NO
+                                                             FROM CB_WORK_ORDER WO, CB_ROUTING_CONTROL RC
+                                                            WHERE WO.ORG_ID = OD.ORG_ID
+                                                              AND WO.COMPANY_ID = OD.COMPANY_ID
+                                                              AND WO.WORK_ORDER_ID = OD.WORK_ORDER_ID
+                                                              AND WO.WORK_ORDER_SEQ = OD.WORK_ORDER_SEQ
+                                                              AND WO.ORG_ID = RC.ORG_ID
+                                                              AND WO.COMPANY_ID = RC.COMPANY_ID
+                                                              AND WO.ROUTING_CODE = RC.ROUTING_ID)
+                                                         ELSE
+                                                          OD.ROUTING_NO
+                                                       END),
+                                                       'LABEL') AS ROUTINGNAME
+          ,NVL((SELECT MAX(TD.FINISH_YN)
+                 FROM CB_OUT_TRANS_D TD
+                WHERE TD.ORG_ID = OD.ORG_ID
+                  AND TD.COMPANY_ID = OD.COMPANY_ID
+                  AND TD.OUT_PO_NO = OD.OUT_PO_NO
+                  AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ),
+               'N') AS FINISHCHECK
+           
+          ,OD.ORDER_QTY AS ORDERQTY
+          ,NVL((SELECT SUM(NVL(TD.TRANS_QTY, 0))
+                 FROM CB_OUT_TRANS_D TD
+                WHERE TD.ORG_ID = OD.ORG_ID
+                  AND TD.COMPANY_ID = OD.COMPANY_ID
+                  AND TD.OUT_PO_NO = OD.OUT_PO_NO
+                  AND TD.OUT_PO_SEQ = OD.OUT_PO_SEQ),
+               0) AS EXTRANSQTYY
+          ,NVL(STD.UNIT_PRICE,0) AS UNITPRICE
+          ,NVL(STD.SUPPLY_PRICE,0) AS SUPPLYPRICE
+          ,NVL(STD.ADDITIONAL_TAX,0) AS ADDITIONALTAX
+          ,NVL(STD.SUPPLY_PRICE,0) + NVL(STD.ADDITIONAL_TAX,0) AS TOTAL
+          ,OH.CUSTOMER_CODE AS CUSTOMERCODEOUT
+          ,(SELECT CC.CUSTOMER_NAME
+              FROM CB_CUSTOMER CC
+             WHERE CC.ORG_ID = OH.ORG_ID
+               AND CC.COMPANY_ID = OH.COMPANY_ID
+               AND CC.CUSTOMER_CODE = OH.CUSTOMER_CODE) AS CUSTOMERNAMEOUT
+          ,OH.OUT_PO_PERSON AS OUTPOPERSON
+          ,OH.OUT_PO_STATUS AS OUTPOSTATUS
+          ,OD.SCM_INSPECTION_YN AS SCMINSPECTIONYN
+          ,STD.TRANSACTION_QTY AS TRANSQTY
+          ,STD.TRADE_NO AS TRADENO
+          ,STD.TRADE_SEQ AS TRADESEQ
+          ,STD.FAULT_QTY AS FAULTQTY
+      FROM CB_OUT_ORDER_H      OH
+          ,CB_OUT_ORDER_D      OD
+          ,CB_SCM_TRADE_D      STD
+          ,CB_ITEM_MASTER      IM
+     WHERE OH.ORG_ID = OD.ORG_ID
+       AND OH.COMPANY_ID = OD.COMPANY_ID
+       AND OH.OUT_PO_NO = OD.OUT_PO_NO
+       AND OD.ORG_ID = STD.ORG_ID
+       AND OD.COMPANY_ID = STD.COMPANY_ID
+       AND OD.OUT_PO_NO = STD.OUT_PO_NO
+       AND OD.OUT_PO_SEQ = STD.OUT_PO_SEQ
+       AND STD.ORG_ID = IM.ORG_ID
+       AND STD.COMPANY_ID = IM.COMPANY_ID
+       AND STD.ITEM_CODE = IM.ITEM_CODE
+       AND STD.TRADE_NO = #TRADENO#
+       AND (OD.ORG_ID, OD.COMPANY_ID, OD.OUT_PO_NO, OD.OUT_PO_SEQ) NOT IN (SELECT TD.ORG_ID, TD.COMPANY_ID, TD.OUT_PO_NO, TD.OUT_PO_SEQ
+                                                                             FROM CB_OUT_TRANS_D TD
+                                                                            WHERE TD.ORG_ID = OD.ORG_ID
+                                                                              AND TD.COMPANY_ID = OD.COMPANY_ID
+                                                                              AND TD.FINISH_YN = 'Y')
+    ]]>
+    </sql>
+    
+    <sql id="pda.outtrans.lot.detail.list.sql-select" >
+        <include refid="pda.outtrans.lot.detail.list.sql-sub" />
+    </sql>
+    
+    <select id="pda.outtrans.lot.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+          <include refid="pda.outtrans.lot.detail.list.sql-select" />
+    </select>
+
+    <select id="pda.outtrans.lot.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+            SELECT COUNT(*) FROM (
+            <include refid="pda.outtrans.lot.detail.list.sql-select" />
+           ) TOT
+    </select>
+    
+    
+    <select id="pda.new.outtransno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'OT' || TO_CHAR(TO_DATE(#TRANSDATE#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS OUTTRANSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(OUT_TRANS_NO), -3)), 0) AS NUM 
+                  FROM CB_OUT_TRANS_H
+                 WHERE OUT_TRANS_NO LIKE 'OT' || TO_CHAR(TO_DATE(#TRANSDATE#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    
+    <insert id="pda.outprocess.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+        INSERT INTO CB_OUT_TRANS_H (
+                OUT_TRANS_NO
+               ,OUT_TRANS_DATE
+               ,TRANS_PERSON
+               ,CUSTOMER_CODE
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+        VALUES (
+                #OUTTRANSNO#
+               ,TO_DATE(#TRANSDATE#, 'YYYY-MM-DD')
+               ,#REGISTID#
+               ,#CUSTOMERCODEOUT#
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#ORGID#
+               ,#COMPANYID#
+               )
+        ]]>
+    </insert>
+    
+    
+    <insert id="pda.outprocess.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+         INSERT INTO CB_OUT_TRANS_D
+               (OUT_TRANS_NO
+               ,OUT_TRANS_SEQ
+               ,ORG_ID
+               ,COMPANY_ID
+               ,ITEM_CODE
+               ,OUT_PO_NO
+               ,OUT_PO_SEQ
+               ,TRANS_QTY
+               ,TRANS_UNIT_PRICE
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,FINISH_YN
+               ,CONFIRM_DATE
+               ,TRANS_YN
+               ,TRADE_NO
+               ,TRADE_SEQ
+               ,FAULT_QTY
+        ]]>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ( #OUTTRANSNO#
+               ,#OUTTRANSSEQ#
+               ,#ORGID#
+               ,#COMPANYID#
+               ,#ITEMCODE#
+               ,#OUTPONO#
+               ,#OUTPOSEQ#
+               ,$TRANSQTY$
+               ,$UNITPRICE$
+               ,$SUPPLYPRICE$
+               ,$ADDITIONALTAX$
+               ,CASE WHEN #TRANSQTY#+#EXTRANSQTY# >= #ORDERQTY# THEN
+                     'Y'
+                     END
+               ,CASE WHEN #TRANSQTY#+#EXTRANSQTY# >= #ORDERQTY# THEN
+                     TO_DATE(#TRANSDATE#, 'YYYY-MM-DD')
+                     END
+               ,'Y'
+               ,#TRADENO#
+               ,#TRADESEQ#
+               ,#FAULTQTY#
+        ]]>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+</sqlMap>

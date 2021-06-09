@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orderDeposit">
+
+    <parameterMap class="java.util.Map" id="OrderDepositProcPlan">
+			  <parameter property="ORG" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+			  <parameter property="COMP" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SONUM" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="UPDATEID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="OrderDepositProcPlanDel">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SONO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SOSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="UPDATEID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="order.deposit.orderdepositlist.Procedure" parameterClass="java.util.Map"  parameterMap="OrderDepositProcPlan" resultClass="java.util.HashMap" >
+    <![CDATA[
+              {call CB_SO_PKG.CB_PROD_PLAN_PROC( ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="order.deposit.prodplan.delete.Procedure" parameterClass="java.util.Map"  parameterMap="OrderDepositProcPlanDel" resultClass="java.util.HashMap" >
+    <![CDATA[
+              {call CB_SO_PKG.CB_PROD_PLAN_DEL( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <sql id="deposit.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 0), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="deposit.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="deposit.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="deposit.dummy.month.sql-select" />
+        <include refid="deposit.dummy.month.sql-where" />
+    </select>
+    
+  <sql id="order.deposit.orderdepositlist.master.list.sql-select">
+           SELECT RANK() OVER(ORDER BY TH.TAX_INVOICE_NO) AS RN
+							      ,TH.ORG_ID AS ORGID
+							      ,TH.COMPANY_ID AS COMPANYID
+							      ,TH.TAX_INVOICE_NO AS TAXINVOICENO
+							      ,TO_CHAR(TH.INVOICE_DATE,'YYYY-MM-DD') AS INVOICEDATE
+							      ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+							      ,(SELECT CC.CUSTOMER_NAME
+							          FROM CB_CUSTOMER CC
+							         WHERE CC.ORG_ID=TH.ORG_ID
+							           AND CC.COMPANY_ID=TH.COMPANY_ID
+							           AND CC.CUSTOMER_CODE=TH.CUSTOMER_CODE) AS CUSTOMERNAME
+							      ,TH.SUPPLY_PRICE AS SUPPLYPRICE
+							      ,TH.ADDITIONAL_TAX AS ADDITIONALTAX
+							      ,TH.SUPPLY_PRICE + TH.ADDITIONAL_TAX AS TOTAL
+							      ,TH.E_TAX AS ETAX
+							      ,TO_CHAR(MAX(TD.DEPOSIT_DATE),'YYYY-MM-DD') AS DEPOSITDATE
+							      ,SUM(TD.SUPPLY_PRICE) AS DEPOSITPRICE
+							      ,TH.REPORT_NUMBER AS REPORTNUMBER
+		                ,TH.DIRECTION
+				            ,(SELECT SC.SMALL_NAME
+				                FROM CB_SMALL_CODE SC
+				               WHERE SC.ORG_ID = TH.ORG_ID
+				                 AND SC.COMPANY_ID = TH.COMPANY_ID
+				                 AND SC.BIG_CODE = 'OM'
+				                 AND SC.MIDDLE_CODE = 'DIRECTION'
+				                 AND SC.SMALL_CODE = TH.DIRECTION) AS DIRECTIONNAME
+		                ,TH.SALES_BUY_TYPE AS SALESBUYTYPE
+                    ,(SELECT SC.SMALL_NAME
+                        FROM CB_SMALL_CODE SC
+                       WHERE SC.ORG_ID = TH.ORG_ID
+                         AND SC.COMPANY_ID = TH.COMPANY_ID
+                         AND SC.BIG_CODE = 'OM'
+                         AND SC.MIDDLE_CODE = 'SALES_BUY_TYPE'
+                         AND SC.SMALL_CODE = TH.SALES_BUY_TYPE) AS SALESBUYTYPENAME
+		                ,TH.TAX_TYPE AS TAXTYPE
+                    ,(SELECT SC.SMALL_NAME
+                        FROM CB_SMALL_CODE SC
+                       WHERE SC.ORG_ID = TH.ORG_ID
+                         AND SC.COMPANY_ID = TH.COMPANY_ID
+                         AND SC.BIG_CODE = 'OM'
+                         AND SC.MIDDLE_CODE = 'TAX_TYPE'
+                         AND SC.SMALL_CODE = TH.TAX_TYPE) AS TAXTYPENAME
+		                ,TH.CHARGE_TYPE AS CHARGETYPE
+                    ,(SELECT SC.SMALL_NAME
+                        FROM CB_SMALL_CODE SC
+                       WHERE SC.ORG_ID = TH.ORG_ID
+                         AND SC.COMPANY_ID = TH.COMPANY_ID
+                         AND SC.BIG_CODE = 'OM'
+                         AND SC.MIDDLE_CODE = 'CHARGE_TYPE'
+                         AND SC.SMALL_CODE = TH.CHARGE_TYPE) AS CHARGETYPENAME
+		                ,TH.DOCU_NUMBER AS DOCUNUMBER
+		                ,TH.ISSUE_NUMBER AS ISSUENUMBER
+		                ,TH.SERIAL_NUMBER AS SERIALNUMBER
+		                ,TH.ITEM_NAME AS ITEMNAME
+							      ,TH.REMARKS AS REMARKS
+							  FROM CB_TAX_INVOICE_H TH
+							          ,CB_TAX_INVOICE_D TD
+  </sql>
+
+  <sql id="order.deposit.orderdepositlist.master.list.sql-where">
+           WHERE TH.ORG_ID=TD.ORG_ID(+)
+                 AND TH.COMPANY_ID=TD.COMPANY_ID(+)
+                 AND TH.TAX_INVOICE_NO=TD.TAX_INVOICE_NO(+)
+                 AND TH.ORG_ID=#ORGID#
+                 AND TH.COMPANY_ID=#COMPANYID#
+            <isNotEmpty property="DATETO">
+                <isNotEmpty property="DATEFROM" prepend="AND">
+                  TH.INVOICE_DATE BETWEEN TO_DATE(#DATEFROM#,'YYYY-MM-DD')  AND TO_DATE(#DATETO#,'YYYY-MM-DD')
+                </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="TAXINVOICENO" prepend="AND">
+                  TH.TAX_INVOICE_NO = #TAXINVOICENO#
+            </isNotEmpty>
+	          <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+	                TH.CUSTOMER_CODE=#CUSTOMERCODE#
+	          </isNotEmpty>
+             GROUP BY TH.TAX_INVOICE_NO, TH.ORG_ID, TH.COMPANY_ID, TH.INVOICE_DATE, TH.CUSTOMER_CODE, TH.SUPPLY_PRICE, TH.ADDITIONAL_TAX, TH.E_TAX,TH.REMARKS, 
+                    TH.REPORT_NUMBER ,TH.DIRECTION ,TH.SALES_BUY_TYPE ,TH.TAX_TYPE ,TH.CHARGE_TYPE ,TH.DOCU_NUMBER,
+                    TH.ISSUE_NUMBER ,TH.SERIAL_NUMBER ,TH.ITEM_NAME
+  </sql>
+
+  <select id="order.deposit.orderdepositlist.master.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.deposit.orderdepositlist.master.list.sql-select" />
+    <include refid="order.deposit.orderdepositlist.master.list.sql-where" />
+  </select>
+
+  <select id="order.deposit.orderdepositlist.master.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.deposit.orderdepositlist.master.list.sql-select" />
+      <include refid="order.deposit.orderdepositlist.master.list.sql-where" />
+        )TOT
+  </select>
+
+  <sql id="order.deposit.orderdepositlist.detail.list.sql-select">
+     SELECT RANK() OVER(ORDER BY TD.ORG_ID, TD.COMPANY_ID, TD.TAX_INVOICE_SEQ) AS RN
+              ,TD.ORG_ID AS ORGID
+              ,TD.COMPANY_ID AS COMPANYID
+              ,TD.TAX_INVOICE_NO AS TAXINVOICENO
+              ,TD.TAX_INVOICE_SEQ AS TAXINVOICESEQ
+              ,TO_CHAR(TD.DEPOSIT_DATE,'YYYY-MM-DD') AS DEPOSITDATE
+              ,TD.SUPPLY_PRICE AS SUPPLYPRICE
+              ,TD.ADDITIONAL_TAX AS ADDITIONALTAX
+              ,TD.SUPPLY_PRICE + TD.ADDITIONAL_TAX AS TOTAL
+              ,TD.REMARKS AS REMARKS
+          FROM CB_TAX_INVOICE_D TD
+  </sql>
+
+  <sql id="order.deposit.orderdepositlist.detail.list.sql-where">
+         WHERE 1=1
+            AND TD.ORG_ID = #ORGID#
+            AND TD.COMPANY_ID = #COMPANYID#
+            AND TD.TAX_INVOICE_NO=#TAXINVOICENO#
+           
+  </sql>
+
+  <select id="order.deposit.orderdepositlist.detail.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.deposit.orderdepositlist.detail.list.sql-select" />
+    <include refid="order.deposit.orderdepositlist.detail.list.sql-where" />
+  </select>
+
+  <select id="order.deposit.orderdepositlist.detail.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="order.deposit.orderdepositlist.detail.list.sql-select" />
+      <include refid="order.deposit.orderdepositlist.detail.list.sql-where" />
+    ) TOT
+  </select>
+  
+  <select id="order.deposit.orderdeposittaxno.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">                  
+        SELECT 'TA' || TO_CHAR(TO_DATE(#InvoiceDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '-' ||
+               (CASE
+                  WHEN NVL(NUM, 0) BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NVL(NUM, 0) BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NVL(NUM, 0) + 1) AS FINDTAXNO
+          FROM (SELECT MAX(SUBSTR(TAX_INVOICE_NO, -3, 3)) AS NUM
+                  FROM CB_TAX_INVOICE_H
+                 WHERE 1 = 1
+                   AND TAX_INVOICE_NO LIKE 'TA' || TO_CHAR(TO_DATE(#InvoiceDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '%')
+    </select>
+  
+	  <sql id="order.deposit.orderdepositinvoiceseq.find.sql-select">
+	        SELECT COUNT(TD.TAX_INVOICE_NO) AS COUNT
+	          FROM CB_TAX_INVOICE_D TD
+	    </sql>
+	
+	    <sql id="order.deposit.orderdepositinvoiceseq.find.sql-where">
+	         WHERE 1 = 1
+	             AND TD.ORG_ID = #Orgid#
+	             AND TD.COMPANY_ID = #CompanyId#
+	             AND TD.TAX_INVOICE_NO = #TaxNo#
+	             AND TD.TAX_INVOICE_SEQ = $TAXINVOICESEQ$
+	    </sql>
+	
+	    <select id="order.deposit.orderdepositinvoiceseq.find" parameterClass="java.util.Map"
+	        resultClass="java.util.HashMap">
+	        <include refid="order.deposit.orderdepositinvoiceseq.find.sql-select" />
+	        <include refid="order.deposit.orderdepositinvoiceseq.find.sql-where" />
+	    </select>
+  
+     <insert id="order.deposit.orderdepositlist.master.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TAX_INVOICE_H
+              (TAX_INVOICE_NO
+              ,ORG_ID
+              ,COMPANY_ID
+              ,INVOICE_DATE
+              ,CUSTOMER_CODE
+              ,SUPPLY_PRICE
+              ,ADDITIONAL_TAX
+              ,INVOICE_YN
+              ,E_TAX
+        ]]>
+        
+          <isNotEmpty property="REPORTNUMBER" prepend=","> 
+            REPORT_NUMBER 
+            </isNotEmpty>
+            <isNotEmpty property="DIRECTION" prepend=","> 
+            DIRECTION
+            </isNotEmpty>
+            <isNotEmpty property="SALESBUYTYPE" prepend=","> 
+            SALES_BUY_TYPE 
+            </isNotEmpty>
+            <isNotEmpty property="TAXTYPE" prepend=","> 
+            TAX_TYPE
+            </isNotEmpty>
+        <isNotEmpty property="CHARGETYPE" prepend=",">
+             CHARGE_TYPE
+        </isNotEmpty>
+          <isNotEmpty property="DOCUNUMBER" prepend=","> 
+            DOCU_NUMBER 
+            </isNotEmpty>
+            <isNotEmpty property="ISSUENUMBER" prepend=","> 
+            ISSUE_NUMBER
+            </isNotEmpty>
+            <isNotEmpty property="SERIALNUMBER" prepend=","> 
+            SERIAL_NUMBER 
+            </isNotEmpty>
+            <isNotEmpty property="ITEMNAME" prepend=","> 
+            ITEM_NAME
+            </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+             (#TaxNo#
+             ,#searchOrgId#
+             ,#searchCompanyId#
+             ,TO_DATE(#InvoiceDate#, 'YYYY-MM-DD')
+             ,#CustomerCode#
+             ,#SupplyPrice_f#
+             ,#AdditionalTax_f#
+             ,'N'
+             ,#ETax#
+        ]]>
+        
+       <isNotEmpty property="REPORTNUMBER" prepend=",">
+       #REPORTNUMBER# 
+       </isNotEmpty>
+       <isNotEmpty property="DIRECTION" prepend=",">
+       #DIRECTION#
+       </isNotEmpty>
+       <isNotEmpty property="SALESBUYTYPE" prepend=",">
+       #SALESBUYTYPE#
+       </isNotEmpty>
+       <isNotEmpty property="TAXTYPE" prepend=","> 
+       #TAXTYPE#
+       </isNotEmpty>
+       <isNotEmpty property="CHARGETYPE" prepend=",">
+         #CHARGETYPE# 
+         </isNotEmpty>
+       <isNotEmpty property="DOCUNUMBER" prepend=",">
+         #DOCUNUMBER# 
+         </isNotEmpty>
+       <isNotEmpty property="ISSUENUMBER" prepend=",">
+         #ISSUENUMBER#
+         </isNotEmpty>
+       <isNotEmpty property="SERIALNUMBER" prepend=",">
+         #SERIALNUMBER#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend=","> 
+         #ITEMNAME#
+         </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+              #ReMarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <insert id="order.deposit.orderdepositlist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TAX_INVOICE_D
+              (TAX_INVOICE_NO
+              ,TAX_INVOICE_SEQ
+              ,ORG_ID
+              ,COMPANY_ID
+              ,SUPPLY_PRICE
+              ,ADDITIONAL_TAX
+              ,DEPOSIT_DATE
+        ]]>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="TRANSACTIONQTY" prepend=",">
+              TRANSACTION_QTY
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES              
+              (#TaxNo#
+              ,$TAXINVOICESEQ$
+              ,#Orgid#
+              ,#CompanyId#
+              ,$SUPPLYPRICE$
+              ,$ADDITIONALTAX$
+              ,#DEPOSITDATE#
+        ]]>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              #ITEMVODE#
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              #UNITPRICE#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSACTIONQTY" prepend=",">
+              #TRANSACTIONQTY#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="order.deposit.orderdepositlist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TAX_INVOICE_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="InvoiceDate" prepend=",">
+            INVOICE_DATE = TO_DATE(#InvoiceDate#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="SupplyPrice" prepend=",">
+            SUPPLY_PRICE = #SupplyPrice#
+        </isNotEmpty>
+        <isNotEmpty property="AdditionalTax" prepend=",">
+            ADDITIONAL_TAX = #AdditionalTax#
+        </isNotEmpty>
+        <isNotEmpty property="ETax" prepend=",">
+            E_TAX = #ETax#
+        </isNotEmpty>
+        <isEmpty property="ETax" prepend=",">
+            E_TAX = NULL
+        </isEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+            REMARKS = #ReMarks#
+        </isNotEmpty>
+        <isEmpty property="ReMarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>        
+        <isNotEmpty property="TaxDiv" prepend=",">
+            TAX_DIV = #TaxDiv#
+        </isNotEmpty>
+        <isEmpty property="TaxDiv" prepend=",">
+            TAX_DIV = NULL
+        </isEmpty>                
+        <isNotEmpty property="CurrencyCode" prepend=",">
+            CURRENCY_CODE = #CurrencyCode#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            CURRENCY_CODE = NULL
+        </isEmpty>
+        
+        <isNotEmpty property="REPORTNUMBER" prepend=","> 
+        REPORT_NUMBER =#REPORTNUMBER#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            REPORT_NUMBER = NULL
+        </isEmpty>
+        <isNotEmpty property="DIRECTION" prepend=","> 
+        DIRECTION = #DIRECTION#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            DIRECTION = NULL
+        </isEmpty>
+        <isNotEmpty property="SALESBUYTYPE" prepend=","> 
+        SALES_BUY_TYPE = #SALESBUYTYPE#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            SALES_BUY_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="TAXTYPE" prepend=","> 
+        TAX_TYPE =#TAXTYPE#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            TAX_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="CHARGETYPE" prepend=",">
+             CHARGE_TYPE =#CHARGETYPE#
+        </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            CHARGE_TYPE = NULL
+        </isEmpty>
+        <isNotEmpty property="DOCUNUMBER" prepend=","> 
+          DOCU_NUMBER = #DOCUNUMBER#
+          </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            DOCU_NUMBER = NULL
+        </isEmpty>
+          <isNotEmpty property="ISSUENUMBER" prepend=","> 
+          ISSUE_NUMBER = #ISSUENUMBER#
+          </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            ISSUE_NUMBER = NULL
+        </isEmpty>
+          <isNotEmpty property="SERIALNUMBER" prepend=","> 
+          SERIAL_NUMBER = #SERIALNUMBER#
+          </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            SERIAL_NUMBER = NULL
+        </isEmpty>
+          <isNotEmpty property="ITEMNAME" prepend=","> 
+          ITEM_NAME = #ITEMNAME#
+          </isNotEmpty>
+        <isEmpty property="CurrencyCode" prepend=",">
+            ITEM_NAME = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId# 
+          AND TAX_INVOICE_NO = #TaxNo#
+        ]]>
+    </update>
+    
+    <update id="order.deposit.orderdepositlist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TAX_INVOICE_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>      
+        <isNotEmpty property="UNITPRICEA" prepend=",">
+              UNIT_PRICE = #UNITPRICEA#
+        </isNotEmpty>
+        <isEmpty property="UNITPRICEA" prepend=",">
+            UNIT_PRICE = NULL
+        </isEmpty>  
+        <isNotEmpty property="ITEMCODE" prepend=",">
+            ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isEmpty property="ITEMCODE" prepend=",">
+            ITEM_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="TRXQTY" prepend=",">
+            TRANSACTION_QTY = #TRXQTY#
+        </isNotEmpty>
+        <isEmpty property="TRXQTY" prepend=",">
+            TRANSACTION_QTY = NULL
+        </isEmpty> 
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+            SUPPLY_PRICE = #SUPPLYPRICE#
+        </isNotEmpty>
+        <isEmpty property="SUPPLYPRICE" prepend=",">
+            SUPPLY_PRICE = NULL
+        </isEmpty>        
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+            ADDITIONAL_TAX = #ADDITIONALTAX#
+        </isNotEmpty>
+        <isEmpty property="ADDITIONALTAX" prepend=",">
+            ADDITIONAL_TAX = NULL
+        </isEmpty>
+        <isNotEmpty property="DEPOSITDATE" prepend=",">
+            DEPOSIT_DATE = TO_DATE(#DEPOSITDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="DEPOSITDATE" prepend=",">
+            DEPOSIT_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>       
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #Orgid#
+          AND COMPANY_ID = #CompanyId# 
+          AND TAX_INVOICE_NO = #TaxNo#
+          AND TAX_INVOICE_SEQ = $TAXINVOICESEQ$
+        ]]>
+    </update>
+    
+     <delete id="order.deposit.orderdepositlist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TAX_INVOICE_H
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TAX_INVOICE_NO = #TAXINVOICENO#
+    </delete>
+    
+    <delete id="order.deposit.orderdepositlist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TAX_INVOICE_D
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID# 
+          AND TAX_INVOICE_NO = #TAXINVOICENO#
+          AND TAX_INVOICE_SEQ = $TAXINVOICESEQ$
+    </delete>
+    
+<!--     미수금 현황 조회 -->
+    <sql id="order.deposit.receivablestatelist.master.list.sql-select">
+           SELECT RANK() OVER(ORDER BY A.TAXINVOICENO, A.TAXINVOICESEQ) AS RN 
+      ,A.ORGID
+      ,A.COMPANYID
+      ,A.TAXINVOICENO
+      ,A.TAXINVOICESEQ
+      ,A.INVOICEDATE
+      ,A.CUSTOMERNAME
+      ,A.SUPPLYPRICE
+      ,A.ADDITIONALTAX
+      ,A.TOTAL
+      ,A.DEPOSITDATE
+      ,A.DEPOSITPRICE
+      ,A.DEPOSITTAX
+      ,A.DEPOSITTOTAL
+      ,A.ETAX
+      ,A.REMARKS
+              FROM (  SELECT TH.ORG_ID AS ORGID
+                    ,TH.COMPANY_ID AS COMPANYID
+                    ,TH.TAX_INVOICE_NO AS TAXINVOICENO
+                    ,TD.TAX_INVOICE_SEQ AS TAXINVOICESEQ
+                    ,TO_CHAR(TH.INVOICE_DATE,'YYYY-MM-DD') AS INVOICEDATE
+                    ,TH.CUSTOMER_CODE AS CUSTOMERCODE
+                    ,(SELECT CC.CUSTOMER_NAME
+                        FROM CB_CUSTOMER CC
+                       WHERE CC.ORG_ID=TH.ORG_ID
+                         AND CC.COMPANY_ID=TH.COMPANY_ID
+                         AND CC.CUSTOMER_CODE=TH.CUSTOMER_CODE) AS CUSTOMERNAME
+                    ,TH.SUPPLY_PRICE AS SUPPLYPRICE
+                    ,TH.ADDITIONAL_TAX AS ADDITIONALTAX
+                    ,TH.SUPPLY_PRICE + TH.ADDITIONAL_TAX AS TOTAL
+                    ,TH.E_TAX AS ETAX
+                    ,TO_CHAR(TD.DEPOSIT_DATE,'YYYY-MM-DD') AS DEPOSITDATE
+                    ,NVL(TD.SUPPLY_PRICE,0) AS DEPOSITPRICE
+                    ,NVL(TD.ADDITIONAL_TAX,0) AS DEPOSITTAX
+                    ,NVL(TD.SUPPLY_PRICE,0) + NVL(TD.ADDITIONAL_TAX,0) AS DEPOSITTOTAL
+                    ,TD.REMARKS
+                    ,(select NVL(SUM(TD2.SUPPLY_PRICE),0)+NVL(SUM(TD2.ADDITIONAL_TAX),0) from CB_TAX_INVOICE_D TD2
+                       where TD2.ORG_ID=TH.ORG_ID
+                         AND TD2.COMPANY_ID=TH.Company_Id
+                         AND TD2.TAX_INVOICE_NO=TH.TAX_INVOICE_NO) AS DEPOSITSUM
+                FROM CB_TAX_INVOICE_H TH
+                        ,CB_TAX_INVOICE_D TD
+           WHERE TH.ORG_ID=TD.ORG_ID(+)
+                 AND TH.COMPANY_ID=TD.COMPANY_ID(+)
+                 AND TH.TAX_INVOICE_NO=TD.TAX_INVOICE_NO(+)
+                 AND TH.ORG_ID=$ORGID$
+                 AND TH.COMPANY_ID=$COMPANYID$) A
+
+  </sql>
+
+  <sql id="order.deposit.receivablestatelist.master.list.sql-where">
+                 WHERE A.TOTAL> A.DEPOSITSUM
+            <isNotEmpty property="DATETO">
+                <isNotEmpty property="DATEFROM" prepend="AND">
+                  A.INVOICEDATE BETWEEN TO_DATE(#DATEFROM#,'YYYY-MM-DD')  AND TO_DATE(#DATETO#,'YYYY-MM-DD')
+                </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+                  A.CUSTOMER_CODE=#CUSTOMERCODE#
+            </isNotEmpty>
+  </sql>
+
+  <select id="order.deposit.receivablestatelist.master.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.deposit.receivablestatelist.master.list.sql-select" />
+    <include refid="order.deposit.receivablestatelist.master.list.sql-where" />
+  </select>
+
+  <select id="order.deposit.receivablestatelist.master.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.deposit.receivablestatelist.master.list.sql-select" />
+      <include refid="order.deposit.receivablestatelist.master.list.sql-where" />
+        )TOT
+  </select>
+</sqlMap>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EisSynthesisSummaryReport_Sub4" language="groovy" pageWidth="550" pageHeight="687" orientation="Landscape" columnWidth="550" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="2f4385ac-1fff-4008-981d-e203365e8c6a">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHYEAR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT '년도별 매출매입' AS TITLE
+      ,A.GUBUN AS GUBUN
+      ,ORG_ID AS ORGID
+      ,COMPANY_ID AS COMPANYID
+      ,SEARCH_YEAR AS SEARCHYEAR
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-2
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS PRE2AMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR-1
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS PREAMOUNT
+      ,CB_EIS_PKG.CB_EIS_SUMMARY_FIND(ORG_ID
+                                     ,COMPANY_ID
+                                     ,SEARCH_YEAR
+                                     ,NULL
+                                     ,A.RN
+                                     ,2) AS AMOUNT
+  FROM (
+SELECT (CASE WHEN LEVEL = 1 THEN
+               '매출'
+             WHEN LEVEL = 2 THEN
+               '매입'
+             ELSE
+               NULL
+             END) AS GUBUN
+      ,LEVEL AS RN
+      ,$P{ORGID} AS ORG_ID
+      ,$P{COMPANYID} AS COMPANY_ID
+      ,$P{SEARCHYEAR} AS SEARCH_YEAR
+  FROM DUAL
+CONNECT BY LEVEL <= 2 ) A]]>
+	</queryString>
+	<field name="TITLE" class="java.lang.String"/>
+	<field name="GUBUN" class="java.lang.String"/>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.lang.String"/>
+	<field name="SEARCHYEAR" class="java.math.BigDecimal"/>
+	<field name="PRE2AMOUNT" class="java.math.BigDecimal"/>
+	<field name="PREAMOUNT" class="java.math.BigDecimal"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<summary>
+		<band height="537" splitType="Stretch">
+			<barChart>
+				<chart>
+					<reportElement x="0" y="0" width="550" height="537" uuid="2f6ba9ec-b2e0-40dd-860b-0757135ae01d"/>
+					<chartTitle color="#004CDD">
+						<font fontName="맑은 고딕" size="20" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+						<titleExpression><![CDATA[$F{TITLE}]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" size="14" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend>
+						<font fontName="맑은 고딕" size="14" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{SEARCHYEAR}-2]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{GUBUN}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{PRE2AMOUNT}/10000]]></valueExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{SEARCHYEAR}-1]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{GUBUN}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{PREAMOUNT}/10000]]></valueExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{SEARCHYEAR}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{GUBUN}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{AMOUNT}/10000]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<barPlot>
+					<plot>
+						<seriesColor seriesOrder="0" color="#8C8C8C"/>
+						<seriesColor seriesOrder="1" color="#B2CCFF"/>
+						<seriesColor seriesOrder="2" color="#0100FF"/>
+					</plot>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="14" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="14" isUnderline="false" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisLabelExpression><![CDATA["단위 : 만원"]]></valueAxisLabelExpression>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="14" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="14" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</barPlot>
+			</barChart>
+		</band>
+	</summary>
+</jasperReport>

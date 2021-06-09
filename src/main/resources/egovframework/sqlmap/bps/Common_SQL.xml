@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="common">
+
+	<sql id="common.paging">
+		<isNotEmpty property="start" prepend="WHERE"> 
+			<isNotEmpty property="limit">
+				RN BETWEEN $start$ + 1 AND $start$ + $limit$
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="sidx"> ORDER BY $sidx$ $sord$</isNotEmpty>
+<!-- 		<isNotEmpty property="limit"> LIMIT $limit$</isNotEmpty> -->
+<!-- 		<isNotEmpty property="start"> OFFSET $start$</isNotEmpty> -->
+	</sql>
+
+</sqlMap>

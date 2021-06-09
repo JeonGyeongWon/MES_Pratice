@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="mysql">
+       
+    <sql id="mysql.workcenter.list.sql-select">
+       SELECT temperature AS SEQ
+               ,seq AS OLDSEQ
+						    ,DATE_FORMAT(CONCAT(yy, mm, dd), '%Y-%m-%d') AS IFDATE
+						    ,CONCAT(SUBSTRING(mac, 2, 2), ':', SUBSTRING(mac, 4, 2)) AS IFTIME
+						    /*,temperature AS IFCODE*/
+						      ,NULL AS IFCODE
+						    ,ROUND(humidity / 1000) AS IFPROCTIME
+						    ,ip AS IPADDR
+			  FROM engkorea.atab
+    </sql>
+<!--                ,LEFT(mac, 6) AS IFTIME -->
+
+    <sql id="mysql.workcenter.list.sql-where">
+          WHERE 1=1
+<!--              AND ip = '121.175.87.121' -->
+<!-- 					   AND ip = '210.113.158.80' -->
+             AND ip = '118.38.253.16'
+					   AND LEFT(mac, 1) = '9'
+<!-- 					   AND mac NOT LIKE '20171121' -->
+					   AND mac NOT LIKE '911'
+         <isNotEmpty property="WORKCENTERCODEIF" prepend="AND">
+               ip = #WORKCENTERCODEIF#
+        </isNotEmpty>
+        ORDER BY OLDSEQ DESC
+        LIMIT 0, 30
+    </sql>
+
+    <select id="mysql.workcenter.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="mysql.workcenter.list.sql-select" />
+        <include refid="mysql.workcenter.list.sql-where" />
+    </select>
+    
+    <select id="mysql.workcenter.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="mysql.workcenter.list.sql-select" />
+            <include refid="mysql.workcenter.list.sql-where" />
+        ) TOT
+    </select>  
+   
+    <sql id="mysql.search.worker.interface.list.sql-select">
+       SELECT COUNT(*) AS IFPROCCOUNT
+					      ,STR_TO_DATE(MAX(CONCAT(CONCAT(yy,'-',mm,'-',dd), ' ', CONCAT(SUBSTRING(mac, 2, 2), ':', SUBSTRING(mac, 4, 2)))), '%Y-%m-%d %H:%i') AS IFORIGINAL
+					      ,DATE_FORMAT(DATE_ADD(STR_TO_DATE(MAX(CONCAT(CONCAT(yy,'-',mm,'-',dd), ' ', CONCAT(SUBSTRING(mac, 2, 2), ':', SUBSTRING(mac, 4, 2)))), '%Y-%m-%d %H:%i'), INTERVAL COUNT(*) SECOND), '%Y-%m-%d %H:%i') AS IFFINALTIME
+			  FROM engkorea.atab
+    </sql>
+
+    <sql id="mysql.search.worker.interface.list.sql-where">
+          WHERE 1=1
+<!--             AND ip = '210.113.158.80' -->
+             AND ip = '118.38.253.16'
+             AND LEFT(mac, 1) = '9'
+<!--             AND mac NOT LIKE '20171121' -->
+             AND mac NOT LIKE '911'
+             AND STR_TO_DATE(CONCAT(CONCAT(yy,'-',mm,'-',dd), ' ', CONCAT(SUBSTRING(mac, 2, 2), ':', SUBSTRING(mac, 4, 2))), '%Y-%m-%d %H:%i') BETWEEN #STARTTIME# AND #ENDTIME#
+         <isNotEmpty property="ROUTINGTIME" prepend="AND">
+               ROUND(humidity / 1000) > #ROUTINGTIME#
+        </isNotEmpty>
+    </sql>
+
+    <select id="mysql.search.worker.interface.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="mysql.search.worker.interface.list.sql-select" />
+        <include refid="mysql.search.worker.interface.list.sql-where" />
+    </select>
+    
+    <select id="mysql.search.worker.interface.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="mysql.search.worker.interface.list.sql-select" />
+            <include refid="mysql.search.worker.interface.list.sql-where" />
+        ) TOT
+    </select>  
+   
+    <!-- <insert id="prod.work.my.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO [WWALMDB].[dbo].[MoldCount_Master]
+        (
+          WO_NO
+          ,MOLD_CODE
+          ,CENTER_CODE
+          ,CNT
+          ,STATUS
+          ,CREATEDATE2
+          ,UPDATEDATE2
+        )
+        VALUES
+        (
+          #WORKORDERID#
+          ,#MOLDNO#
+          ,#DEPCODE#
+          ,0
+          ,'N'
+          ,convert(char(10),getdate() ,126) 
+          ,convert(char(10),getdate() ,126) 
+        )
+        ]]>
+    </insert> -->
+    
+<!--     <update id="sqlTest.update" parameterClass="java.util.Map"> -->
+<!--     <![CDATA[ -->
+<!--         UPDATE [WWALMDB].[dbo].[MoldCount_Master] -->
+<!--           SET WO_NO = #WONO# -->
+<!--           ,MOLD_CODE = #MOLDCODE# -->
+<!--           ,CENTER_CODE = #CENTERCODE# -->
+<!--           ,UPDATEDATE2 = SYSDATE -->
+<!--       ]]> -->
+<!--           <isEqual property="WORKSTATUS" compareValue="START" prepend=","> -->
+<!--                   CNT = $CNT$ -->
+<!--           </isEqual> -->
+<!--           <isEqual property="STATUS" compareValue="END" prepend=","> -->
+<!--                   STATUS = $STATUS$ -->
+<!--           </isEqual> -->
+          
+<!--           <isEqual property="CREATEDATE2" compareValue="COMPLETE" prepend=","> -->
+<!--                   CREATEDATE2 = #CREATEDATE2# -->
+<!--           </isEqual> -->
+   
+   
+<!--     </update> -->
+    
+<!--     <delete id="sqlTest.delete" parameterClass="java.util.Map"> -->
+<!--         DELETE FROM CB_COMPANY -->
+<!--     </delete> -->
+</sqlMap>

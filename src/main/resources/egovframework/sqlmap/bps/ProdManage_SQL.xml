@@ -1,0 +1,3479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ProdManage">
+
+    <parameterMap class="java.util.Map" id="procPlanWorkCreateParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="WORKPLANNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="WORKORDERID" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="TransItemTrxParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="LOTNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXGUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXTYPE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXUNITPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <!-- <parameter property="TRXWAREHOUSING" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> -->
+        <parameter property="TRXNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXIUD" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REMARKS" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <procedure id="prod.plan.work.order.create.call.Procedure" parameterClass="java.util.Map"  parameterMap="procPlanWorkCreateParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_MFG_PKG.CB_PLAN_WORK_ORDER_CREATE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+     <procedure id="prod.tool.trans.item.transaction.call.procedure" parameterClass="java.util.Map"  parameterMap="TransItemTrxParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call ITEM_TRX.TRANS_TRX( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+    <!-- Dummy Lov 시작 -->
+    <sql id="prod.manage.dummy.month.sql-select">
+        SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(ADD_MONTHS(LAST_DAY(SYSDATE), +2), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+                ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+                ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+                ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+                ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+          FROM DUAL
+    </sql>
+
+    <sql id="prod.manage.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="prod.manage.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.dummy.month.sql-select" />
+        <include refid="prod.manage.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+
+    <sql id="prod.manage.ProdPlanRegistManage.sql-select">
+    <![CDATA[
+				SELECT RANK() OVER(ORDER BY MV.ORG_ID, MV.COMPANY_ID, MV.WORK_PLAN_NO, MV.SO_NO, MV.SO_SEQ) AS RN
+					      ,MV.ORG_ID AS ORGID
+					      ,MV.COMPANY_ID AS COMPANYID
+					      ,MV.WORK_PLAN_NO AS WORKPLANNO
+	              ,MV.UPPER_ITEM_CODE AS UPPERITEMCODE
+					      ,MV.ITEM_CODE AS ITEMCODE
+	              ,MV.ORDER_NAME AS ORDERNAME
+	              ,MV.DRAWING_NO AS DRAWINGNO
+					      ,MV.ITEM_NAME AS ITEMNAME
+					      ,MV.MODEL AS MODEL
+					      ,MV.MODELNAME AS MODELNAME
+					      ,MV.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+	              ,MV.MATERIAL_TYPE AS MATERIALTYPE
+					      ,MV.UOM AS UOM
+					      ,MV.UOM_NAME AS UOMNAME
+					      ,MV.CAR_TYPE_NAME AS CARTYPENAME
+					      ,MV.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+					      ,MV.WORK_PLAN_QTY AS WORKPLANQTY
+					      ,NVL((SELECT SUM(WOH.WORK_ORDER_QTY)
+	                  FROM CB_WORK_ORDER_HEADER WOH
+	                 WHERE WOH.ORG_ID = MV.ORG_ID
+	                   AND WOH.COMPANY_ID = MV.COMPANY_ID
+	                   AND WOH.WORK_PLAN_NO = MV.WORK_PLAN_NO
+	                   AND WOH.WORK_STATUS <> 'CANCEL'), 0) AS BEFOREWORKQTY
+					      ,MV.DUE_DATE AS DUEDATE
+					      ,MV.CAST_END_PLAN_DATE AS CASTENDPLANDATE
+					      ,MV.WORK_END_PLAN_DATE AS WORKENDPLANDATE
+					      ,MV.WORK_START_DATE AS WORKSTARTDATE
+					      ,MV.SO_NO AS SONO
+					      ,MV.SO_SEQ AS SOSEQ
+					      ,MV.SO_QTY AS SOQTY
+					      ,MV.WORK_ORDER_YN AS WORKORDERYN
+					      ,MV.REMARKS AS REMARKS
+					      ,MV.CUSTOMER_CODE AS CUSTOMERCODE
+					      ,MV.CUSTOMER_NAME AS CUSTOMERNAME
+				FROM CB_PROD_PLAN_MANAGE_V MV
+		]]>
+    </sql>
+
+    <sql id="prod.manage.ProdPlanRegistManage.sql-where">
+          WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            MV.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            MV.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            MV.CUSTOMER_CODE = #CUSTOMERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            MV.CUSTOMER_NAME LIKE '%' || #CUSTOMERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="BIGCODE" prepend="AND">
+            MV.BIG_CODE = #BIGCODE#
+        </isNotEmpty>
+        <isNotEmpty property="BIGNAME" prepend="AND">
+            MV.BIG_NAME LIKE '%' || #BIGNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            MV.ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            MV.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            MV.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="MODELNAME" prepend="AND">
+            MV.MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+            MV.ITEM_STANDARD_DETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERYN" prepend="AND">
+            MV.WORK_ORDER_YN_CHECK = #WORKORDERYN#
+        </isNotEmpty>
+        <isNotEmpty property="MULTIWORKORDERYN" prepend="AND">
+            MV.COMPLETEYN =  'N'
+            /* AND MV.WORK_ORDER_YN_CHECK IN ('N', 'S') */
+        </isNotEmpty>
+        <isEqual property="WORKSTARTDATE" compareValue="Y">
+            AND MV.WORK_START_DATE IS NOT NULL
+        </isEqual>
+        <isEqual property="WORKSTARTDATE" compareValue="N">
+            AND MV.WORK_START_DATE IS NULL
+        </isEqual>
+        <isNotEmpty property="COMPLETEYN" prepend="AND">
+            MV.COMPLETEYN = #COMPLETEYN#
+        </isNotEmpty>
+        <isNotEmpty property="DATETO">
+            <isNotEmpty property="DATEFROM" prepend="AND">
+                MV.DUE_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+            </isNotEmpty>    
+        </isNotEmpty>
+        <isNotEmpty property="DUEDATE" prepend="AND">
+            MV.DUE_DATE <![CDATA[ <= ]]> TO_DATE(#DUEDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="STARTDATE" prepend="AND">
+            NVL(MV.WORK_START_DATE, TO_DATE(#STARTDATE#, 'YYYY-MM-DD')) <![CDATA[ <= ]]> TO_DATE(#STARTDATE#, 'YYYY-MM-DD')
+            AND MV.SOSTATUS NOT IN ('CANCEL', 'COMPLETE')
+        </isNotEmpty>
+        <isNotEmpty property="EQUALSTATUS" prepend="AND">
+				    MV.WORK_PLAN_NO NOT IN
+				       (SELECT CWOH.WORK_PLAN_NO
+                  FROM CB_WORK_ORDER_HEADER CWOH
+                 WHERE CWOH.ORG_ID = MV.ORG_ID
+                   AND CWOH.COMPANY_ID = MV.COMPANY_ID
+                   AND CWOH.WORK_PLAN_NO = MV.WORK_PLAN_NO
+                   AND MV.WORK_PLAN_QTY<![CDATA[<= ]]>(SELECT SUM(OH.WORK_ORDER_QTY)
+																																					  FROM CB_WORK_ORDER_HEADER OH
+																																					 WHERE OH.ORG_ID = CWOH.ORG_ID
+																																					   AND OH.COMPANY_ID = CWOH.COMPANY_ID
+																																					   AND OH.WORK_PLAN_NO = CWOH.WORK_PLAN_NO
+																																					   AND OH.WORK_STATUS<![CDATA[ <> ]]>'CANCEL'
+																																					   AND OH.WORK_PLAN_NO IS NOT NULL))
+        </isNotEmpty>
+            ORDER BY MV.ORG_ID, MV.COMPANY_ID, MV.WORK_PLAN_NO, MV.SO_NO, MV.SO_SEQ
+    </sql>
+
+    <select id="prod.manage.ProdPlanRegistManage.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.ProdPlanRegistManage.sql-select" />
+        <include refid="prod.manage.ProdPlanRegistManage.sql-where" />
+    </select>
+
+    <select id="prod.manage.ProdPlanRegistManage.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.ProdPlanRegistManage.sql-select" />
+            <include refid="prod.manage.ProdPlanRegistManage.sql-where" />
+        ) TOT
+    </select>
+
+    <update id="prod.manage.ProdPlanRegistManage.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_PROD_PLAN
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , WORK_START_DATE  = TO_DATE(#WORKSTARTDATE#, 'YYYY-MM-DD')
+               , REMARKS = #REMARKS#
+        ]]>
+        <![CDATA[
+        WHERE 1=1
+             AND ORG_ID = #ORGID#
+             AND COMPANY_ID = #COMPANYID#
+             AND SO_NO = #SONO#
+             AND SO_SEQ = $SOSEQ$
+             AND ITEM_CODE = #ITEMCODE#
+        ]]>
+    </update>
+    
+    <!-- 생산현황 및 CAPA 조회 시작 -->
+    <sql id="prod.manage.capa.list.sql-select">
+        SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE/*IM.CUSTOMER_NAME, IM.ORDER_NAME, IM.ITEM_NAME*/) AS RN
+                ,IM.ORG_ID AS ORGID
+                ,IM.COMPANY_ID AS COMPANYID
+                ,IM.CUSTOMER_CODE AS CUSTOMERCODE
+                ,IM.CUSTOMER_NAME AS CUSTOMERNAME
+                ,IM.ITEM_CODE AS ITEMCODE
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.DRAWING_NO AS DRAWINGNO
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.MODEL AS MODEL
+                ,IM.MODEL_NAME AS MODELNAME
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,CB_MFG_PKG.CB_MAT_REMAIN_QTY(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                              ) AS MATCOUNT
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,1
+                                              ,'LIST'
+                                              ) AS GROUP01
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,2
+                                              ,'LIST'
+                                              ) AS GROUP02
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,3
+                                              ,'LIST'
+                                              ) AS GROUP03
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,4
+                                              ,'LIST'
+                                              ) AS GROUP04
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,5
+                                              ,'LIST'
+                                              ) AS GROUP05
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,6
+                                              ,'LIST'
+                                              ) AS GROUP06
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,7
+                                              ,'LIST'
+                                              ) AS GROUP07
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,8
+                                              ,'LIST'
+                                              ) AS GROUP08
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,9
+                                              ,'LIST'
+                                              ) AS GROUP09
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,10
+                                              ,'LIST'
+                                              ) AS GROUP10
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'LIST'
+                                              ) AS GROUP11
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) AS FINISHITEM
+                ,CB_COST_PKG.CB_SALES_ORDER_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TMP.SEARCH_DATE) AS SOQTY
+                ,CB_COST_PKG.CB_SO_REMAIN_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TRUNC(TMP.SEARCH_DATE, 'MM')) + 
+                 CB_COST_PKG.CB_SALES_ORDER_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TMP.SEARCH_DATE) - 
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE') AS SOREMAINQTY
+                /*,CB_COST_PKG.CB_SALES_ORDER_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TMP.SEARCH_DATE) - (
+                 CB_COST_PKG.CB_SO_REMAIN_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TRUNC(TMP.SEARCH_DATE, 'MM')) + 
+                 CB_COST_PKG.CB_SALES_ORDER_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TMP.SEARCH_DATE) - 
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE')
+                 ) AS MORELESSQTY1 */ 
+                 /* 과부족 수량 = 완제품재고 - 수주잔량 */
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE'
+                                              ) -
+                (CB_COST_PKG.CB_SO_REMAIN_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TRUNC(TMP.SEARCH_DATE, 'MM')) + 
+                 CB_COST_PKG.CB_SALES_ORDER_QTY_FNC(IM.ORG_ID
+                                                   ,IM.COMPANY_ID
+                                                   ,IM.ITEM_CODE
+                                                   ,TMP.SEARCH_DATE) - 
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE')) AS MORELESSQTY1
+                ,CB_MFG_PKG.CB_SO_PLAN_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE
+                                          ,0) AS PLANQTY
+                ,CB_MFG_PKG.CB_SO_PLAN_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE
+                                          ,1) AS PLANNEXTQTY
+                ,CB_MFG_PKG.CB_SO_SHIP_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE) AS SHIPQTY
+                ,CB_MFG_PKG.CB_SO_PLAN_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE
+                                          ,0) -
+                 CB_MFG_PKG.CB_SO_SHIP_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE)-
+                 /*수주 완료건이나 미출하 잔량이 있는 경우 미출하 잔량 0으로 처리*/
+                 CB_MFG_PKG.CB_SO_REMAIN_QTY(IM.ORG_ID
+                                            ,IM.COMPANY_ID
+                                            ,IM.ITEM_CODE
+                                            ,TMP.SEARCH_DATE) AS MORELESSQTY2
+                /* 완제품재고 - 출하잔량 - 익월 수주계획 + 공정별 재고 */
+                /* 완제품재고 */
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'COMPLETE') - (
+                 /* 출하잔량 */                             
+                 CB_MFG_PKG.CB_SO_PLAN_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE
+                                          ,0) -
+                 CB_MFG_PKG.CB_SO_SHIP_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE) -
+                 CB_MFG_PKG.CB_SO_REMAIN_QTY(IM.ORG_ID
+                                            ,IM.COMPANY_ID
+                                            ,IM.ITEM_CODE
+                                            ,TMP.SEARCH_DATE)                         
+                 ) - (
+                 /* 익월 수주계획 */
+                 CB_MFG_PKG.CB_SO_PLAN_QTY(IM.ORG_ID
+                                          ,IM.COMPANY_ID
+                                          ,IM.ITEM_CODE
+                                          ,TMP.SEARCH_DATE
+                                          ,1)
+                 ) + (
+                 /* 공정별 재고 */
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,1
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,2
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,3
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,4
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,5
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,6
+                                              ,'LIST') +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,7
+                                              ,'LIST'
+                                              ) +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,8
+                                              ,'LIST'
+                                              ) +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,9
+                                              ,'LIST'
+                                              ) +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,10
+                                              ,'LIST'
+                                              ) +
+                 CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11
+                                              ,'LIST'
+                                              )
+                 ) AS NEXTREQUIREQTY
+                ,(SELECT COUNT(*)
+                    FROM CB_ROUTING_CONTROL RC
+                   WHERE 1=1
+                     AND RC.ORG_ID = IM.ORG_ID
+                     AND RC.COMPANY_ID = IM.COMPANY_ID
+                     AND RC.ITEM_CODE = IM.ITEM_CODE
+                     AND SYSDATE BETWEEN RC.EFFECTIVE_START_DATE AND RC.EFFECTIVE_END_DATE) AS ROUTINGCNT
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,1 - 1
+                                              ,'DETAIL') AS ROUT01
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,2 - 1
+                                              ,'DETAIL') AS ROUT02
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,3 - 1
+                                              ,'DETAIL') AS ROUT03
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,4 - 1
+                                              ,'DETAIL') AS ROUT04
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,5 - 1
+                                              ,'DETAIL') AS ROUT05
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,6 - 1
+                                              ,'DETAIL') AS ROUT06
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,7 - 1
+                                              ,'DETAIL') AS ROUT07
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,8 - 1
+                                              ,'DETAIL') AS ROUT08
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,9 - 1
+                                              ,'DETAIL') AS ROUT09
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,10 - 1
+                                              ,'DETAIL') AS ROUT10
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,11 - 1
+                                              ,'DETAIL') AS ROUT11
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,12 - 1
+                                              ,'DETAIL') AS ROUT12
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,13 - 1
+                                              ,'DETAIL'
+                                               ) AS ROUT13
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,14 - 1
+                                              ,'DETAIL') AS ROUT14
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,15 - 1
+                                              ,'DETAIL') AS ROUT15
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,16 - 1
+                                              ,'DETAIL') AS ROUT16
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,17 - 1
+                                              ,'DETAIL') AS ROUT17
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,18 - 1
+                                              ,'DETAIL') AS ROUT18
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,19 - 1
+                                              ,'DETAIL') AS ROUT19
+                ,CB_MFG_PKG.CB_ROUT_REMAIN_QTY(IM.ORG_ID
+                                              ,IM.COMPANY_ID
+                                              ,IM.ITEM_CODE
+                                              ,TMP.SEARCH_DATE
+                                              ,20 - 1
+                                              ,'DETAIL') AS ROUT20
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,1 - 1
+                                                ,'DETAIL') AS STAN01
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,2 - 1
+                                                ,'DETAIL') AS STAN02
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,3 - 1
+                                                ,'DETAIL') AS STAN03
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,4 - 1
+                                                ,'DETAIL') AS STAN04
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,5 - 1
+                                                ,'DETAIL') AS STAN05
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,6 - 1
+                                                ,'DETAIL') AS STAN06
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,7 - 1
+                                                ,'DETAIL') AS STAN07
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,8 - 1
+                                                ,'DETAIL') AS STAN08
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,9 - 1
+                                                ,'DETAIL') AS STAN09
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,10 - 1
+                                                ,'DETAIL') AS STAN10
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,11 - 1
+                                                ,'DETAIL') AS STAN11
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,12 - 1
+                                                ,'DETAIL') AS STAN12
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,13 - 1
+                                                ,'DETAIL') AS STAN13
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,14 - 1
+                                                ,'DETAIL') AS STAN14
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,15 - 1
+                                                ,'DETAIL') AS STAN15
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,16 - 1
+                                                ,'DETAIL') AS STAN16
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,17 - 1
+                                                ,'DETAIL') AS STAN17
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,18 - 1
+                                                ,'DETAIL') AS STAN18
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,19 - 1
+                                                ,'DETAIL') AS STAN19
+                ,CB_MFG_PKG.CB_ROUT_STAND_BY_QTY(IM.ORG_ID
+                                                ,IM.COMPANY_ID
+                                                ,IM.ITEM_CODE
+                                                ,TMP.SEARCH_DATE
+                                                ,20 - 1
+                                                ,'DETAIL') AS STAN20
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,1) AS ROUTNAME01
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,2) AS ROUTNAME02
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,3) AS ROUTNAME03
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,4) AS ROUTNAME04
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,5) AS ROUTNAME05
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,6) AS ROUTNAME06
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,7) AS ROUTNAME07
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,8) AS ROUTNAME08
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,9) AS ROUTNAME09
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,10) AS ROUTNAME10
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,11) AS ROUTNAME11
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,12) AS ROUTNAME12
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,13) AS ROUTNAME13
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,14) AS ROUTNAME14
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,15) AS ROUTNAME15
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,16) AS ROUTNAME16
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,17) AS ROUTNAME17
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,18) AS ROUTNAME18
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,19) AS ROUTNAME19
+                ,CB_MFG_PKG.CB_FIND_ROUT_NAME(IM.ORG_ID
+                                             ,IM.COMPANY_ID
+                                             ,IM.ITEM_CODE
+                                             ,TMP.SEARCH_DATE
+                                             ,20) AS ROUTNAME20
+        FROM CB_ITEM_MASTER_V IM
+                ,(SELECT #ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,TO_DATE(#SEARCHDATE#, 'YYYY-MM-DD') AS SEARCH_DATE
+                          ,#GROUPCODE# AS GROUP_CODE
+                          ,#BIGNAME# AS BIG_NAME
+                          ,#MIDDLENAME# AS MIDDLE_NAME
+                          ,#SMALLNAME# AS SMALL_NAME
+                    FROM DUAL) TMP
+    </sql>
+
+    <sql id="prod.manage.capa.list.sql-where">
+    <![CDATA[
+          WHERE 1=1
+					   AND IM.ORG_ID = TMP.ORG_ID
+					   AND IM.COMPANY_ID = TMP.COMPANY_ID
+					   AND IM.GROUP_CODE = TMP.GROUP_CODE
+					   AND SYSDATE BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE
+    ]]>
+    <isNotEmpty property="BIGNAME" prepend="AND">
+        IM.BIG_NAME LIKE '%' || #BIGNAME# || '%'
+    </isNotEmpty>
+    <isNotEmpty property="MIDDLENAME" prepend="AND">
+        IM.MIDDLE_NAME LIKE '%' || #MIDDLENAME# || '%'
+    </isNotEmpty>
+    <isNotEmpty property="SMALLNAME" prepend="AND">
+        IM.SMALL_NAME LIKE '%' || #SMALLNAME# || '%'
+    </isNotEmpty>
+    <isNotEmpty property="ITEMCODE" prepend="AND">
+        IM.ITEM_CODE = #ITEMCODE#
+    </isNotEmpty>
+    <![CDATA[
+					   /*AND (IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE) IN (SELECT SOD.ORG_ID, SOD.COMPANY_ID, SOD.ITEM_CODE
+														                                                      FROM CB_SALES_ORDER_H SOH
+														                                                          ,CB_SALES_ORDER_D SOD
+														                                                     WHERE 1=1
+														                                                       AND SOH.ORG_ID = SOD.ORG_ID
+														                                                       AND SOH.COMPANY_ID = SOD.COMPANY_ID
+														                                                       AND SOH.SO_NO = SOD.SO_NO
+														                                                       AND SOH.SO_STATUS <> 'CANCEL'
+														                                                       AND SOD.ORG_ID = TMP.ORG_ID
+														                                                       AND SOD.COMPANY_ID = TMP.COMPANY_ID
+														                                                       AND SOD.ORG_ID = IM.ORG_ID
+														                                                       AND SOD.COMPANY_ID = IM.COMPANY_ID
+														                                                       AND SOD.ITEM_CODE = IM.ITEM_CODE
+														                                                       AND SOD.DUE_DATE BETWEEN TRUNC(TMP.SEARCH_DATE, 'MM') AND
+														                                                           TMP.SEARCH_DATE)*/
+					 ORDER BY IM.ORG_ID
+								         ,IM.COMPANY_ID
+								         ,IM.ITEM_CODE
+								         /*,IM.CUSTOMER_NAME
+								         ,IM.ORDER_NAME
+								         ,IM.ITEM_NAME*/
+    ]]>
+    </sql>
+
+    <select id="prod.manage.capa.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.capa.list.sql-select" />
+        <include refid="prod.manage.capa.list.sql-where" />
+    </select>
+
+    <select id="prod.manage.capa.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.capa.list.sql-select" />
+            <include refid="prod.manage.capa.list.sql-where" />
+        ) TOT
+    </select>
+    <!-- 생산현황 및 CAPA 조회 끝 -->
+    
+    
+    <!-- 설비 실적현황 조회 시작 -->
+    <sql id="prod.manage.equip.result.list.sql-select">
+    SELECT RANK() OVER(ORDER BY WE.ORG_ID, WE.COMPANY_ID, TO_CHAR(WE.START_TIME, 'YYYY-MM-DD'), WE.WORK_CENTER_CODE) AS RN
+			      ,WE.ORG_ID AS ORGID
+			      ,WE.COMPANY_ID AS COMPANYID
+			      ,TO_CHAR(WE.START_TIME, 'YYYY-MM-DD') AS STARTDATE
+			      ,WE.WORK_CENTER_CODE AS WORKCENTERCODE
+			      ,(SELECT WC.WORK_CENTER_NAME
+			          FROM CB_WORK_CENTER WC
+			         WHERE 1=1
+			           AND WC.ORG_ID = WE.ORG_ID
+			           AND WC.COMPANY_ID = WE.COMPANY_ID
+			           AND WC.WORK_CENTER_CODE = WE.WORK_CENTER_CODE) AS WORKCENTERNAME
+			      ,NVL(SUM(WE.WORK_ORDER_QTY), 0) AS PRODUCEDQTY
+			      ,TO_CHAR(MAX(WE.FINAL_PROC_TIME), 'YYYY-MM-DD HH24:MI') AS FINALPROCTIME
+			      ,SUM(WE.INTERFACE_RESULT) AS INTERFACERESULT
+		  FROM CB_WORK_ORDER WO
+			      ,CB_WORK_EMPLOYEE WE
+			      ,(SELECT #ORGID# AS ORG_ID
+			              ,#COMPANYID# AS COMPANY_ID
+			              ,TO_DATE(#SEARCHFROM# || ' 08:30', 'YYYY-MM-DD HH24:MI') AS SEARCH_FROM
+			              ,TO_DATE(#SEARCHTO# || ' 08:29', 'YYYY-MM-DD HH24:MI') AS SEARCH_TO
+			          FROM DUAL) TMP
+    </sql>
+
+    <sql id="prod.manage.equip.result.list.sql-where">
+          WHERE 1=1
+					   AND WO.ORG_ID = WE.ORG_ID
+					   AND WO.COMPANY_ID = WE.COMPANY_ID
+					   AND WO.WORK_ORDER_ID = WE.WORK_ORDER_ID
+					   AND WO.WORK_ORDER_SEQ = WE.WORK_ORDER_SEQ
+					   AND WO.WORK_STATUS <![CDATA[ <> ]]> 'CANCEL'
+					   AND WE.ORG_ID = TMP.ORG_ID
+					   AND WE.COMPANY_ID = TMP.COMPANY_ID
+					   AND WE.START_TIME <![CDATA[ >= ]]> TMP.SEARCH_FROM
+					   AND WE.END_TIME <![CDATA[ <= ]]> TMP.SEARCH_TO
+					   AND WE.WORK_CENTER_CODE NOT LIKE 'DJZ%'
+					   <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+					       WE.WORK_CENTER_CODE = #WORKCENTERCODE#
+					   </isNotEmpty>
+				 GROUP BY WE.ORG_ID, WE.COMPANY_ID, TO_CHAR(WE.START_TIME, 'YYYY-MM-DD'), WE.WORK_CENTER_CODE
+				 ORDER BY WE.ORG_ID, WE.COMPANY_ID, TO_CHAR(WE.START_TIME, 'YYYY-MM-DD'), WE.WORK_CENTER_CODE
+    </sql>
+
+    <select id="prod.manage.equip.result.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.equip.result.list.sql-select" />
+        <include refid="prod.manage.equip.result.list.sql-where" />
+    </select>
+
+    <select id="prod.manage.equip.result.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.equip.result.list.sql-select" />
+            <include refid="prod.manage.equip.result.list.sql-where" />
+        ) TOT
+    </select>
+    <!-- 설비 실적현황 조회 끝 -->
+    
+    
+    <sql id="prod.model.detail.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY IM.ITEM_NAME
+					                           ,(SELECT SC.SMALL_NAME
+					                              FROM CB_SMALL_CODE SC
+					                             WHERE SC.ORG_ID = IM.ORG_ID
+					                                AND SC.COMPANY_ID = IM.COMPANY_ID
+					                                AND SC.BIG_CODE = 'CMM'
+					                                AND SC.MIDDLE_CODE = 'MODEL'
+					                                AND SC.SMALL_CODE = IM.CAR_TYPE), IM.ITEM_STANDARD_DETAIL) AS RN
+					      ,IM.ORG_ID AS ORGID
+					      ,IM.COMPANY_ID AS COMPANYID
+					      ,IM.ITEM_CODE AS ITEMCODE
+					      ,IM.ITEM_NAME AS ITEMNAME
+					      ,IM.ORDER_NAME AS ORDERNAME
+					      ,IM.CAR_TYPE AS CARTYPE
+					      ,(SELECT SC.SMALL_NAME
+					         FROM CB_SMALL_CODE SC
+					        WHERE SC.ORG_ID = IM.ORG_ID
+					           AND SC.COMPANY_ID = IM.COMPANY_ID
+					           AND SC.BIG_CODE = 'CMM'
+					           AND SC.MIDDLE_CODE = 'MODEL'
+					           AND SC.SMALL_CODE = IM.CAR_TYPE) AS CARTYPENAME
+					      ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,1
+					                                          ,'MONTHLY'
+					                                          ,'IMPORT_QTY') AS IMPORTQTY
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,1
+					                                          ,'MONTHLY'
+					                                          ,'FAULT_QTY') AS FAULTQTY
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,1
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY01
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,2
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY02
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,3
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY03
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,4
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY04
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,5
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY05
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,6
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY06
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,7
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY07
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,8
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY08
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,9
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY09
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,10
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY10
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,11
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY11
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,12
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY12
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,13
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY13
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,14
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY14
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,15
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY15
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,16
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY16
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,17
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY17
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,18
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY18
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,19
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY19
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,20
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY20
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,21
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY21
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,22
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY22
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,23
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY23
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,24
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY24
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,25
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY25
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,26
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY26
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,27
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY27
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,28
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY28
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,29
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY29
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,30
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY30
+					      ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                          ,RG.COMPANY_ID
+					                                          ,RG.ITEM_CODE
+					                                          ,RG.ROUTING_ID
+					                                          ,TMP.SEARCH_MONTH
+					                                          ,31
+					                                          ,'DAY'
+					                                          ,'IMPORT_QTY') AS DAY31
+			  FROM CB_ITEM_MASTER IM
+					      ,CB_ITEM_LAST_MCT_V RG
+					      ,(SELECT #ORGID# AS ORG_ID
+						              ,#COMPANYID# AS COMPANY_ID
+						              ,#SEARCHMONTH# AS SEARCH_MONTH
+						              ,#ITEMNAME# AS ITEM_NAME
+						              ,#CARTYPE# AS CAR_TYPE
+					          FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.model.detail.list.sql-where">
+          WHERE 1=1
+					   AND IM.ORG_ID = RG.ORG_ID
+					   AND IM.COMPANY_ID = RG.COMPANY_ID
+					   AND IM.ITEM_CODE = RG.ITEM_CODE
+					   AND IM.ORG_ID = TMP.ORG_ID
+					   AND IM.COMPANY_ID = TMP.COMPANY_ID
+					   AND IM.ITEM_NAME LIKE '%' || TMP.ITEM_NAME || '%'
+					   AND IM.CAR_TYPE = NVL(TMP.CAR_TYPE, IM.CAR_TYPE)
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+            IM.ITEM_STANDARD_DETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.model.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.model.detail.list.sql-select" />
+        <include refid="prod.model.detail.list.sql-where" />
+    </select>
+
+    <select id="prod.model.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.model.detail.list.sql-select" />
+            <include refid="prod.model.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    
+    <sql id="prod.model.total.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY ITEMNAME, CARTYPENAME, ITEMSTANDARDDETAIL) AS RN
+						      ,ORGID
+						      ,COMPANYID
+						      ,ITEMNAME
+						      ,CARTYPE
+						      ,CARTYPENAME
+						      ,ITEMSTANDARDDETAIL
+						      ,SUM(IMPORTQTY) AS IMPORTQTY
+						      ,SUM(FAULTQTY) AS FAULTQTY
+						      ,SUM(DAY01) AS DAY01
+						      ,SUM(DAY02) AS DAY02
+						      ,SUM(DAY03) AS DAY03
+						      ,SUM(DAY04) AS DAY04
+						      ,SUM(DAY05) AS DAY05
+						      ,SUM(DAY06) AS DAY06
+						      ,SUM(DAY07) AS DAY07
+						      ,SUM(DAY08) AS DAY08
+						      ,SUM(DAY09) AS DAY09
+						      ,SUM(DAY10) AS DAY10
+						      ,SUM(DAY11) AS DAY11
+						      ,SUM(DAY12) AS DAY12
+						      ,SUM(DAY13) AS DAY13
+						      ,SUM(DAY14) AS DAY14
+						      ,SUM(DAY15) AS DAY15
+						      ,SUM(DAY16) AS DAY16
+						      ,SUM(DAY17) AS DAY17
+						      ,SUM(DAY18) AS DAY18
+						      ,SUM(DAY19) AS DAY19
+						      ,SUM(DAY20) AS DAY20
+						      ,SUM(DAY21) AS DAY21
+						      ,SUM(DAY22) AS DAY22
+						      ,SUM(DAY23) AS DAY23
+						      ,SUM(DAY24) AS DAY24
+						      ,SUM(DAY25) AS DAY25
+						      ,SUM(DAY26) AS DAY26
+						      ,SUM(DAY27) AS DAY27
+						      ,SUM(DAY28) AS DAY28
+						      ,SUM(DAY29) AS DAY29
+						      ,SUM(DAY30) AS DAY30
+						      ,SUM(DAY31) AS DAY31
+				  FROM (
+    ]]>
+    </sql>
+
+    <sql id="prod.model.total.list.sql-where">
+          )
+			 WHERE 1=1
+			 GROUP BY ORGID, COMPANYID, ITEMNAME, CARTYPE, CARTYPENAME, ITEMSTANDARDDETAIL
+    </sql>
+
+    <select id="prod.model.total.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.model.total.list.sql-select" />
+        <include refid="prod.model.detail.list.sql-select" />
+        <include refid="prod.model.detail.list.sql-where" />
+        <include refid="prod.model.total.list.sql-where" />
+    </select>
+
+    <select id="prod.model.total.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="prod.model.total.list.sql-select" />
+        <include refid="prod.model.detail.list.sql-select" />
+        <include refid="prod.model.detail.list.sql-where" />
+        <include refid="prod.model.total.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.model.year.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY ITEMNAME, CARTYPENAME) AS RN
+					      ,ORGID
+					      ,COMPANYID
+					      ,ITEMNAME
+					      ,CARTYPE
+					      ,CARTYPENAME
+					      ,SUM(IMPORTQTY) AS IMPORTQTY
+					      ,SUM(FAULTQTY) AS FAULTQTY
+					      ,SUM(MONTHLY01) AS MONTHLY01
+					      ,SUM(MONTHLY02) AS MONTHLY02
+					      ,SUM(MONTHLY03) AS MONTHLY03
+					      ,SUM(MONTHLY04) AS MONTHLY04
+					      ,SUM(MONTHLY05) AS MONTHLY05
+					      ,SUM(MONTHLY06) AS MONTHLY06
+					      ,SUM(MONTHLY07) AS MONTHLY07
+					      ,SUM(MONTHLY08) AS MONTHLY08
+					      ,SUM(MONTHLY09) AS MONTHLY09
+					      ,SUM(MONTHLY10) AS MONTHLY10
+					      ,SUM(MONTHLY11) AS MONTHLY11
+					      ,SUM(MONTHLY12) AS MONTHLY12
+			  FROM (
+			        SELECT IM.ORG_ID AS ORGID
+					              ,IM.COMPANY_ID AS COMPANYID
+					              ,IM.ITEM_CODE AS ITEMCODE
+					              ,IM.ITEM_NAME AS ITEMNAME
+					              ,IM.ORDER_NAME AS ORDERNAME
+					              ,IM.CAR_TYPE AS CARTYPE
+					              ,(SELECT SC.SMALL_NAME
+					                  FROM CB_SMALL_CODE SC
+					                 WHERE 1=1
+					                   AND SC.ORG_ID = IM.ORG_ID
+					                   AND SC.COMPANY_ID = IM.COMPANY_ID
+					                   AND SC.BIG_CODE = 'CMM'
+					                   AND SC.MIDDLE_CODE = 'MODEL'
+					                   AND SC.SMALL_CODE = IM.CAR_TYPE) AS CARTYPENAME
+					              ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR
+					                                                  ,1
+					                                                  ,'YEAR'
+					                                                  ,'IMPORT_QTY') AS IMPORTQTY
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR
+					                                                  ,1
+					                                                  ,'YEAR'
+					                                                  ,'FAULT_QTY') AS FAULTQTY
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(1, 2, '0')
+					                                                  ,1
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY01
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(2, 2, '0')
+					                                                  ,2
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY02
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(3, 2, '0')
+					                                                  ,3
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY03
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(4, 2, '0')
+					                                                  ,4
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY04
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(5, 2, '0')
+					                                                  ,5
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY05
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(6, 2, '0')
+					                                                  ,6
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY06
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(7, 2, '0')
+					                                                  ,7
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY07
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(8, 2, '0')
+					                                                  ,8
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY08
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(9, 2, '0')
+					                                                  ,9
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY09
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(10, 2, '0')
+					                                                  ,10
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY10
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(11, 2, '0')
+					                                                  ,11
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY11
+					              ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(RG.ORG_ID
+					                                                  ,RG.COMPANY_ID
+					                                                  ,RG.ITEM_CODE
+					                                                  ,RG.ROUTING_ID
+					                                                  ,TMP.SEARCH_YEAR || '-' || LPAD(12, 2, '0')
+					                                                  ,12
+					                                                  ,'MONTHLY'
+					                                                  ,'IMPORT_QTY') AS MONTHLY12
+			          FROM CB_ITEM_MASTER IM
+					              ,CB_ITEM_LAST_MCT_V RG
+					              ,(SELECT #ORGID# AS ORG_ID
+					                      ,#COMPANYID# AS COMPANY_ID
+					                      ,#SEARCHYEAR# AS SEARCH_YEAR
+					                      ,#ITEMNAME# AS ITEM_NAME
+					                      ,#CARTYPE# AS CAR_TYPE
+					                  FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.model.year.list.sql-where">
+		         WHERE 1=1
+		           AND IM.ORG_ID = RG.ORG_ID
+		           AND IM.COMPANY_ID = RG.COMPANY_ID
+		           AND IM.ITEM_CODE = RG.ITEM_CODE
+		           AND IM.ORG_ID = TMP.ORG_ID
+		           AND IM.COMPANY_ID = TMP.COMPANY_ID
+		           AND IM.ITEM_NAME LIKE '%' || TMP.ITEM_NAME || '%'
+		           AND IM.CAR_TYPE = NVL(TMP.CAR_TYPE, IM.CAR_TYPE)
+		       )
+		 WHERE 1=1
+		 GROUP BY ORGID
+		         ,COMPANYID
+		         ,ITEMNAME
+		         ,CARTYPE
+		         ,CARTYPENAME
+    </sql>
+
+    <select id="prod.model.year.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.model.year.list.sql-select" />
+        <include refid="prod.model.year.list.sql-where" />
+    </select>
+
+    <select id="prod.model.year.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="prod.model.year.list.sql-select" />
+        <include refid="prod.model.year.list.sql-where" />
+        ) TOT
+    </select>
+    
+    
+    <sql id="prod.daily.model.month.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CC.STANDARD_DATE) AS RN
+                ,TMP.ORG_ID AS ORGID
+                ,TMP.COMPANY_ID AS COMPANYID
+                ,TO_CHAR(CC.STANDARD_DATE, 'MM/DD (DY)') AS STANDARDDATE
+                ,TO_CHAR(CC.STANDARD_DATE, 'DY') AS DAYNAME
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,NULL
+                                                       ,'IMPORT_QTY') AS IMPORTQTY
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,NULL
+                                                       ,'FAULT_QTY') AS FAULTQTY
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,1
+                                                       ,'IMPORT_QTY') AS NUM01
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,2
+                                                       ,'IMPORT_QTY') AS NUM02
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,3
+                                                       ,'IMPORT_QTY') AS NUM03
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,4
+                                                       ,'IMPORT_QTY') AS NUM04
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,5
+                                                       ,'IMPORT_QTY') AS NUM05
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,6
+                                                       ,'IMPORT_QTY') AS NUM06
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,7
+                                                       ,'IMPORT_QTY') AS NUM07
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,8
+                                                       ,'IMPORT_QTY') AS NUM08
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,9
+                                                       ,'IMPORT_QTY') AS NUM09
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,10
+                                                       ,'IMPORT_QTY') AS NUM10
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,11
+                                                       ,'IMPORT_QTY') AS NUM11
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,12
+                                                       ,'IMPORT_QTY') AS NUM12
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,13
+                                                       ,'IMPORT_QTY') AS NUM13
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,14
+                                                       ,'IMPORT_QTY') AS NUM14
+                ,CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,15
+                                                       ,'IMPORT_QTY') AS NUM15
+				  FROM CB_CALENDAR CC
+                 ,(SELECT #ORGID# AS ORG_ID
+						              ,#COMPANYID# AS COMPANY_ID
+						              ,TRUNC(TO_DATE(#SEARCHMONTH#, 'YYYY-MM'), 'MM') AS SEARCH_MONTH
+						              ,#LABEL# AS LABEL
+						              ,#ROUTINGGROUP# AS ROUTING_GROUP
+						              ,#MODEL# AS MODEL
+					          FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.daily.model.month.list.sql-where">
+    <![CDATA[
+				 WHERE CC.ORG_ID = TMP.ORG_ID
+				   AND CC.COMPANY_ID = TMP.COMPANY_ID
+				   AND CC.STANDARD_MONTH = TMP.SEARCH_MONTH
+    ]]>
+    </sql>
+
+    <select id="prod.daily.model.month.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.daily.model.month.list.sql-select" />
+        <include refid="prod.daily.model.month.list.sql-where" />
+    </select>
+
+    <select id="prod.daily.model.month.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.daily.model.month.list.sql-select" />
+            <include refid="prod.daily.model.month.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.daily.itemdetail.month.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CC.STANDARD_DATE, TMP.LEV) AS RN
+                ,TMP.ORG_ID AS ORGID
+                ,TMP.COMPANY_ID AS COMPANYID
+                ,(CASE WHEN TMP.LEV = 1 THEN TO_CHAR(CC.STANDARD_DATE, 'MM/DD (DY)') ELSE NULL END) AS STANDARDDATE
+                ,TO_CHAR(CC.STANDARD_DATE, 'DY') AS DAYNAME
+                ,TMP.LEV
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,NULL
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS IMPORTQTY
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,NULL
+                                                       ,TMP.LEV
+                                                       ,'FAULT_QTY') AS FAULTQTY
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,1
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM01
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,2
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM02
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,3
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM03
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,4
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM04
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,5
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM05
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,6
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM06
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,7
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM07
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,8
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM08
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,9
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM09
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,10
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM10
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,11
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM11
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,12
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM12
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,13
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM13
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,14
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM14
+                ,CB_NEW_MFG_PKG.CB_DAILY_TYPE_QTY_FIND(CC.ORG_ID
+                                                       ,CC.COMPANY_ID
+                                                       ,CC.STANDARD_DATE
+                                                       ,TMP.LABEL
+                                                       ,TMP.ROUTING_GROUP
+                                                       ,TMP.MODEL
+                                                       ,15
+                                                       ,TMP.LEV
+                                                       ,'IMPORT_QTY') AS NUM15
+          FROM CB_CALENDAR CC
+                ,(SELECT LEVEL AS LEV
+                          ,#ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,TRUNC(TO_DATE(#SEARCHMONTH#, 'YYYY-MM'), 'MM') AS SEARCH_MONTH
+                          ,#LABEL# AS LABEL
+                          ,#ROUTINGGROUP# AS ROUTING_GROUP
+                          ,#MODEL# AS MODEL
+                    FROM DUAL
+                CONNECT BY LEVEL <= 2) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.daily.itemdetail.month.list.sql-where">
+    <![CDATA[
+         WHERE CC.ORG_ID = TMP.ORG_ID
+           AND CC.COMPANY_ID = TMP.COMPANY_ID
+           AND CC.STANDARD_MONTH = TMP.SEARCH_MONTH
+    ]]>
+    </sql>
+
+    <select id="prod.daily.itemdetail.month.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.daily.itemdetail.month.list.sql-select" />
+        <include refid="prod.daily.itemdetail.month.list.sql-where" />
+    </select>
+
+    <select id="prod.daily.itemdetail.month.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.daily.itemdetail.month.list.sql-select" />
+            <include refid="prod.daily.itemdetail.month.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.daily.graph.month.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CC.STANDARD_DATE) AS RN
+                ,TMP.ORG_ID AS ORGID
+                ,TMP.COMPANY_ID AS COMPANYID
+                ,TO_CHAR(CC.STANDARD_DATE, 'DD') AS STANDARDDATE
+                ,NVL(CB_NEW_MFG_PKG.CB_DAILY_MODEL_QTY_FIND(CC.ORG_ID
+                               ,CC.COMPANY_ID
+                               ,CC.STANDARD_DATE
+                               ,TMP.LABEL
+                               ,TMP.ROUTING_GROUP
+                               ,TMP.MODEL
+                               ,NULL
+                               ,'IMPORT_QTY'), 0) AS IMPORTQTY
+          FROM CB_CALENDAR CC
+                 ,(SELECT #ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,TRUNC(TO_DATE(#SEARCHMONTH#, 'YYYY-MM'), 'MM') AS SEARCH_MONTH
+                          ,#LABEL# AS LABEL
+                          ,#ROUTINGGROUP# AS ROUTING_GROUP
+                          ,#MODEL# AS MODEL
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.daily.graph.month.list.sql-where">
+    <![CDATA[
+         WHERE CC.ORG_ID = TMP.ORG_ID
+           AND CC.COMPANY_ID = TMP.COMPANY_ID
+           AND CC.STANDARD_MONTH = TMP.SEARCH_MONTH
+    ]]>
+    </sql>
+
+    <select id="prod.daily.graph.month.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.daily.graph.month.list.sql-select" />
+        <include refid="prod.daily.graph.month.list.sql-where" />
+    </select>
+
+    <select id="prod.daily.graph.month.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.daily.graph.month.list.sql-select" />
+            <include refid="prod.daily.graph.month.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.year.model.month.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CC.STANDARD_MONTH) AS RN
+                ,CC.ORG_ID AS ORGID
+                ,CC.COMPANY_ID AS COMPANYID
+                ,TO_CHAR(CC.STANDARD_MONTH, 'MM"월"') AS STANDARDMONTH
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,1
+                                                         ,'IMPORT_QTY') AS NUM01
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,2
+                                                         ,'IMPORT_QTY') AS NUM02
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,3
+                                                         ,'IMPORT_QTY') AS NUM03
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,4
+                                                         ,'IMPORT_QTY') AS NUM04
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,5
+                                                         ,'IMPORT_QTY') AS NUM05
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,6
+                                                         ,'IMPORT_QTY') AS NUM06
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,7
+                                                         ,'IMPORT_QTY') AS NUM07
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,8
+                                                         ,'IMPORT_QTY') AS NUM08
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,9
+                                                         ,'IMPORT_QTY') AS NUM09
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,10
+                                                         ,'IMPORT_QTY') AS NUM10
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,11
+                                                         ,'IMPORT_QTY') AS NUM11
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,12
+                                                         ,'IMPORT_QTY') AS NUM12
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,13
+                                                         ,'IMPORT_QTY') AS NUM13
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,14
+                                                         ,'IMPORT_QTY') AS NUM14
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,15
+                                                         ,'IMPORT_QTY') AS NUM15
+                ,CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                         ,CC.COMPANY_ID
+                                                         ,TMP.SEARCH_YEAR
+                                                         ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                         ,TMP.LABEL
+                                                         ,TMP.ROUTING_GROUP
+                                                         ,TMP.MODEL
+                                                         ,NULL
+                                                         ,'TOTAL') AS IMPORTQTY
+          FROM CB_CALENDAR CC
+                 ,(SELECT #ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,#SEARCHYEAR# AS SEARCH_YEAR
+                          ,#LABEL# AS LABEL
+                          ,#ROUTINGGROUP# AS ROUTING_GROUP
+                          ,#MODEL# AS MODEL
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.year.model.month.list.sql-where">
+    <![CDATA[
+				 WHERE CC.ORG_ID = TMP.ORG_ID
+				   AND CC.COMPANY_ID = TMP.COMPANY_ID
+				   AND TO_CHAR(CC.STANDARD_MONTH, 'YYYY') = TMP.SEARCH_YEAR
+				 GROUP BY CC.ORG_ID, CC.COMPANY_ID, TMP.SEARCH_YEAR, CC.STANDARD_MONTH, TMP.LABEL ,TMP.ROUTING_GROUP, TMP.MODEL
+    ]]>
+    </sql>
+
+    <select id="prod.year.model.month.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.year.model.month.list.sql-select" />
+        <include refid="prod.year.model.month.list.sql-where" />
+    </select>
+
+    <select id="prod.year.model.month.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.year.model.month.list.sql-select" />
+            <include refid="prod.year.model.month.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.daily.graph.year.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CC.STANDARD_MONTH) AS RN
+                ,CC.ORG_ID AS ORGID
+                ,CC.COMPANY_ID AS COMPANYID
+                ,TO_CHAR(CC.STANDARD_MONTH, 'MM"월"') AS STANDARDMONTH
+                ,NVL(CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                             ,CC.COMPANY_ID
+                                                             ,TO_CHAR(TMP.SEARCH_YEAR-2)
+                                                             ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                             ,TMP.LABEL
+                                                             ,TMP.ROUTING_GROUP
+                                                             ,TMP.MODEL
+                                                             ,NULL
+                                                             ,'TOTAL'), 0) AS IMPORTQTY2
+                ,NVL(CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                             ,CC.COMPANY_ID
+                                                             ,TO_CHAR(TMP.SEARCH_YEAR-1)
+                                                             ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                             ,TMP.LABEL
+                                                             ,TMP.ROUTING_GROUP
+                                                             ,TMP.MODEL
+                                                             ,NULL
+                                                             ,'TOTAL'), 0) AS IMPORTQTY1
+                ,NVL(CB_NEW_MFG_PKG.CB_MONTHLY_MODEL_QTY_FIND(CC.ORG_ID
+                                                             ,CC.COMPANY_ID
+                                                             ,TMP.SEARCH_YEAR
+                                                             ,RANK() OVER(ORDER BY CC.STANDARD_MONTH)
+                                                             ,TMP.LABEL
+                                                             ,TMP.ROUTING_GROUP
+                                                             ,TMP.MODEL
+                                                             ,NULL
+                                                             ,'TOTAL'), 0) AS IMPORTQTY
+          FROM CB_CALENDAR CC
+                 ,(SELECT #ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,#SEARCHYEAR# AS SEARCH_YEAR
+                          ,#LABEL# AS LABEL
+                          ,#ROUTINGGROUP# AS ROUTING_GROUP
+                          ,#MODEL# AS MODEL
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.daily.graph.year.list.sql-where">
+    <![CDATA[
+         WHERE CC.ORG_ID = TMP.ORG_ID
+            AND CC.COMPANY_ID = TMP.COMPANY_ID
+				    AND TO_CHAR(CC.STANDARD_MONTH, 'YYYY') = TMP.SEARCH_YEAR
+				 GROUP BY CC.ORG_ID, CC.COMPANY_ID, TMP.SEARCH_YEAR, CC.STANDARD_MONTH, TMP.LABEL ,TMP.ROUTING_GROUP, TMP.MODEL
+    ]]>
+    </sql>
+
+    <select id="prod.daily.graph.year.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.daily.graph.year.list.sql-select" />
+        <include refid="prod.daily.graph.year.list.sql-where" />
+    </select>
+
+    <select id="prod.daily.graph.year.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.daily.graph.year.list.sql-select" />
+            <include refid="prod.daily.graph.year.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.daily.graph.year.model.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.MODEL) AS RN
+                 ,IM.ORG_ID
+                 ,IM.COMPANY_ID
+                 ,IM.MODEL
+                 ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+													                                                            ,IM.COMPANY_ID
+													                                                            ,'CMM'
+													                                                            ,'MODEL'
+													                                                            ,IM.MODEL
+													                                                            ,'LABEL') AS MODELNAME
+                 ,NVL(CB_NEW_MFG_PKG.CB_YEAR_MODEL_QTY_FIND(IM.ORG_ID
+											                                                           ,IM.COMPANY_ID
+											                                                           ,TMP.SEARCH_YEAR
+											                                                           ,TMP.LABEL
+											                                                           ,TMP.ROUTING_GROUP
+											                                                           ,TMP.MODEL
+											                                                           ,RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.MODEL)
+											                                                           ,'IMPORT_QTY'), 0) AS QTY
+          FROM CB_MONTHLY_MODEL_TEMP IM
+                 ,(SELECT #ORGID# AS ORG_ID
+                          ,#COMPANYID# AS COMPANY_ID
+                          ,#SEARCHYEAR# AS SEARCH_YEAR
+                          ,#LABEL# AS LABEL
+                          ,#ROUTINGGROUP# AS ROUTING_GROUP
+                          ,#MODEL# AS MODEL
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="prod.daily.graph.year.model.sql-where">
+    <![CDATA[
+         WHERE IM.ORG_ID = TMP.ORG_ID
+           AND IM.COMPANY_ID = TMP.COMPANY_ID
+           AND TO_CHAR(IM.STANDARD_DATE, 'YYYY') = TMP.SEARCH_YEAR
+           AND IM.LABEL = TMP.LABEL
+           /*AND IM.ROUTING_GROUP = TMP.ROUTING_GROUP*/
+           AND IM.ROUTING_GROUP IN (SELECT SC.ATTRIBUTE2
+                                      FROM CB_SMALL_CODE SC
+                                     WHERE SC.ORG_ID = TMP.ORG_ID
+                                       AND SC.COMPANY_ID = TMP.COMPANY_ID
+                                       AND SC.BIG_CODE = 'MFG'
+                                       AND SC.MIDDLE_CODE = 'WORK_GROUP'
+                                       AND SC.SMALL_CODE = TMP.ROUTING_GROUP)
+           AND IM.MODEL = NVL(TMP.MODEL, IM.MODEL)
+         GROUP BY IM.ORG_ID, IM.COMPANY_ID, IM.MODEL, TMP.SEARCH_YEAR, TMP.LABEL, TMP.ROUTING_GROUP, TMP.MODEL
+    ]]>
+    </sql>
+
+    <select id="prod.daily.graph.year.model.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.daily.graph.year.model.sql-select" />
+        <include refid="prod.daily.graph.year.model.sql-where" />
+    </select>
+
+    <select id="prod.daily.graph.year.model.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.daily.graph.year.model.sql-select" />
+            <include refid="prod.daily.graph.year.model.sql-where" />
+        ) TOT
+    </select>
+    
+    
+    <sql id="prod.manage.status.list.header.sql-select">
+    <![CDATA[
+	   SELECT MAX(ROUTINGNAME) AS ROUTINGNAME 
+		  FROM (SELECT DENSE_RANK()OVER(ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, IM.ITEM_TYPE DESC, (SELECT RC.SORT_ORDER
+									                                                                             FROM CB_ROUTING_CONTROL RC
+									                                                                            WHERE RC.ORG_ID = WO.ORG_ID
+									                                                                              AND RC.COMPANY_ID = WO.COMPANY_ID
+									                                                                              AND RC.ITEM_CODE = WO.ITEM_CODE
+									                                                                              AND RC.ROUTING_ID = WO.ROUTING_CODE) ) AS RN
+		              ,IM.ITEM_CODE AS ITEMCODE
+		              ,IM.ITEM_NAME AS ITEMNAME
+		              ,IM.ORDER_NAME AS ORDERNAME
+		              ,IM.CAR_TYPE AS MODEL
+		              ,(SELECT SC.SMALL_NAME 
+		                  FROM CB_SMALL_CODE SC
+		                 WHERE SC.ORG_ID = IM.ORG_ID
+		                   AND SC.COMPANY_ID = IM.COMPANY_ID
+		                   AND SC.BIG_CODE = 'CMM'
+		                   AND SC.MIDDLE_CODE = 'MODEL'
+		                   AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+		              ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		              ,(SELECT SD.SO_QTY
+		                  FROM CB_SALES_ORDER_D SD
+		                      ,CB_PROD_PLAN PP
+		                 WHERE SD.ORG_ID = PP.ORG_ID
+		                   AND SD.COMPANY_ID = PP.COMPANY_ID
+		                   AND SD.SO_NO = PP.SO_NO
+		                   AND SD.SO_SEQ = PP.SO_SEQ
+		                   AND PP.ORG_ID = WOH.ORG_ID
+		                   AND PP.COMPANY_ID = WOH.COMPANY_ID
+		                   AND PP.WORK_PLAN_NO = WOH.WORK_PLAN_NO) AS SOQTY
+		              ,WO.ROUTING_CODE AS ROUTINGCODE
+		              ,(SELECT RC.ROUTING_NO
+		                  FROM CB_ROUTING_CONTROL RC
+		                 WHERE RC.ORG_ID = WO.ORG_ID
+		                   AND RC.COMPANY_ID = WO.COMPANY_ID
+		                   AND RC.ITEM_CODE = WO.ITEM_CODE
+		                   AND RC.ROUTING_ID = WO.ROUTING_CODE) AS ROUTINGNO
+		              ,(SELECT SC.SMALL_NAME
+		                  FROM CB_ROUTING_CONTROL RC
+		                      ,CB_SMALL_CODE SC
+		                 WHERE RC.ORG_ID = SC.ORG_ID
+		                   AND RC.COMPANY_ID = SC.COMPANY_ID
+		                   AND SC.BIG_CODE = 'MFG'
+		                   AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+		                   AND SC.SMALL_CODE = RC.ROUTING_NO
+		                   AND RC.ORG_ID = WO.ORG_ID
+		                   AND RC.COMPANY_ID = WO.COMPANY_ID
+		                   AND RC.ITEM_CODE = WO.ITEM_CODE
+		                   AND RC.ROUTING_ID = WO.ROUTING_CODE) AS ROUTINGNAME
+		              ,(SELECT SUM(WOD.QTY)
+		                  FROM CB_WORK_ORDER_D WOD
+		                 WHERE WOD.ORG_ID = WO.ORG_ID
+		                   AND WOD.COMPANY_ID = WO.COMPANY_ID
+		                   AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID 
+		                   AND WOD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ) AS WORKQTY
+		          FROM CB_WORK_ORDER_HEADER WOH
+		              ,CB_WORK_ORDER WO
+		              ,CB_ITEM_MASTER IM
+		         WHERE WOH.ORG_ID = WO.ORG_ID
+		           AND WOH.COMPANY_ID = WO.COMPANY_ID
+		           AND WOH.WORK_ORDER_ID = WO.WORK_ORDER_ID
+		           AND WO.ORG_ID = IM.ORG_ID
+		           AND WO.COMPANY_ID = IM.COMPANY_ID
+		           AND WO.ITEM_CODE = IM.ITEM_CODE
+		           AND WOH.ORG_ID = #ORGID#
+		           AND WOH.COMPANY_ID = #COMPANYID#
+		           AND TO_CHAR(NVL(WOH.DUE_DATE,WOH.WORK_PLAN_END_DATE),'YYYY-MM') = #SEARCHMONTH#
+		           AND IM.LABEL = #SHIPPINGITEMGROUP#
+		           AND IM.CAR_TYPE IN (SELECT SC.SMALL_CODE 
+		                                 FROM CB_SMALL_CODE SC
+		                                WHERE SC.ORG_ID = IM.ORG_ID
+		                                  AND SC.COMPANY_ID = IM.COMPANY_ID
+		                                  AND SC.BIG_CODE = 'CMM'
+		                                  AND SC.MIDDLE_CODE = 'MODEL'
+		                                  AND NVL(SC.ATTRIBUTE2,SMALL_NAME) = #MODELGROUP#)
+		         ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, WOH.ITEM_CODE, WO.WORK_ORDER_SEQ        
+		       ) 
+		  GROUP BY RN
+		  ORDER BY RN
+    ]]>
+    </sql>
+
+
+    <select id="prod.manage.status.list.header.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.status.list.header.sql-select" />
+    </select>
+
+    <select id="prod.manage.status.list.header.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.status.list.header.sql-select" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.manage.status.list.sql-select">
+    <![CDATA[
+       SELECT RANK()OVER(ORDER BY ORGID ,COMPANYID ,NVL(UPPERITEMCODE,ITEMCODE) ,ITEMTYPE DESC ,ORDERNAME ,ITEMNAME) AS RN
+             ,ORGID 
+		         ,COMPANYID 
+		         ,ITEMCODE 
+		         ,ITEMNAME 
+		         ,ORDERNAME
+		         ,MODEL 
+		         ,MODELNAME 
+		         ,ITEMSTANDARDDETAIL
+		         ,NVL((SELECT SUM(SD.SO_QTY)
+		             FROM CB_SALES_ORDER_D SD
+		            WHERE SD.ORG_ID = A.ORGID
+		              AND SD.COMPANY_ID = A.COMPANYID
+		              AND SD.ITEM_CODE = A.ITEMCODE
+		              AND TO_CHAR(SD.DUE_DATE,'YYYY-MM') = #SEARCHMONTH#),0) AS SOQTY 
+		         ,NVL((SELECT SUM(M.INQTY) - SUM(M.OUTQTY)
+		                FROM CB_INV_MONTHS_A_V M
+		               WHERE M.ORGID = A.ORGID
+		                 AND M.COMPANYID = A.COMPANYID
+		                 AND M.ITEMCODE = A.ITEMCODE
+		                 AND M.TRXMONTHS <  #SEARCHMONTH#),0) AS BACKQTY  
+		         ,NVL((SELECT SUM(M.INQTY) - SUM(M.OUTQTY)
+		                 FROM CB_BOM B
+		                     ,CB_INV_MONTHS_V M
+		                WHERE B.ORG_ID = A.ORGID
+		                  AND B.COMPANY_ID = A.COMPANYID
+		                  AND B.UPPER_ITEM_CODE = A.ITEMCODE
+		                  AND B.ORG_ID = M.ORGID
+		                  AND B.COMPANY_ID = M.COMPANYID
+		                  AND B.ITEM_CODE = M.ITEMCODE
+		                  AND M.TRXMONTHS <= #SEARCHMONTH#),0) AS INVQTY
+             ,SUM(DECODE(RN,1,WORKORDERQTY)) - SUM(DECODE(RN,1,WORKQTY))       AS WORKQTY1
+             ,SUM(DECODE(RN,1,WORKQTY)) - NVL(SUM(DECODE(RN,1,AFWORKQTY)),0)   AS WORKQTY2
+             ,SUM(DECODE(RN,2,WORKQTY)) - NVL(SUM(DECODE(RN,2,AFWORKQTY)),0)   AS WORKQTY3
+             ,SUM(DECODE(RN,3,WORKQTY)) - NVL(SUM(DECODE(RN,3,AFWORKQTY)),0)   AS WORKQTY4
+             ,SUM(DECODE(RN,4,WORKQTY)) - NVL(SUM(DECODE(RN,4,AFWORKQTY)),0)   AS WORKQTY5
+             ,SUM(DECODE(RN,5,WORKQTY)) - NVL(SUM(DECODE(RN,5,AFWORKQTY)),0)   AS WORKQTY6
+             ,SUM(DECODE(RN,6,WORKQTY)) - NVL(SUM(DECODE(RN,6,AFWORKQTY)),0)   AS WORKQTY7
+             ,SUM(DECODE(RN,7,WORKQTY)) - NVL(SUM(DECODE(RN,7,AFWORKQTY)),0)   AS WORKQTY8
+             ,SUM(DECODE(RN,8,WORKQTY)) - NVL(SUM(DECODE(RN,8,AFWORKQTY)),0)   AS WORKQTY9
+             ,SUM(DECODE(RN,9,WORKQTY)) - NVL(SUM(DECODE(RN,9,AFWORKQTY)),0)   AS WORKQTY10
+             ,SUM(DECODE(RN,10,WORKQTY))- NVL(SUM(DECODE(RN,10,AFWORKQTY)),0)  AS WORKQTY11
+             ,SUM(DECODE(RN,11,WORKQTY))- NVL(SUM(DECODE(RN,11,AFWORKQTY)),0)  AS WORKQTY12
+             ,SUM(DECODE(RN,12,WORKQTY))- NVL(SUM(DECODE(RN,12,AFWORKQTY)),0)  AS WORKQTY13
+             ,SUM(DECODE(RN,13,WORKQTY))- NVL(SUM(DECODE(RN,13,AFWORKQTY)),0)  AS WORKQTY14
+             ,SUM(DECODE(RN,14,WORKQTY))- NVL(SUM(DECODE(RN,14,AFWORKQTY)),0)  AS WORKQTY15
+             ,SUM(DECODE(RN,15,WORKQTY))- NVL(SUM(DECODE(RN,15,AFWORKQTY)),0)  AS WORKQTY16
+             ,SUM(DECODE(RN,16,WORKQTY))- NVL(SUM(DECODE(RN,16,AFWORKQTY)),0)  AS WORKQTY17
+             ,SUM(DECODE(RN,17,WORKQTY))- NVL(SUM(DECODE(RN,17,AFWORKQTY)),0)  AS WORKQTY18
+             ,SUM(DECODE(RN,18,WORKQTY))- NVL(SUM(DECODE(RN,18,AFWORKQTY)),0)  AS WORKQTY19
+             ,SUM(DECODE(RN,19,WORKQTY))- NVL(SUM(DECODE(RN,19,AFWORKQTY)),0)  AS WORKQTY20
+		         ,NVL((SELECT SUM(SD.SHIP_QTY)                                
+		             FROM CB_SHIPPING_D SD
+		                 ,CB_SALES_ORDER_D SOD
+		            WHERE SD.ORG_ID = SOD.ORG_ID
+		              AND SD.COMPANY_ID = SOD.COMPANY_ID
+		              AND SD.SO_NO = SOD.SO_NO
+		              AND SD.SO_SEQ = SOD.SO_SEQ
+		              AND SOD.ORG_ID = A.ORGID
+		              AND SOD.COMPANY_ID = A.COMPANYID
+		              AND SOD.ITEM_CODE = A.ITEMCODE
+		              AND TO_CHAR(SOD.DUE_DATE,'YYYY-MM') = #SEARCHMONTH#),0) AS SHIPQTY 
+		         ,NVL((SELECT SUM(SD.SO_QTY)
+		             FROM CB_SALES_ORDER_D SD
+		            WHERE SD.ORG_ID = A.ORGID
+		              AND SD.COMPANY_ID = A.COMPANYID
+		              AND SD.ITEM_CODE = A.ITEMCODE
+		              AND TO_CHAR(SD.DUE_DATE,'YYYY-MM') = #SEARCHMONTH#),0) 
+		         -NVL((SELECT SUM(SD.SHIP_QTY)
+		             FROM CB_SHIPPING_D SD
+		                 ,CB_SALES_ORDER_D SOD
+		            WHERE SD.ORG_ID = SOD.ORG_ID
+		              AND SD.COMPANY_ID = SOD.COMPANY_ID
+		              AND SD.SO_NO = SOD.SO_NO
+		              AND SD.SO_SEQ = SOD.SO_SEQ
+		              AND SOD.ORG_ID = A.ORGID
+		              AND SOD.COMPANY_ID = A.COMPANYID
+		              AND SOD.ITEM_CODE = A.ITEMCODE
+		              AND TO_CHAR(SOD.DUE_DATE,'YYYY-MM') = #SEARCHMONTH#),0) AS SOSHIPQTY
+		    FROM (SELECT DENSE_RANK()OVER(ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, IM.ITEM_TYPE DESC, (SELECT RC.SORT_ORDER
+											                                                                          FROM CB_ROUTING_CONTROL RC
+											                                                                         WHERE RC.ORG_ID = WO.ORG_ID
+											                                                                           AND RC.COMPANY_ID = WO.COMPANY_ID
+											                                                                           AND RC.ITEM_CODE = WO.ITEM_CODE
+											                                                                           AND RC.ROUTING_ID = WO.ROUTING_CODE) ) AS RN                                                          
+		                ,WOH.ORG_ID AS ORGID
+		                ,WOH.COMPANY_ID AS COMPANYID
+		                ,IM.ITEM_CODE AS ITEMCODE
+		                ,IM.ITEM_NAME AS ITEMNAME
+		                ,IM.ORDER_NAME AS ORDERNAME
+		                ,IM.ITEM_TYPE AS ITEMTYPE
+		                ,IM.CAR_TYPE AS MODEL
+		                ,(SELECT SC.SMALL_NAME 
+		                    FROM CB_SMALL_CODE SC
+		                   WHERE SC.ORG_ID = IM.ORG_ID
+		                     AND SC.COMPANY_ID = IM.COMPANY_ID
+		                     AND SC.BIG_CODE = 'CMM'
+		                     AND SC.MIDDLE_CODE = 'MODEL'
+		                     AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+		                ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		                ,WOH.WORK_PLAN_NO AS WORKPLANNO
+		                ,WO.ROUTING_CODE AS ROUTINGCODE
+		                ,(SELECT RC.ROUTING_NO
+		                    FROM CB_ROUTING_CONTROL RC
+		                   WHERE RC.ORG_ID = WO.ORG_ID
+		                     AND RC.COMPANY_ID = WO.COMPANY_ID
+		                     AND RC.ITEM_CODE = WO.ITEM_CODE
+		                     AND RC.ROUTING_ID = WO.ROUTING_CODE) AS ROUTINGNO
+		                ,(SELECT SC.SMALL_NAME
+		                    FROM CB_ROUTING_CONTROL RC
+		                        ,CB_SMALL_CODE SC
+		                   WHERE RC.ORG_ID = SC.ORG_ID
+		                     AND RC.COMPANY_ID = SC.COMPANY_ID
+		                     AND SC.BIG_CODE = 'MFG'
+		                     AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+		                     AND SC.SMALL_CODE = RC.ROUTING_NO
+		                     AND RC.ORG_ID = WO.ORG_ID
+		                     AND RC.COMPANY_ID = WO.COMPANY_ID
+		                     AND RC.ITEM_CODE = WO.ITEM_CODE
+		                     AND RC.ROUTING_ID = WO.ROUTING_CODE) AS ROUTINGNAME
+		                ,(SELECT SC.SMALL_NAME
+		                    FROM CB_ROUTING_CONTROL RC
+		                        ,CB_SMALL_CODE SC
+		                   WHERE RC.ORG_ID = SC.ORG_ID
+		                     AND RC.COMPANY_ID = SC.COMPANY_ID
+		                     AND SC.BIG_CODE = 'MFG'
+		                     AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+		                     AND SC.SMALL_CODE = RC.ROUTING_NO
+		                     AND RC.ORG_ID = WO.ORG_ID
+		                     AND RC.COMPANY_ID = WO.COMPANY_ID
+		                     AND RC.ITEM_CODE = WO.ITEM_CODE
+		                     AND RC.ROUTING_ID = WO.ROUTING_CODE) AS ROUTINGNAME
+		                ,(SELECT RC.SORT_ORDER
+		                    FROM CB_ROUTING_CONTROL RC
+		                   WHERE RC.ORG_ID = WO.ORG_ID
+		                     AND RC.COMPANY_ID = WO.COMPANY_ID
+		                     AND RC.ITEM_CODE = WO.ITEM_CODE
+		                     AND RC.ROUTING_ID = WO.ROUTING_CODE) AS SORT_ORDER
+		                ,NVL((SELECT SUM(NVL(WOD.QTY,0))
+		                        FROM CB_WORK_ORDER_D WOD
+		                       WHERE WOD.ORG_ID = WO.ORG_ID
+		                         AND WOD.COMPANY_ID = WO.COMPANY_ID
+		                         AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID 
+		                         AND WOD.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ),0) AS WORKQTY
+		                ,NVL((SELECT SUM(WOD.QTY)
+		                        FROM CB_WORK_ORDER_D WOD
+		                       WHERE WOD.ORG_ID = WO.ORG_ID
+		                         AND WOD.COMPANY_ID = WO.COMPANY_ID
+		                         AND WOD.WORK_ORDER_ID = WO.WORK_ORDER_ID 
+		                         AND WOD.WORK_ORDER_SEQ = (SELECT MIN(WO2.WORK_ORDER_SEQ)
+		                                                     FROM CB_WORK_ORDER WO2 
+		                                                    WHERE WOD.ORG_ID = WO2.ORG_ID
+		                                                      AND WOD.COMPANY_ID = WO2.COMPANY_ID
+		                                                      AND WOD.WORK_ORDER_ID = WO2.WORK_ORDER_ID
+		                                                      AND WOD.WORK_ORDER_SEQ < WO2.WORK_ORDER_SEQ )),0) AS AFWORKQTY         
+		                ,(SELECT MAX(B.UPPER_ITEM_CODE)
+		                    FROM CB_BOM B
+		                   WHERE B.ORG_ID = WO.ORG_ID
+		                     AND B.COMPANY_ID = WO.COMPANY_ID
+		                     AND B.ITEM_CODE = WO.ITEM_CODE) AS UPPERITEMCODE
+                    ,WOH.WORK_ORDER_QTY AS WORKORDERQTY
+		            FROM CB_WORK_ORDER_HEADER WOH
+		                ,CB_WORK_ORDER WO
+		                ,CB_ITEM_MASTER IM
+		           WHERE WOH.ORG_ID = WO.ORG_ID
+		             AND WOH.COMPANY_ID = WO.COMPANY_ID
+		             AND WOH.WORK_ORDER_ID = WO.WORK_ORDER_ID
+		             AND WO.ORG_ID = IM.ORG_ID
+		             AND WO.COMPANY_ID = IM.COMPANY_ID
+		             AND WO.ITEM_CODE = IM.ITEM_CODE
+		             AND WOH.WORK_STATUS NOT IN ('CANCEL')
+		             AND WOH.ORG_ID = #ORGID#
+		             AND WOH.COMPANY_ID = #COMPANYID#
+		             AND TO_CHAR(NVL(WOH.DUE_DATE,WOH.WORK_PLAN_END_DATE),'YYYY-MM') = #SEARCHMONTH#
+		             AND IM.LABEL = #SHIPPINGITEMGROUP#
+		             AND IM.CAR_TYPE IN (SELECT SC.SMALL_CODE 
+		                                   FROM CB_SMALL_CODE SC
+		                                  WHERE SC.ORG_ID = IM.ORG_ID
+		                                    AND SC.COMPANY_ID = IM.COMPANY_ID
+		                                    AND SC.BIG_CODE = 'CMM'
+		                                    AND SC.MIDDLE_CODE = 'MODEL'
+		                                    AND NVL(SC.ATTRIBUTE2,SMALL_NAME) = #MODELGROUP#)
+		           ORDER BY WOH.ORG_ID, WOH.COMPANY_ID, WOH.ITEM_CODE, WO.WORK_ORDER_SEQ        
+		         ) A
+		    GROUP BY ORGID ,COMPANYID ,NVL(UPPERITEMCODE,ITEMCODE) ,ITEMCODE ,ITEMNAME ,ORDERNAME, MODEL ,MODELNAME ,ITEMSTANDARDDETAIL ,ITEMTYPE
+		    ORDER BY ORGID ,COMPANYID ,NVL(UPPERITEMCODE,ITEMCODE) ,ITEMTYPE DESC ,ORDERNAME ,ITEMNAME
+    ]]>
+    </sql>
+    
+    <select id="prod.manage.status.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.status.list.sql-select" />
+    </select>
+
+    <select id="prod.manage.status.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.status.list.sql-select" />
+        ) TOT
+    </select>
+    
+    
+<!--     공구입고관리 -->
+
+
+    <sql id="prod.manage.toolwarehousing.master.sql-select">
+    SELECT DISTINCT RANK() OVER(ORDER BY CTH.TRANS_NO DESC) AS RN
+                ,CTH.ORG_ID AS ORGID
+                ,CTH.COMPANY_ID AS COMPANYID
+                ,CTH.TRANS_NO AS TRANSNO
+                ,TO_CHAR(CTH.TRANS_DATE,'YYYY-MM-DD') AS TRANSDATE
+                ,TO_CHAR(CTH.TRADE_DATE,'YYYY-MM-DD') AS TRADEDATE
+                ,CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,TRANS_DIV AS TRANSDIV
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'TRANS_DIV'
+                                                            ,CTH.TRANS_DIV
+                                                            ,'LABEL') AS TRANSDIVNAME
+                ,CTH.PAID_YN AS PAIDYN
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'PAID_YN'
+                                                            ,CTH.PAID_YN
+                                                            ,'LABEL') AS PAIDYNNAME
+                ,CTH.CUSTOMER_CODE_S AS CUSTOMERCODES
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE_S) AS CUSTOMERNAMES
+                ,CTH.REMARKS AS REMARKS
+        FROM CB_TRANS_H CTH
+            ,CB_TRANS_D CTD
+    </sql>
+    <sql id="prod.manage.toolwarehousing.master.sql-where">
+       WHERE CTH.ORG_ID = CTD.ORG_ID
+         AND CTH.COMPANY_ID = CTD.Company_Id
+         AND CTH.TRANS_NO = CTD.Trans_No
+         AND SUBSTR(CTD.ITEM_CODE,0,1)='T'
+         AND CTH.ORG_ID=$ORGID$
+         AND CTH.COMPANY_ID= $COMPANYID$
+         <isNotEmpty property="TRANSTO">
+             <isNotEmpty property="TRANSFROM" prepend="AND">
+                CTH.TRANS_DATE BETWEEN TO_DATE(#TRANSFROM#,'YYYY-MM-DD')  AND TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="TRANSFROM" prepend="AND">
+                CTH.TRANS_DATE = TO_DATE(#TRANSTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="TRANSNO" prepend="AND">
+            CTH.TRANS_NO = #TRANSNO#
+         </isNotEmpty>
+         <isNotEmpty property="no" prepend="AND">
+            CTH.TRANS_NO = #no#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CTH.CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODES" prepend="AND">
+            CTH.CUSTOMER_CODE_S = #CUSTOMERCODES#
+         </isNotEmpty>
+         <isNotEmpty property="TRANSDIV" prepend="AND">
+            CTH.TRANS_DIV = #TRANSDIV#
+         </isNotEmpty>
+         <isNotEmpty property="PAIDYN" prepend="AND">
+            CTH.PAID_YN = #PAIDYN#
+         </isNotEmpty>
+         GROUP BY CTH.ORG_ID, CTH.COMPANY_ID, CTH.TRANS_NO, CTH.TRANS_DATE, CTH.TRADE_DATE, CTH.CUSTOMER_CODE, CTH.TRANS_DIV, CTH.PAID_YN, CTH.CUSTOMER_CODE_S, CTH.REMARKS
+         ORDER BY CTH.TRANS_NO DESC
+    </sql>
+    
+        <select id="prod.manage.toolwarehousing.master.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.toolwarehousing.master.sql-select" />
+        <include refid="prod.manage.toolwarehousing.master.sql-where" />
+    </select>
+
+    <select id="prod.manage.toolwarehousing.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.toolwarehousing.master.sql-select" />
+            <include refid="prod.manage.toolwarehousing.master.sql-where" />
+        ) TOT
+    </select>
+    
+      <sql id="prod.manage.toolwarehousing.detail.sql-select">
+    SELECT DISTINCT RANK() OVER(ORDER BY CTH.TRANS_NO DESC) AS RN
+                ,CTH.ORG_ID AS ORGID
+                ,CTH.COMPANY_ID AS COMPANYID
+                ,CTH.TRANS_NO AS TRANSNO
+                ,CTD.TRANS_SEQ AS TRANSSEQ
+                ,CTD.ITEM_CODE AS ITEMCODE
+                ,CIM.ITEM_NAME AS ITEMNAME
+                ,CIM.ORDER_NAME AS ORDERNAME
+                ,CIM.ITEM_STANDARD AS ITEMSTANDARD
+                ,CIM.MATERIAL_TYPE AS MATERIALTYPE
+                ,CIM.UOM
+                ,(SELECT CSC.SMALL_NAME
+				          FROM CB_SMALL_CODE CSC
+				         WHERE CSC.ORG_ID = CTD.ORG_ID
+				           AND CSC.COMPANY_ID = CTD.COMPANY_ID
+				           AND CSC.BIG_CODE = 'CMM'
+				           AND CSC.MIDDLE_CODE = 'UOM'
+				           AND CSC.SMALL_CODE = CIM.UOM) AS UOMNAME
+                ,CTD.PO_NO AS PONO
+                ,CTD.PO_SEQ AS POSEQ
+                ,(SELECT COD.ORDER_QTY
+                    FROM CB_ORDER_D COD
+                   WHERE COD.ORG_ID = CTD.ORG_ID
+                     AND COD.COMPANY_ID = CTD.COMPANY_ID
+                     AND COD.PO_NO = CTD.PO_NO
+                     AND COD.PO_SEQ = CTD.PO_SEQ) AS POQTY
+                ,CTD.TRANS_QTY AS TRANSQTY
+                ,DECODE(NVL((SELECT OD.ORDER_INSPECTION_YN
+                               FROM CB_ORDER_D OD
+                              WHERE OD.ORG_ID = CTD.ORG_ID
+                                AND OD.COMPANY_ID = CTD.COMPANY_ID
+                                AND OD.PO_NO = CTD.PO_NO
+                                AND OD.PO_SEQ = CTD.PO_SEQ) ,'N')
+                       ,'Y', (NVL(CTD.TRANS_QTY, 0) - NVL((SELECT NVL(SUM( NVL(CIH.PASS_QTY, 0) + NVL(CIH.FAIL_QTY, 0)), 0)
+                                                             FROM CB_INSPECTION_H CIH
+                                                            WHERE CIH.ORG_ID = CTD.ORG_ID
+                                                              AND CIH.COMPANY_ID = CTD.COMPANY_ID
+                                                              AND CIH.TRANS_NO = CTD.TRANS_NO
+                                                              AND CIH.TRANS_SEQ = CTD.TRANS_SEQ ), 0))
+                       ,0) AS DUEQTY
+                ,CTD.TRANS_UNIT_PRICE AS UNITPRICE
+                ,CTD.SUPPLY_PRICE AS SUPPLYPRICE
+                ,CTD.ADDITIONAL_TAX AS ADDITIONALTAX
+                ,(CTD.SUPPLY_PRICE + CTD.ADDITIONAL_TAX) AS TOTAL
+                ,NVL(CTD.TRANS_FINISH_YN, 'N') AS TRANSFINISHYN
+                ,DECODE(CTD.TRANS_FINISH_YN
+                       ,NULL, '미완료'
+                       ,'N', '미완료'
+                       ,'Y', '완료') AS TRANSFINISHYNNAME
+                ,TO_CHAR(CTH.TRANS_DATE,'YYYY-MM-DD') AS TRANSDATE
+                ,TO_CHAR(CTH.TRADE_DATE,'YYYY-MM-DD') AS TRADEDATE
+                ,CTH.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,TRANS_DIV AS TRANSDIV
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'TRANS_DIV'
+                                                            ,CTH.TRANS_DIV
+                                                            ,'LABEL') AS TRANSDIVNAME
+                ,CTH.PAID_YN AS PAIDYN
+                ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(CTH.ORG_ID
+                                                            ,CTH.COMPANY_ID
+                                                            ,'MAT'
+                                                            ,'PAID_YN'
+                                                            ,CTH.PAID_YN
+                                                            ,'LABEL') AS PAIDYNNAME
+                ,CUSTOMER_CODE_S AS CUSTOMERCODES
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE CC.ORG_ID = CTH.ORG_ID
+                     AND CC.COMPANY_ID = CTH.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CTH.CUSTOMER_CODE_S) AS CUSTOMERNAMES
+
+                ,CTH.REMARKS AS REMARKS
+        FROM CB_TRANS_H CTH
+            ,CB_TRANS_D CTD
+            ,CB_ITEM_MASTER CIM
+    </sql>
+    <sql id="prod.manage.toolwarehousing.detail.sql-where">
+       WHERE CTH.ORG_ID = CTD.ORG_ID
+         AND CTH.COMPANY_ID = CTD.COMPANY_ID
+         AND CTH.TRANS_NO = CTD.TRANS_NO
+         AND CTD.ORG_ID        = CIM.ORG_ID
+         AND CTD.COMPANY_ID    = CIM.COMPANY_ID
+         AND CTD.ITEM_CODE     = CIM.ITEM_CODE
+         AND SUBSTR(CTD.ITEM_CODE,0,1)='T' 
+         <isNotEmpty property="TRANSNO" prepend="AND">
+         CTD.TRANS_NO = #TRANSNO#
+         </isNotEmpty>
+       <isNotEmpty property="ORGID" prepend="AND">
+          CTD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CTD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            CTD.ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            CIM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+    </sql>
+    
+    
+      <select id="prod.manage.toolwarehousing.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.toolwarehousing.detail.sql-select" />
+        <include refid="prod.manage.toolwarehousing.detail.sql-where" />
+    </select>
+
+    <select id="prod.manage.toolwarehousing.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.toolwarehousing.detail.sql-select" />
+            <include refid="prod.manage.toolwarehousing.detail.sql-where" />
+        ) TOT
+    </select>
+    
+    
+<!--  공구입고관리   등록 -->
+ <select id="toolwarehousing.new.transno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'T' || TO_CHAR(TO_DATE(#TransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS TRANSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(TRANS_NO), -3)), 0) AS NUM 
+                  FROM CB_TRANS_H
+                 WHERE 1 = 1
+                   AND TRANS_NO LIKE 'T' || TO_CHAR(TO_DATE(#TransDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <!--     입하등록 상세 화면에서 마스터 정보 isnert -->
+    <insert id="prod.manage.toolwarehousing.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_TRANS_H
+              (TRANS_NO
+               ,TRANS_DATE
+               ,TRADE_DATE
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="TransDiv" prepend=",">
+               TRANS_DIV
+        </isNotEmpty>
+        <isNotEmpty property="PaidYn" prepend=",">
+               PAID_YN
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+               CUSTOMER_CODE_S
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               ,ORG_ID
+               ,COMPANY_ID
+               )
+            VALUES
+              (#TRANSNO#
+               ,TO_DATE(#TransDate#, 'YYYY-MM-DD')
+               ,TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="TransDiv" prepend=",">
+               #TransDiv#
+        </isNotEmpty>
+        <isNotEmpty property="PaidYn" prepend=",">
+               #PaidYn#
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+               #CustomerCodeS#
+        </isNotEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               ,#searchOrgId#
+               ,#searchCompanyId#
+               )
+        ]]>
+    </insert>
+    
+    <!-- 입하등록 상세 화면에서 그리드 정보 insert  -->
+     <insert id="prod.manage.toolwarehousing.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_TRANS_D (
+                ORG_ID
+               ,COMPANY_ID
+               ,TRANS_NO
+               ,TRANS_SEQ
+               ,ITEM_CODE
+               ,TRANS_QTY
+               ,TRANS_UNIT_PRICE
+               ,UNIT_PRICE_OLD
+               ,SUPPLY_PRICE
+               ,ADDITIONAL_TAX
+               ,PO_NO
+               ,PO_SEQ
+               ,TRANS_FINISH_YN
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES (
+                #ORGID#
+               ,#COMPANYID#
+               ,#TRANSNO#
+               ,$TRANSSEQ$
+               ,#ITEMCODE#
+               ,$TRANSQTY$
+               ,#UNITPRICE#
+               ,#UNITPRICEOLD#
+               ,#SUPPLYPRICE#
+               ,#ADDITIONALTAX#
+               ,#PONO#
+               ,#POSEQ#
+               ,#TRANSFINISHYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    
+    <update id="prod.manage.toolwarehousingheader.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , TRANS_DATE = TO_DATE(#TransDate#, 'YYYY-MM-DD')
+               , TRADE_DATE = TO_DATE(#TradeDate#, 'YYYY-MM-DD')
+               , TRANS_DIV = #TransDiv#
+               , PAID_YN = #PaidYn#
+        ]]>
+        <isNotEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+            CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="CustomerCodeS" prepend=",">
+            CUSTOMER_CODE_S = #CustomerCodeS#
+        </isNotEmpty>
+        <isEmpty property="CustomerCodeS" prepend=",">
+            CUSTOMER_CODE_S = NULL
+        </isEmpty>
+        <isNotEmpty property="Remarks" prepend=",">
+            REMARKS = #Remarks#
+        </isNotEmpty>
+        <isEmpty property="Remarks" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID =  #searchOrgId#
+           AND COMPANY_ID  =  #searchCompanyId#
+           AND TRANS_NO = #TransNo#
+        ]]>
+    </update>
+    
+    <sql id="prod.manage.toolwarehousingdetail.find.sql-select">
+        SELECT COUNT(PD.TRANS_NO) AS COUNT
+          FROM CB_TRANS_H PH, CB_TRANS_D PD
+    </sql>
+    
+    <select id ="prod.manage.toolwarehousing.orderqty" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT SUM(ORDER_QTY) AS ORDERQTY
+          FROM CB_ORDER_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+    <select id= "prod.manage.toolwarehousing.old.transqty" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT SUM(TRANS_QTY) AS OLDTRANSQTY
+          FROM CB_TRANS_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+        <select id= "prod.manage.toolwarehousing.count.order.status" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT count(*)
+            FROM CB_ORDER_D
+          WHERE PO_NO = #PONO#
+    </select>
+    
+    <select id= "prod.manage.toolwarehousing.count.trans.status" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+          SELECT count(*)
+            FROM CB_TRANS_D
+          WHERE PO_NO = #PONO#
+             AND TRANS_FINISH_YN='Y' 
+    </select>
+    
+       <update id="prod.manage.toolwarehousing.update.order.status" parameterClass="java.util.Map">
+        UPDATE CB_ORDER_H
+        SET PO_STATUS = #COMPLETE#
+        , LAST_UPDATED_BY = #UPDATEID#
+        , LAST_UPDATE_DATE = SYSDATE
+        WHERE PO_NO = #PONO#
+    
+    </update>
+
+    <sql id="prod.manage.toolwarehousingdetail.find.sql-where">
+         WHERE PH.TRANS_NO = PD.TRANS_NO
+           AND PH.ORG_ID = PD.ORG_ID
+           AND PH.COMPANY_ID = PD.COMPANY_ID
+        <isNotEmpty property="ORGID" prepend="AND">
+          PD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          PD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSNO" prepend="AND">
+          PD.TRANS_NO = #TRANSNO#
+        </isNotEmpty>
+        <isNotEmpty property="TRANSSEQ" prepend="AND">
+          PD.TRANS_SEQ = #TRANSSEQ#
+        </isNotEmpty>
+    </sql>
+
+    <select id="prod.manage.toolwarehousingdetail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="prod.manage.toolwarehousingdetail.find.sql-select" />
+        <include refid="prod.manage.toolwarehousingdetail.find.sql-where" />
+    </select>
+ 
+   <update id="prod.manage.toolwarehousingdetail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_TRANS_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , ITEM_CODE = #ITEMCODE#
+               , TRANS_QTY = $TRANSQTY$
+               , TRANS_UNIT_PRICE = #UNITPRICE#
+               , UNIT_PRICE_OLD = #UNITPRICEOLD#
+               , SUPPLY_PRICE = #SUPPLYPRICE#
+               , ADDITIONAL_TAX = #ADDITIONALTAX#
+               , TRANS_FINISH_YN = #TRANSFINISHYN#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRANS_NO = #TRANSNO#
+           AND TRANS_SEQ = $TRANSSEQ$
+        ]]>
+    </update>       
+    
+        <delete id="prod.manage.toolwarehousingdetail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_D
+        WHERE ORG_ID = #ORGID#
+           AND COMPANY_ID = #COMPANYID#
+           AND TRANS_NO = #TRANSNO#
+           AND TRANS_SEQ = $TRANSSEQ$
+    </delete>
+
+   <delete id="prod.manage.toolwarehousingheader.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_TRANS_H
+        WHERE ORG_ID =  #searchOrgId#
+           AND COMPANY_ID  =  #searchCompanyId#
+           AND TRANS_NO = #TransNo#
+    </delete>
+    
+    <!-- 공구입고관리 상세정보 화면에서 입고대기LIST(발주정보) // POPUP LIST  시작-->
+    <sql id="prod.manage.toolwarehousing.list.pop1.sql-select">
+        SELECT  RANK() OVER(ORDER BY  PONO DESC, POSEQ) AS RN
+                 ,PONO
+                 ,POSEQ
+                 ,PODATE
+                 ,CUSTOMERCODE
+                 ,CUSTOMERNAME
+                 ,POPERSON
+                 ,POPERSONNAME
+                 ,ITEMCODE
+                 ,ITEMNAME
+                 ,ORDERNAME
+                 ,UOM
+                 ,UOMNAME
+                 ,ORGID
+                 ,COMPANYID
+                 ,UOM
+                 ,UOMNAME
+                 ,MODEL
+                 ,MODELNAME
+                 ,SUBITEM
+                 ,SUBITEMNAME
+                 ,ORDERQTY
+                 ,TRANSQTY AS OLDQTY
+                 ,(ORDERQTY - TRANSQTY) AS TRANSQTY
+                 ,ITEMSTANDARD
+                 ,MATERIALTYPE
+                 ,UNITPRICE
+                 ,SUPPLYPRICE
+                 ,ADDITIONALTAX
+                 ,TOTAL
+                 ,TRANSFINISHYN
+          FROM CB_ORDER_DETAIL_LIST_V IM
+    </sql>
+    
+    <sql id="prod.manage.toolwarehousing.list.pop1.sql-where">
+         WHERE 1 = 1
+            AND TRANSFINISHYN ='N'
+            AND SUBSTR(IM.ITEMCODE,0,1)='T'
+        <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORGID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANYID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            CUSTOMERNAME LIKE '%' || #CUSTOMERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="POTO">
+           <isNotEmpty property="POFROM" prepend="AND">
+              TO_DATE(PODATE,'YYYY-MM-DD') BETWEEN TO_DATE(#POFROM#,'YYYY-MM-DD') AND TO_DATE(#POTO#,'YYYY-MM-DD')
+           </isNotEmpty>
+           <isEmpty property="POFROM" prepend="AND">
+              TO_DATE(PODATE,'YYYY-MM-DD') = TO_DATE(#POTO#,'YYYY-MM-DD')
+           </isEmpty>
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEMCODE LIKE  '%' || #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEMNAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDERNAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+         <isNotEmpty property="MODELNAME" prepend="AND">
+            IM.MODELNAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+            IM.ITEMSTANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+        </isNotEmpty>
+        ORDER BY PONO DESC ,POSEQ
+    </sql>
+
+    <select id="prod.manage.toolwarehousing.list.pop1.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="prod.manage.toolwarehousing.list.pop1.sql-select" />
+            <include refid="prod.manage.toolwarehousing.list.pop1.sql-where" />
+    </select>
+    
+    <select id="prod.manage.toolwarehousing.list.pop1.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.toolwarehousing.list.pop1.sql-select" />
+            <include refid="prod.manage.toolwarehousing.list.pop1.sql-where" />
+        ) TOT
+    </select>
+  <!--  공구입고관리 상세정보 화면에서 입고대기LIST(발주정보) // POPUP LIST  긑-->    
+  
+  
+<!--    래핑 I/F 실적현황 -->
+  <sql id="prod.manage.wrapping.if.perform.list.sql-select">
+       SELECT  RANK() OVER(ORDER BY TRUNC(STANDARD_TIME-8/24,'DD')) AS RN
+					        ,WORK_CENTER_CODE AS WORKCENTERCODE
+					        ,(SELECT WC.WORK_CENTER_NAME
+					            FROM CB_WORK_CENTER WC
+					           WHERE 1 = 1
+					             AND WC.ORG_ID = WON.ORG_ID
+					             AND WC.COMPANY_ID = WON.COMPANY_ID
+					           AND WC.WORK_CENTER_CODE = WON.WORK_CENTER_CODE) AS EQUIPMENTNAME
+					        ,TO_CHAR(TRUNC(STANDARD_TIME-8/24,'DD'),'YYYY-MM-DD') AS WORKDATE
+					        ,MAX(QTY) AS IFQTY
+					        ,(SELECT NVL(SUM(WV.PROD_QTY + WV.DEFECTED_QTY),0)
+					            FROM CB_WORK_ORDER_D_BASE_V WV
+					           WHERE WV.ORG_ID = WON.ORG_ID
+					             AND WV.COMPANY_ID = WON.COMPANY_ID
+					             AND WV.WORK_CENTER_CODE = WON.WORK_CENTER_CODE
+					             AND WV.PROD_DATE = TO_CHAR(TRUNC(STANDARD_TIME-8/24,'DD'),'YYYY-MM-DD')) AS PERSONQTY
+					        ,MAX(QTY) - (SELECT NVL(SUM(WV.PROD_QTY + WV.DEFECTED_QTY),0)
+					            FROM CB_WORK_ORDER_D_BASE_V WV
+					           WHERE WV.ORG_ID = WON.ORG_ID
+					             AND WV.COMPANY_ID = WON.COMPANY_ID
+					             AND WV.WORK_CENTER_CODE = WON.WORK_CENTER_CODE
+					             AND WV.PROD_DATE = TO_CHAR(TRUNC(STANDARD_TIME-8/24,'DD'),'YYYY-MM-DD')) AS QTY
+
+           FROM CB_WORK_ORDER_NETEYE WON
+    </sql>
+    
+    <sql id="prod.manage.wrapping.if.perform.list.sql-where">
+            WHERE
+             WON.WORK_CENTER_CODE IN (SELECT WC.WORK_CENTER_CODE AS VALUE
+                                                   FROM CB_WORK_CENTER WC
+                                                  WHERE WC.WORK_CENTER_CODE_IF = 'Y' )
+              /*AND WON.STANDARD_TIME BETWEEN TRUNC(STANDARD_TIME,'DD')+8/24 AND TRUNC(STANDARD_TIME,'DD')+32/24-1/24/60/60*/
+              AND TRUNC(STANDARD_TIME-8/24,'DD') BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+        <isNotEmpty property="EQUIPMENTNAME" prepend="AND">
+           WON.WORK_CENTER_CODE = #EQUIPMENTNAME#
+        </isNotEmpty>
+					GROUP BY ORG_ID, COMPANY_ID, WORK_CENTER_CODE, TRUNC(STANDARD_TIME-8/24,'DD')
+					ORDER BY TRUNC(STANDARD_TIME-8/24,'DD')
+    </sql>
+
+    <select id="prod.manage.wrapping.if.perform.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="prod.manage.wrapping.if.perform.list.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.list.sql-where" />
+    </select>
+    
+    <select id="prod.manage.wrapping.if.perform.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.wrapping.if.perform.list.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.manage.wrapping.if.perform.count.sql-select">
+       SELECT RANK() OVER(ORDER BY WV.WORK_CENTER_CODE, WV.PROD_DATE,WV.ITEM_CODE) AS RN,
+					       WV.ORG_ID AS ORGID,
+					       WV.COMPANY_ID AS COMPANYID,
+					       WV.PROD_DATE AS PRODDATE,
+					       WV.ITEM_CODE AS ITEMCODE,
+					       (SELECT IM.ORDER_NAME
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1 = 1
+					           AND IM.ORG_ID = WV.ORG_ID
+					           AND IM.COMPANY_ID = WV.COMPANY_ID
+					           AND IM.ITEM_CODE = WV.ITEM_CODE) AS ORDERNAME,
+					       (SELECT IM.ITEM_NAME
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1 = 1
+					           AND IM.ORG_ID = WV.ORG_ID
+					           AND IM.COMPANY_ID = WV.COMPANY_ID
+					           AND IM.ITEM_CODE = WV.ITEM_CODE) AS ITEMNAME,
+					       (SELECT IM.CAR_TYPE
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1 = 1
+					           AND IM.ORG_ID = WV.ORG_ID
+					           AND IM.COMPANY_ID = WV.COMPANY_ID
+					           AND IM.ITEM_CODE = WV.ITEM_CODE) AS MODEL,
+					       (SELECT (SELECT SC.SMALL_NAME
+					                  FROM CB_SMALL_CODE SC
+					                 WHERE 1 = 1
+					                   AND SC.ORG_ID = IM.ORG_ID
+					                   AND SC.COMPANY_ID = IM.COMPANY_ID
+					                   AND SC.BIG_CODE = 'CMM'
+					                   AND SC.MIDDLE_CODE = 'MODEL'
+					                   AND SC.SMALL_CODE = IM.CAR_TYPE)
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1 = 1
+					           AND IM.ORG_ID = WV.ORG_ID
+					           AND IM.COMPANY_ID = WV.COMPANY_ID
+					           AND IM.ITEM_CODE = WV.ITEM_CODE) AS MODELNAME,
+					       (SELECT IM.Item_Standard_Detail
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1 = 1
+					           AND IM.ORG_ID = WV.ORG_ID
+					           AND IM.COMPANY_ID = WV.COMPANY_ID
+					           AND IM.ITEM_CODE = WV.ITEM_CODE) AS ITEMSTANDARDDETAIL,
+					       WV.WORK_CENTER_CODE AS WORKCENTERCODE,
+					       (SELECT WC.WORK_CENTER_NAME
+					          FROM CB_WORK_CENTER WC
+					         WHERE 1 = 1
+					           AND WC.ORG_ID = WV.ORG_ID
+					           AND WC.COMPANY_ID = WV.COMPANY_ID
+					           AND WC.WORK_CENTER_CODE = WV.WORK_CENTER_CODE) AS EQUIPMENTNAME,
+					       SUM(WV.PROD_QTY + WV.DEFECTED_QTY) AS DEFECTEDQTY,
+					       SUM(WV.PROD_QTY) AS PRODQTY,
+					       SUM(WV.DEFECTED_QTY) AS FAULTQTY
+					  FROM CB_WORK_ORDER_D_BASE_V WV
+    </sql>
+    
+    <sql id="prod.manage.wrapping.if.perform.count.sql-where">
+            WHERE WV.WORK_CENTER_CODE =#WORKCENTERCODE#
+               AND WV.PROD_DATE = #SEARCHDATE#
+            GROUP BY WV.ORG_ID, WV.COMPANY_ID, WV.PROD_DATE, WV.ITEM_CODE, WV.WORK_CENTER_CODE
+            ORDER BY WV.WORK_CENTER_CODE, WV.PROD_DATE, WV.ITEM_CODE
+    </sql>
+
+    <select id="prod.manage.wrapping.if.perform.count.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="prod.manage.wrapping.if.perform.count.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.count.sql-where" />
+    </select>
+    
+    <select id="prod.manage.wrapping.if.perform.count.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.wrapping.if.perform.count.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.count.sql-where" />
+        ) TOT
+    </select>
+    
+    <sql id="prod.manage.wrapping.if.perform.detail.sql-select">
+       SELECT RANK() OVER(ORDER BY WOD.WORK_CENTER_CODE, WOD.START_TIME,WO.ITEM_CODE) AS RN
+					      ,WOD.ORG_ID AS ORGID
+					      ,WOD.COMPANY_ID AS COMPANYID
+		            ,TO_CHAR(WOD.START_TIME,'YYYY-MM-DD') AS WORKTIME
+					      ,WOD.WORK_CENTER_CODE AS WORKCENTERCODE
+					      ,(SELECT WC.WORK_CENTER_NAME
+					          FROM CB_WORK_CENTER WC
+					         WHERE 1=1
+					           AND WC.ORG_ID = WOD.ORG_ID
+					           AND WC.COMPANY_ID = WOD.COMPANY_ID
+					           AND WC.WORK_CENTER_CODE = WOD.WORK_CENTER_CODE) AS EQUIPMENTNAME
+					      ,WO.ITEM_CODE AS ITEMCODE
+					      ,(SELECT IM.ORDER_NAME
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1=1
+					           AND IM.ORG_ID = WO.ORG_ID
+					           AND IM.COMPANY_ID = WO.COMPANY_ID
+					           AND IM.ITEM_CODE = WO.ITEM_CODE) AS ORDERNAME
+					      ,(SELECT IM.ITEM_NAME
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1=1
+					           AND IM.ORG_ID = WO.ORG_ID
+					           AND IM.COMPANY_ID = WO.COMPANY_ID
+					           AND IM.ITEM_CODE = WO.ITEM_CODE) AS ITEMNAME
+					      ,(SELECT IM.CAR_TYPE
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1=1
+					           AND IM.ORG_ID = WO.ORG_ID
+					           AND IM.COMPANY_ID = WO.COMPANY_ID
+					           AND IM.ITEM_CODE = WO.ITEM_CODE) AS MODEL
+					      ,(SELECT (SELECT SC.SMALL_NAME
+					                  FROM CB_SMALL_CODE SC
+					                 WHERE 1=1
+					                   AND SC.ORG_ID = IM.ORG_ID
+					                   AND SC.COMPANY_ID = IM.COMPANY_ID
+					                   AND SC.BIG_CODE = 'CMM'
+					                   AND SC.MIDDLE_CODE = 'MODEL'
+					                   AND SC.SMALL_CODE = IM.CAR_TYPE)
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1=1
+					           AND IM.ORG_ID = WO.ORG_ID
+					           AND IM.COMPANY_ID = WO.COMPANY_ID
+					           AND IM.ITEM_CODE = WO.ITEM_CODE) AS MODELNAME
+					      ,(SELECT IM.ITEM_STANDARD_DETAIL
+					          FROM CB_ITEM_MASTER IM
+					         WHERE 1=1
+					           AND IM.ORG_ID = WO.ORG_ID
+					           AND IM.COMPANY_ID = WO.COMPANY_ID
+					           AND IM.ITEM_CODE = WO.ITEM_CODE) AS ITEMSTANDARDDETAIL
+					      ,WOD.WORKER
+					      ,(SELECT HM.KR_NAME
+					          FROM CB_HUMANRESOURCE_MANAGER_V HM
+					         WHERE 1=1
+					           AND HM.ORG_ID = WOD.ORG_ID
+					           AND HM.COMPANY_ID = WOD.COMPANY_ID
+					           AND HM.EMPLOYEE_NUMBER = WOD.WORKER) AS KRNAME
+					      ,WOD.WORK_DIV AS WORKDIV
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = WOD.ORG_ID
+                     AND SC.COMPANY_ID = WOD.COMPANY_ID
+                     AND SC.BIG_CODE = 'MFG'
+                     AND SC.MIDDLE_CODE = 'WORK_DIV'
+                     AND SC.SMALL_CODE = WOD.WORK_DIV) AS WORKDIVNAME
+					      ,WOD.QTY+(SELECT NVL(SUM(WOF.CON1),0) +NVL(SUM(WOF.CON2),0) +NVL(SUM(WOF.CON3),0) +NVL(SUM(WOF.CON4),0) +NVL(SUM(WOF.CON5),0) +
+					              NVL(SUM(WOF.CON6),0) +NVL(SUM(WOF.CON7),0) +NVL(SUM(WOF.CON8),0) +NVL(SUM(WOF.CON9),0) +NVL(SUM(WOF.CON10),0) +
+					              NVL(SUM(WOF.CON11),0) +NVL(SUM(WOF.CON12),0) +NVL(SUM(WOF.CON13),0) +NVL(SUM(WOF.CON14),0) +NVL(SUM(WOF.CON15),0) +
+					              NVL(SUM(WOF.CON16),0) +NVL(SUM(WOF.CON17),0) +NVL(SUM(WOF.CON18),0) +NVL(SUM(WOF.CON19),0) +NVL(SUM(WOF.CON20),0) +
+					              NVL(SUM(WOF.CON21),0) +NVL(SUM(WOF.CON22),0) +NVL(SUM(WOF.CON23),0) +NVL(SUM(WOF.CON24),0) +NVL(SUM(WOF.CON25),0) +
+					              NVL(SUM(WOF.CON26),0) +NVL(SUM(WOF.CON27),0) +NVL(SUM(WOF.CON28),0) +NVL(SUM(WOF.CON29),0) +NVL(SUM(WOF.CON30),0) +
+					              NVL(SUM(WOF.CON31),0) +NVL(SUM(WOF.CON32),0) +NVL(SUM(WOF.CON33),0) +NVL(SUM(WOF.CON34),0) +NVL(SUM(WOF.CON35),0) +
+					              NVL(SUM(WOF.CON36),0) +NVL(SUM(WOF.CON37),0) +NVL(SUM(WOF.CON38),0) +NVL(SUM(WOF.CON39),0) +NVL(SUM(WOF.CON40),0)
+					         FROM CB_WORK_ORDER_FAULT WOF
+					        WHERE 1=1
+					          AND WOF.ORG_ID = WO.ORG_ID
+					          AND WOF.COMPANY_ID = WO.COMPANY_ID
+					          AND WOF.WORK_ORDER_ID = WO.WORK_ORDER_ID
+					          AND WOF.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ
+					          AND WOF.EMPLOYEE_SEQ = WOD.WORKER) AS PRODQTY
+					      ,WOD.QTY AS IMPORTQTY
+					      ,(SELECT NVL(SUM(WOF.CON1),0) +NVL(SUM(WOF.CON2),0) +NVL(SUM(WOF.CON3),0) +NVL(SUM(WOF.CON4),0) +NVL(SUM(WOF.CON5),0) +
+					              NVL(SUM(WOF.CON6),0) +NVL(SUM(WOF.CON7),0) +NVL(SUM(WOF.CON8),0) +NVL(SUM(WOF.CON9),0) +NVL(SUM(WOF.CON10),0) +
+					              NVL(SUM(WOF.CON11),0) +NVL(SUM(WOF.CON12),0) +NVL(SUM(WOF.CON13),0) +NVL(SUM(WOF.CON14),0) +NVL(SUM(WOF.CON15),0) +
+					              NVL(SUM(WOF.CON16),0) +NVL(SUM(WOF.CON17),0) +NVL(SUM(WOF.CON18),0) +NVL(SUM(WOF.CON19),0) +NVL(SUM(WOF.CON20),0) +
+					              NVL(SUM(WOF.CON21),0) +NVL(SUM(WOF.CON22),0) +NVL(SUM(WOF.CON23),0) +NVL(SUM(WOF.CON24),0) +NVL(SUM(WOF.CON25),0) +
+					              NVL(SUM(WOF.CON26),0) +NVL(SUM(WOF.CON27),0) +NVL(SUM(WOF.CON28),0) +NVL(SUM(WOF.CON29),0) +NVL(SUM(WOF.CON30),0) +
+					              NVL(SUM(WOF.CON31),0) +NVL(SUM(WOF.CON32),0) +NVL(SUM(WOF.CON33),0) +NVL(SUM(WOF.CON34),0) +NVL(SUM(WOF.CON35),0) +
+					              NVL(SUM(WOF.CON36),0) +NVL(SUM(WOF.CON37),0) +NVL(SUM(WOF.CON38),0) +NVL(SUM(WOF.CON39),0) +NVL(SUM(WOF.CON40),0)
+					         FROM CB_WORK_ORDER_FAULT WOF
+					        WHERE 1=1
+					          AND WOF.ORG_ID = WO.ORG_ID
+					          AND WOF.COMPANY_ID = WO.COMPANY_ID
+					          AND WOF.WORK_ORDER_ID = WO.WORK_ORDER_ID
+					          AND WOF.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ
+					          AND WOF.EMPLOYEE_SEQ = WOD.WORKER) AS DEFECTED_QTY
+					      ,TO_CHAR(WOD.START_TIME,'YYYY-MM-DD HH24:MI') AS STARTTIME
+					      ,TO_CHAR(WOD.END_TIME,'YYYY-MM-DD HH24:MI') AS ENDTIME
+					  FROM CB_WORK_ORDER WO
+					      ,CB_WORK_ORDER_D WOD
+    </sql>
+    <sql id="prod.manage.wrapping.if.perform.detail.sql-where">
+           WHERE WO.ORG_ID = WOD.ORG_ID
+             AND WO.COMPANY_ID = WOD.COMPANY_ID
+             AND WO.WORK_ORDER_ID = WOD.WORK_ORDER_ID
+             AND WO.WORK_ORDER_SEQ = WOD.WORK_ORDER_SEQ
+             
+        <isNotEmpty property="ORGID" prepend="AND">
+            WOD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            WOD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHDATE" prepend="AND">
+           TO_CHAR(WOD.START_TIME,'YYYY-MM-DD') = #SEARCHDATE#
+        </isNotEmpty>
+        <isNotEmpty property="WORKCENTERCODE" prepend="AND">
+           WOD.WORK_CENTER_CODE = #WORKCENTERCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+           WO.ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+          ORDER BY WOD.WORK_CENTER_CODE, WOD.START_TIME, WO.ITEM_CODE
+    </sql>
+
+    <select id="prod.manage.wrapping.if.perform.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="prod.manage.wrapping.if.perform.detail.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.detail.sql-where" />
+    </select>
+    
+    <select id="prod.manage.wrapping.if.perform.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="prod.manage.wrapping.if.perform.detail.sql-select" />
+            <include refid="prod.manage.wrapping.if.perform.detail.sql-where" />
+        ) TOT
+    </select>
+</sqlMap>

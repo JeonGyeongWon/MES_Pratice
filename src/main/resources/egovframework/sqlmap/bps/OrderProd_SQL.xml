@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orderprod">
+
+  <parameterMap class="java.util.Map" id="ProdRelWareHCreate">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RELNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+  </parameterMap>
+    
+  <parameterMap class="java.util.Map" id="AdjustTrxParams">
+        <parameter property="P_ORG_ID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_COMPANY_ID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_ITEM_CODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_TRX_GUBUN" jdbcType="NUMBER" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_TRX_TYPE" jdbcType="NUMBER" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_TRX_QTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="P_TRX_SOURCE_NO" jdbcType="NUMBER" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_TRX_SOURCE_NO_SEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="P_TRX_WAREHOUSING" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_TRX_DATE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_REMARKS" jdbcType="NUMBER" javaType="java.lang.String" mode="IN"/>
+        <parameter property="P_LOGIN" jdbcType="NUMBER" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RS_CODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="RS_STATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+  </parameterMap>
+
+  <procedure id="order.prod.prodrelwarehcreate.Procedure" parameterClass="java.util.Map"  parameterMap="ProdRelWareHCreate" resultClass="java.util.HashMap" >
+  <![CDATA[
+       { call CB_ORDER_PKG.CB_PRODREL_WAREH_CREATE( ?, ?, ?, ?, ?, ? ) }
+  ]]>
+  </procedure>
+    
+  <!--  재고실사,조정처리 재고 트랜잭션 -->
+  <procedure id="order.prod.inventory.adjust.call.procedure" parameterClass="java.util.Map"  parameterMap="AdjustTrxParams" resultClass="java.util.HashMap" >
+  <![CDATA[
+       { call ITEM_TRX.ADJUST_TRX( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+  ]]>
+  </procedure>
+  <!--  재고실사,조정처리 재고 트랜잭션 -->  
+    
+ <!-- 제품재고조회 항목 조회 시작 -->
+ <sql id="order.prod.inventory.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ITEMCODE) AS RN
+                 ,ORGID
+                 ,COMPANYID
+                 ,TRXMONTHS
+                 ,ITEMCODE
+                 ,ITEMNAME
+                 ,ORDERNAME
+                 ,MODEL
+                 ,MODELNAME
+                 ,DRAWINGNO
+                 ,ITEMTYPENAME
+                 ,UOMNAME
+                 ,ITEMSTANDARD
+                 ,MATERIALTYPENAME
+                 ,BACKQTY
+                 ,INQTY
+                 ,OUTQTY
+                 ,ITEMSTANDARDDETAIL
+                 ,Z.BACKQTY + Z.INQTY - Z.OUTQTY AS INVQTY 
+        FROM (
+                  SELECT DISTINCT V.ORG_ID AS ORGID
+                           ,V.COMPANY_ID AS COMPANYID
+                           ,#TRXDATE# AS TRXMONTHS
+                            ,V.ITEM_CODE AS ITEMCODE
+                            ,V.ORDER_NAME AS ORDERNAME
+                            ,V.ITEM_NAME AS ITEMNAME
+                            ,V.CAR_TYPE AS  MODEL
+                            ,V.CAR_TYPE_NAME AS MODELNAME
+                            ,V.DRAWING_NO AS DRAWINGNO
+                            ,(SELECT SC.SMALL_NAME
+                                FROM CB_SMALL_CODE SC
+                               WHERE SC.ORG_ID = V.ORG_ID
+                                 AND SC.COMPANY_ID = V.COMPANY_ID
+                                 AND SC.BIG_CODE = 'CMM'
+                                 AND SC.MIDDLE_CODE = 'MATERIAL_TYPE'
+                                 AND SC.SMALL_CODE = V.MATERIAL_TYPE) AS MATERIALTYPENAME
+                            ,V.UOM_NAME AS UOMNAME
+                            ,V.ITEM_STANDARD AS ITEMSTANDARD
+                            ,V.ITEM_TYPE AS ITEMTYPE
+                            ,V.ITEM_TYPE_NAME AS ITEMTYPENAME
+                            ,V.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                            ,NVL((SELECT SUM(M.INQTY) - SUM(M.OUTQTY)
+                                    FROM CB_INV_MONTHS_A_V M
+                                   WHERE M.ORGID = V.ORG_ID
+                                     AND M.COMPANYID = V.COMPANY_ID
+                                     AND M.ITEMCODE = V.ITEM_CODE
+                                     AND M.TRXMONTHS <![CDATA[ < ]]> #TRXDATE#),0) AS BACKQTY
+                            ,NVL((SELECT SUM(M.INQTY)
+                                    FROM CB_INV_MONTHS_A_V M
+                                   WHERE M.ORGID = V.ORG_ID
+                                     AND M.COMPANYID = V.COMPANY_ID
+                                     AND M.ITEMCODE = V.ITEM_CODE
+                                     AND M.TRXMONTHS = #TRXDATE#),0) AS INQTY
+                            ,NVL((SELECT SUM(M.OUTQTY)
+                                    FROM CB_INV_MONTHS_A_V M
+                                   WHERE M.ORGID = V.ORG_ID
+                                     AND M.COMPANYID = V.COMPANY_ID
+                                     AND M.ITEMCODE = V.ITEM_CODE
+                                     AND M.TRXMONTHS = #TRXDATE#),0) AS OUTQTY
+                    FROM CB_ITEM_MASTER_V V
+                            ,CB_ITEM_TRANSACTION C
+                  WHERE 1 = 1
+                     AND C.ORG_ID(+) = V.ORG_ID
+                     AND C.COMPANY_ID(+) = V.COMPANY_ID
+                     AND C.ITEM_CODE(+) = V.ITEM_CODE
+                     AND V.GROUP_CODE = 'A'
+                     AND V.ORG_ID = #ORGID#
+                     AND V.COMPANY_ID = #COMPANYID#
+                     <isNotEmpty property="ITEMTYPE" prepend="AND">
+                         V.ITEM_TYPE = #ITEMTYPE#
+                     </isNotEmpty>
+                     <isNotEmpty property="ITEMCODE" prepend="AND">
+                         V.ITEM_CODE = #ITEMCODE#
+                     </isNotEmpty>
+                     <isNotEmpty property="ORDERNAME" prepend="AND">
+                         V.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+                     </isNotEmpty>
+                     <isNotEmpty property="ITEMNAME" prepend="AND">
+                         V.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+                     </isNotEmpty>
+                     <isNotEmpty property="MODELNAME" prepend="AND">
+                         V.CAR_TYPE_NAME LIKE '%' || #MODELNAME# || '%'
+                     </isNotEmpty>
+                 ) Z
+       WHERE 1 = 1
+      ORDER BY ITEMCODE
+ </sql>
+
+ <select id="order.prod.inventory.list.select" parameterClass="java.util.Map"
+   resultClass="java.util.HashMap">
+   <include refid="order.prod.inventory.list.sql-select" />
+ </select>
+
+ <select id="order.prod.inventory.list.count" parameterClass="java.util.Map"
+   resultClass="java.lang.Integer">
+       SELECT COUNT(*) FROM (
+     <include refid="order.prod.inventory.list.sql-select" />
+       )TOT
+ </select>
+ <!-- 제품재고조회 항목 조회 끝 -->
+ 
+ 
+  <!-- 재고실사,조정처리 시작 -->
+  <sql id="order.prod.inventory.adjust.list.sql-select">
+  <![CDATA[
+  SELECT RANK() OVER(ORDER BY (SELECT SC.SMALL_NAME
+															              FROM CB_SMALL_CODE SC
+															             WHERE SC.ORG_ID = IM.ORG_ID
+															               AND SC.COMPANY_ID = IM.COMPANY_ID
+															               AND SC.BIG_CODE = 'CMM'
+															               AND SC.MIDDLE_CODE = 'MODEL'
+															               AND SC.SMALL_CODE = IM.CAR_TYPE), IM.ITEM_STANDARD_DETAIL, IM.ORDER_NAME, IM.ITEM_NAME, IM.ITEM_CODE) AS RN
+		      ,IM.ORG_ID AS ORGID
+		      ,IM.COMPANY_ID AS COMPANYID
+		      ,IM.BIG_CODE AS BIGCODE
+		      ,(SELECT BC.BIG_NAME
+		          FROM CB_BIG_CLASS BC
+		         WHERE BC.ORG_ID = IM.ORG_ID
+		           AND BC.COMPANY_ID = IM.COMPANY_ID
+		           AND BC.GROUP_CODE = IM.GROUP_CODE
+		           AND BC.BIG_CODE = IM.BIG_CODE) AS BIGNAME
+		      ,IM.MIDDLE_CODE AS MIDDLECODE
+		      ,(SELECT MC.MIDDLE_NAME
+		          FROM CB_MIDDLE_CLASS MC
+		         WHERE MC.ORG_ID = IM.ORG_ID
+		           AND MC.COMPANY_ID = IM.COMPANY_ID
+		           AND MC.GROUP_CODE = IM.GROUP_CODE
+		           AND MC.BIG_CODE = IM.BIG_CODE
+		           AND MC.MIDDLE_CODE = IM.MIDDLE_CODE) AS MIDDLENAME
+		      ,IM.SMALL_CODE AS SMALLCODE
+		      ,(SELECT SC.SMALL_NAME
+		          FROM CB_SMALL_CLASS SC
+		         WHERE SC.ORG_ID = IM.ORG_ID
+		           AND SC.COMPANY_ID = IM.COMPANY_ID
+		           AND SC.GROUP_CODE = IM.GROUP_CODE
+		           AND SC.BIG_CODE = IM.BIG_CODE
+		           AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+		           AND SC.SMALL_CODE = IM.SMALL_CODE) AS SMALLNAME
+		      ,IM.ITEM_CODE AS ITEMCODE
+		      ,IM.ITEM_NAME AS ITEMNAME
+		      ,IM.ORDER_NAME AS ORDERNAME
+		      ,IM.UOM AS UOM
+		      ,(SELECT SC.SMALL_NAME
+		          FROM CB_SMALL_CODE SC
+		         WHERE SC.ORG_ID = IM.ORG_ID
+		           AND SC.COMPANY_ID = IM.COMPANY_ID
+		           AND SC.BIG_CODE = 'CMM'
+		           AND SC.MIDDLE_CODE = 'UOM'
+		           AND SC.SMALL_CODE = IM.UOM) AS UOMNAME
+		      ,IM.ITEM_TYPE AS ITEMTYPE
+		      ,(SELECT SC.SMALL_NAME
+		          FROM CB_SMALL_CODE SC
+		         WHERE SC.ORG_ID = IM.ORG_ID
+		           AND SC.COMPANY_ID = IM.COMPANY_ID
+		           AND SC.BIG_CODE = 'CMM'
+		           AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+		           AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+		      ,IM.CAR_TYPE AS MODEL
+		      ,(SELECT SC.SMALL_NAME
+		          FROM CB_SMALL_CODE SC
+		         WHERE SC.ORG_ID = IM.ORG_ID
+		           AND SC.COMPANY_ID = IM.COMPANY_ID
+		           AND SC.BIG_CODE = 'CMM'
+		           AND SC.MIDDLE_CODE = 'MODEL'
+		           AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME
+          ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		      ,NVL(TRXSTOCK, 0) AS TRXSTOCK
+		      ,'A' AS CHECKGUBUN
+		      ,'재고실사' AS CHECKGUBUNNAME
+		      ,TO_CHAR(LAST_DAY(TRUNC(TO_DATE(#FROMDATE#, 'YYYY-MM'), 'MM')), 'YYYY-MM-DD') AS CHECKDATE
+  FROM (SELECT C.ORG_ID AS ORG_ID
+			              ,C.COMPANY_ID AS COMPANY_ID
+			              ,C.ITEM_CODE AS ITEM_CODE
+			              ,SUM(DECODE(C.TRX_GUBUN,'IN',C.TRX_QTY,TRX_QTY * -1)) AS TRXSTOCK
+	          FROM CB_ITEM_TRANSACTION C
+	         WHERE C.ORG_ID = #ORGID#
+	           AND C.COMPANY_ID = #COMPANYID#
+	           AND TRUNC(C.TRX_DATE, 'DD') <= LAST_DAY(TRUNC(TO_DATE(#FROMDATE#, 'YYYY-MM'), 'MM'))
+	           AND C.ITEM_CODE IN (SELECT A.ITEM_CODE
+					                                 FROM CB_ITEM_MASTER A
+					                                WHERE A.ORG_ID = #ORGID#
+					                                  AND A.COMPANY_ID = #COMPANYID#
+					                                  AND A.GROUP_CODE = 'A')
+	         GROUP BY C.ORG_ID, C.COMPANY_ID, C.ITEM_CODE) Z,
+	       CB_ITEM_MASTER IM
+  ]]>
+  </sql>
+  
+  <sql id="order.prod.inventory.adjust.list.sql-where">
+         WHERE Z.ORG_ID (+) = IM.ORG_ID
+            AND Z.COMPANY_ID (+) = IM.COMPANY_ID
+            AND Z.ITEM_CODE (+) = IM.ITEM_CODE
+            AND IM.ORG_ID = #ORGID#
+            AND IM.COMPANY_ID = #COMPANYID#
+            AND IM.ITEM_CODE IN (SELECT A.ITEM_CODE
+                                           FROM CB_ITEM_MASTER A
+                                          WHERE A.ORG_ID = #ORGID#
+                                             AND A.COMPANY_ID = #COMPANYID#
+                                             AND A.GROUP_CODE = 'A')
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+             IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>    
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+             IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>    
+         <isNotEmpty property="ITEMTYPE" prepend="AND">
+             IM.ITEM_TYPE = #ITEMTYPE#
+         </isNotEmpty>      
+         <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+             IM.ITEM_STANDARD LIKE '%' || #ITEMSTANDARD# ||'%'
+         </isNotEmpty>
+         <isNotEmpty property="MODELNAME" prepend="AND">
+            (SELECT SC.SMALL_NAME
+              FROM CB_SMALL_CODE SC
+             WHERE SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+               AND SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'MODEL'
+               AND SC.SMALL_CODE = IM.CAR_TYPE) LIKE '%' || #MODELNAME# || '%'
+         </isNotEmpty>
+  </sql>
+  
+  <select id="order.prod.inventory.adjust.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.prod.inventory.adjust.list.sql-select" />
+        <include refid="order.prod.inventory.adjust.list.sql-where" />
+  </select>
+  
+  <select id="order.prod.inventory.adjust.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="order.prod.inventory.adjust.list.sql-select" />
+            <include refid="order.prod.inventory.adjust.list.sql-where" />
+        ) TOT
+  </select>
+  
+  <select id="order.prod.inventory.adjust.checkno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT CB_INV_CHECK_ID_S.NEXTVAL AS CHECKNO
+         FROM DUAL
+  </select>
+  
+  <insert id="order.prod.inventory.adjust.insert" parameterClass="java.util.Map">
+  <![CDATA[
+  INSERT INTO CB_INV_CHECK (
+         ORG_ID
+        ,COMPANY_ID
+        ,CHECK_NO
+        ,CHECK_DATE
+        ,ITEM_CODE
+        ,CHECK_QTY
+        ,CHECK_GUBUN
+        ,TRXSTOCK
+        ,REALQTY
+  ]]>
+  <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+  </isNotEmpty>
+  <![CDATA[
+        ,CREATION_DATE
+        ,CREATED_BY
+        ,LAST_UPDATE_DATE
+        ,LAST_UPDATED_BY
+        )
+     VALUES (
+       #ORGID#
+       ,#COMPANYID#
+       ,#CHECKNO#
+       ,TO_DATE(#CHECKDATE#, 'YYYY-MM-DD')
+       ,#ITEMCODE#
+       ,$CHECKQTY$
+       ,#CHECKGUBUN#
+       ,$TRXSTOCK$
+       ,$REALQTY$
+  ]]>
+  <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+  </isNotEmpty>
+  <![CDATA[
+        ,SYSDATE
+        ,#UPDATEID#
+        ,SYSDATE
+        ,#UPDATEID#
+        )
+  ]]>
+  </insert>
+  
+</sqlMap>

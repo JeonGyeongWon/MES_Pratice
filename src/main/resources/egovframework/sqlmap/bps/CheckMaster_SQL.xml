@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="checkmaster">
+    <!-- 품목마스터 조회 시작 -->
+    <sql id="checkmaster.item.sql-select">
+       SELECT ROWNUM AS RNUM,
+				       IM.GROUP_CODE AS GROUPCODE,
+				       IM.BIG_CODE AS BIGCODE,
+				       (SELECT BC.BIG_NAME
+				          FROM CB_BIG_CLASS BC
+				         WHERE BC.ORG_ID = IM.ORG_ID
+				           AND BC.COMPANY_ID = IM.COMPANY_ID
+				           AND BC.GROUP_CODE = IM.GROUP_CODE
+				           AND BC.BIG_CODE = IM.BIG_CODE) AS BIGNAME,
+				       IM.MIDDLE_CODE AS MIDDLECODE,
+				       IM.SMALL_CODE AS SMALLCODE,
+				       IM.ITEM_CODE AS ITEMCODE,
+				       IM.ITEM_NAME AS ITEMNAME,
+				       IM.DRAWING_NO AS DRAWINGNO,
+				       IM.ORDER_NAME AS ORDERNAME,
+				       IM.ITEM_TYPE AS ITEMTYPE,
+				       (SELECT SC.SMALL_NAME
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = IM.ORG_ID
+				           AND SC.COMPANY_ID = IM.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+				           AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME,
+				       IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL,    
+				       IM.UOM AS UOM,
+				       (SELECT SC.SMALL_NAME
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = IM.ORG_ID
+				           AND SC.COMPANY_ID = IM.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'UOM'
+				           AND SC.SMALL_CODE = IM.UOM) AS UOMNAME,
+				       IM.CAR_TYPE AS MODEL,
+				       (SELECT SC.SMALL_NAME
+				          FROM CB_SMALL_CODE SC
+				         WHERE SC.ORG_ID = IM.ORG_ID
+				           AND SC.COMPANY_ID = IM.COMPANY_ID
+				           AND SC.BIG_CODE = 'CMM'
+				           AND SC.MIDDLE_CODE = 'MODEL'
+				           AND SC.SMALL_CODE = IM.CAR_TYPE) AS MODELNAME,
+				       IM.INVENTORY_MANAGE_YN AS INVENTORYMANAGEYN,
+				       IM.LOT_YN AS LOTYN,
+				       IM.INV_SAFE_QTY AS INVSAFEQTY,
+				       IM.INV_REDU_RATE AS INVREDURATE,
+				       IM.INV_MIN_QTY AS INVMINQTY,
+				       IM.INV_MAX_QTY AS INVMAXQTY,
+				       IM.PUR_PO_UOM AS PURPOUOM,
+				       IM.PUR_WA_UOM AS PURWAUOM,
+				       IM.WAR_NON_INSP_YN AS WARNONINSPYN,
+				       IM.WAR_ALT_WARE_YN AS WARALTWAREYN,
+				       IM.PRO_MAKE_TYPE AS PROMAKETYPE,
+				       IM.PRO_SOUR_TYPE AS PROSOURTYPE,
+				       IM.PRO_SOUR_ORG AS PROSOURORG,
+				       IM.PRO_MAT_TYPE AS PROMATTYPE,
+				       IM.PRO_LEAD_TIME AS PROLEADTIME,
+				       IM.SHIP_UOM AS SHIPUOM,
+				       IM.SHIP_BOX AS SHIPBOX,
+				       IM.PRO_LEAD_SIZE AS PROLEADSIZE,
+				       IM.USE_YN AS USEYN,
+				       IM.REMARKS AS REMARKS,
+				       TO_CHAR(IM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE,
+				       TO_CHAR(IM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE,
+				       IM.ORG_ID AS ORGID,
+				       IM.COMPANY_ID AS COMPANYID,
+				       (SELECT SMALL_NAME
+				          FROM CB_SMALL_CODE CS
+				         WHERE CS.BIG_CODE = 'CMM'
+				           AND CS.MIDDLE_CODE = 'CUSTOMER_GUBUN'
+				           AND CS.SMALL_CODE = IM.CUSTOMER_GUBUN) AS CUSTOMERGUBUNNAME,
+				       IM.CUSTOMER_CODE AS CUSTOMERCODE,
+				       (SELECT CC.CUSTOMER_NAME
+				          FROM CB_CUSTOMER CC
+				         WHERE CC.ORG_ID = IM.ORG_ID
+				           AND CC.COMPANY_ID = IM.COMPANY_ID
+				           AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME,
+				       DECODE((SELECT COUNT(CCM.ITEM_CODE)
+				                FROM CB_CHECK_MASTER CCM
+				               WHERE CCM.ORG_ID = IM.ORG_ID
+				                 AND CCM.COMPANY_ID = IM.COMPANY_ID
+				                 AND CCM.ITEM_CODE = IM.ITEM_CODE),
+				              0,
+				              'N',
+				              'Y') AS ITEMCHECK,
+				       CB_COMMON_STANDARD_PKG.CB_CHECK_DATA_FIND(IM.ORG_ID,
+				                                                 IM.COMPANY_ID,
+				                                                 IM.ITEM_CODE,
+				                                                 1,
+				                                                 'CHECK_BIG') AS FIRSTCHECKBIG,
+				       CB_COMMON_STANDARD_PKG.CB_CHECK_DATA_FIND(IM.ORG_ID,
+				                                                 IM.COMPANY_ID,
+				                                                 IM.ITEM_CODE,
+				                                                 1,
+				                                                 'ROUTING_ID') AS FIRSTROUTINGID
+             ,CB_COMMON_STANDARD_PKG.CB_FIND_SMALL_NAME_1(IM.ORG_ID
+                                                         ,IM.COMPANY_ID
+                                                         ,'MFG'
+                                                         ,'WORK_RATE'
+                                                         ,'01'
+                                                         ,'LABEL') AS WORKRATE
+		  FROM CB_ITEM_MASTER IM
+    </sql>
+
+    <sql id="checkmaster.item.sql-where">
+        WHERE SYSDATE BETWEEN IM.EFFECTIVE_START_DATE AND IM.EFFECTIVE_END_DATE
+       <isNotEmpty property="orgid" prepend="AND">
+           IM.ORG_ID = #orgid#
+       </isNotEmpty>
+       <isNotEmpty property="companyid" prepend="AND">
+           IM.COMPANY_ID = #companyid#
+       </isNotEmpty>
+       <isNotEmpty property="ORGID" prepend="AND">
+           IM.ORG_ID = #ORGID#
+       </isNotEmpty>
+       <isNotEmpty property="COMPANYID" prepend="AND">
+           IM.COMPANY_ID = #COMPANYID#
+       </isNotEmpty>
+       <isNotEmpty property="GROUPCODE" prepend="AND">
+           IM.GROUP_CODE = #GROUPCODE#
+       </isNotEmpty>
+       <isNotEmpty property="BIGCODE" prepend="AND">
+           IM.BIG_CODE = #BIGCODE#
+       </isNotEmpty>
+       <isNotEmpty property="ITEMTYPE" prepend="AND">
+           IM.ITEM_TYPE IN (SELECT SC.SMALL_CODE
+                                   FROM CB_SMALL_CODE SC
+                                  WHERE SC.ORG_ID = IM.ORG_ID
+                                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                                     AND SC.BIG_CODE = 'CMM'
+                                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                                     AND SC.ATTRIBUTE1 = #ITEMTYPE# )
+       </isNotEmpty>
+       <isNotEmpty property="ALLITEMTYPE" prepend="AND">
+           IM.ITEM_TYPE IN (SELECT SC.SMALL_CODE
+                                   FROM CB_SMALL_CODE SC
+                                  WHERE SC.ORG_ID = IM.ORG_ID
+                                     AND SC.COMPANY_ID = IM.COMPANY_ID
+                                     AND SC.BIG_CODE = 'CMM'
+                                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                                     AND SC.ATTRIBUTE1 IN ('A', 'Z'))
+       </isNotEmpty>
+       <isNotEmpty property="model" prepend="AND">
+           IM.MODEL = #model#
+       </isNotEmpty>
+       <isNotEmpty property="customer" prepend="AND">
+           IM.CUSTOMER_CODE = #customer#
+       </isNotEmpty>
+       <isNotEmpty property="itemcode" prepend="AND">
+           IM.ITEM_CODE LIKE '%' || #itemcode# || '%'
+       </isNotEmpty>
+       <isNotEmpty property="itemname" prepend="AND">
+           IM.ITEM_NAME LIKE '%' || #itemname# || '%'
+       </isNotEmpty>
+       <isNotEmpty property="ordername" prepend="AND">
+           IM.ORDER_NAME LIKE '%' || #ordername# || '%'
+       </isNotEmpty>
+       <isNotEmpty property="modelname" prepend="AND">
+           (SELECT SC.SMALL_NAME
+              FROM CB_SMALL_CODE SC
+             WHERE SC.ORG_ID = IM.ORG_ID
+               AND SC.COMPANY_ID = IM.COMPANY_ID
+               AND SC.BIG_CODE = 'CMM'
+               AND SC.MIDDLE_CODE = 'MODEL'
+               AND SC.SMALL_CODE = IM.CAR_TYPE) LIKE '%' || #modelname# || '%'
+       </isNotEmpty>
+       <isNotEmpty property="ITEMCHECK" prepend="AND">
+           DECODE((SELECT COUNT(CCM.ITEM_CODE)
+				               FROM CB_CHECK_MASTER CCM
+				              WHERE CCM.ORG_ID = IM.ORG_ID
+				                 AND CCM.COMPANY_ID = IM.COMPANY_ID
+				                 AND CCM.ITEM_CODE = IM.ITEM_CODE) , 0, 'N', 'Y') = #ITEMCHECK#
+           AND IM.GROUP_CODE NOT IN ( 'T' )
+       </isNotEmpty>
+       <isNotEmpty property="ROUTINGCHECK" prepend="AND">
+           DECODE((SELECT COUNT(RC.ITEM_CODE)
+                       FROM CB_ROUTING_CONTROL RC
+                      WHERE RC.ORG_ID = IM.ORG_ID
+                         AND RC.COMPANY_ID = IM.COMPANY_ID
+                         AND RC.ITEM_CODE = IM.ITEM_CODE) , 0, 'N', 'Y') = #ROUTINGCHECK#
+           AND IM.GROUP_CODE NOT IN ( 'T' )
+       </isNotEmpty>
+       <isNotEmpty property="BOMCHECK" prepend="AND">
+           DECODE((SELECT COUNT(CB.ITEM_CODE)
+                       FROM CB_BOM CB
+                      WHERE CB.ORG_ID = IM.ORG_ID
+                         AND CB.COMPANY_ID = IM.COMPANY_ID
+                         AND CB.UPPER_ITEM_CODE = IM.ITEM_CODE) , 0, 'N', 'Y') = #BOMCHECK#
+       </isNotEmpty>
+       <isNotEmpty property="HISTORYCHK" prepend="AND">
+           DECODE((SELECT COUNT(CH.ITEM_CODE)
+                       FROM CB_CHECK_HISTORY CH
+                      WHERE CH.ORG_ID = IM.ORG_ID
+                         AND CH.COMPANY_ID = IM.COMPANY_ID
+                         AND CH.ITEM_CODE = IM.ITEM_CODE) , 0, 'N', 'Y') = #HISTORYCHK#
+       </isNotEmpty>
+           ORDER BY IM.GROUP_CODE, IM.BIG_CODE, IM.MIDDLE_CODE, IM.SMALL_CODE, IM.ITEM_NAME, IM.ITEM_CODE
+    </sql>
+
+    <select id="checkmaster.item.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="checkmaster.item.sql-select" />
+           <include refid="checkmaster.item.sql-where" />
+    </select>
+
+    <select id="checkmaster.item.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="checkmaster.item.sql-select" />
+            <include refid="checkmaster.item.sql-where" />
+        ) TOT
+    </select>
+    <!-- 품목마스터 조회 끝 -->
+
+    <select id="checkmaster.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, ITEMCODE, ITEMTYPE
+          FROM (
+          <include refid="checkmaster.item.sql-select" />
+          <include refid="checkmaster.item.sql-where" />
+        )
+        WHERE 1=1
+          AND ROWNUM = 1
+    </select>
+  
+    <!-- 품질기준마스터 내역 시작 -->
+    <sql id="master.check.sql-select">
+        SELECT RANK() OVER(ORDER BY V.EFFECTIVEENDDATE DESC, V.CHECKBIGNAME, V.ROUTINGOP, V.ORDERNO) AS RNUM
+					    ,ORGID
+				      ,COMPANYID
+				      ,CHECKSEQ
+				      ,ITEMCODE
+				      ,CHECKBIG
+				      ,CHECKBIGNAME
+				      ,CHECKMIDDLE
+				      ,CHECKMIDDLENAME
+				      ,CHECKSMALL
+				      ,CHECKSMALLNAME
+				      ,ROUTINGID
+				      ,ROUTINGNO
+				      ,ROUTINGNAME
+				      ,UOM
+				      ,UOMNAME
+				      ,STANDARDVALUE
+				      ,MAXVALUE
+				      ,MINVALUE
+				      ,EFFECTIVESTARTDATE
+				      ,EFFECTIVEENDDATE
+				      ,CREATEDBY
+				      ,CREATIONDATE
+				      ,LASTUPDATEDBY
+				      ,LASTUPDATEDATE
+				      ,CHECKQTY
+				      ,ORDERNO
+				      ,SPECIALCHECK
+				      ,SPECIALCHECKNAME
+				      ,CHECKMETHODTYPE
+				      ,CHECKMETHODTYPENAME
+				      ,FMLCREATECODE
+				      ,FMLCREATENAME
+				      ,CHECKSTANDARD
+				      ,CHECKCYCLE
+				      ,CHECKCYCLENAME
+				      ,CHECKINTERVAL
+				      ,INTERVALCNT
+				      ,EXTSTANDARD
+				      ,IMPORTANTCODE
+				      ,IMPORTANTNAME
+				      ,CHECKMASTEREND
+          FROM CB_CHECK_MASTER_V V
+    </sql>
+
+    <sql id="master.check.sql-where">
+        WHERE 1=1
+       <isNotEmpty property="orgid" prepend="AND">
+           ORGID = #orgid#
+       </isNotEmpty>
+       <isNotEmpty property="companyid" prepend="AND">
+           COMPANYID = #companyid#
+       </isNotEmpty>
+       <isNotEmpty property="itemcode" prepend="AND">
+           ITEMCODE = #itemcode#
+       </isNotEmpty>
+      ORDER BY V.EFFECTIVEENDDATE DESC, V.CHECKBIGNAME, V.ROUTINGOP, V.ORDERNO
+    </sql>
+
+    <select id="master.check.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+           <include refid="master.check.sql-select" />
+           <include refid="master.check.sql-where" />
+    </select>
+
+    <select id="master.check.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="master.check.sql-select" />
+            <include refid="master.check.sql-where" />
+        ) TOT
+    </select>
+
+    <insert id="master.check.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_CHECK_MASTER
+        (
+          ORG_ID
+          ,COMPANY_ID
+          ,CHECK_SEQ
+          ,ITEM_CODE
+          ,CHECK_BIG
+          ,CHECK_MIDDLE
+          ,CHECK_SMALL
+          ,ROUTING_ID
+          ,ROUTING_NO
+          ,CHECK_UOM
+          ,CHECK_STANDARD
+          ,EXT_STANDARD
+          ,STANDARD_VALUE
+          ,MAX_VALUE
+          ,MIN_VALUE
+          ,CHECK_QTY
+          ,ORDER_NO
+          ,SPECIAL_CHECK
+          ,CHECK_METHOD_TYPE
+          ,FML_CREATE_CODE
+          ,CHECK_CYCLE
+          ,IMPORTANT_CODE
+          ,CHECK_INTERVAL
+          ,INTERVAL_CNT
+          ,EFFECTIVE_START_DATE
+          ,EFFECTIVE_END_DATE
+          ,CREATION_DATE
+          ,CREATED_BY
+          ,LAST_UPDATE_DATE
+          ,LAST_UPDATED_BY
+        )
+        VALUES
+        (
+           #ORGID#
+          ,#COMPANYID#
+          ,(SELECT TO_NUMBER(NVL(MAX(CHECK_SEQ), 0)) + 1
+                   FROM CB_CHECK_MASTER)
+          ,#ITEMCODE#
+          ,#CHECKBIG#
+          ,#CHECKMIDDLE#
+          ,#CHECKSMALL#
+          ,#ROUTINGID#
+          ,#ROUTINGNO#
+          ,#UOM#
+          ,#CHECKSTANDARD#
+          ,#EXTSTANDARD#
+          ,#STANDARDVALUE#
+          ,#MAXVALUE#
+          ,#MINVALUE#
+          ,$CHECKQTY$
+          ,$ORDERNO$
+          ,#SPECIALCHECK#
+          ,#CHECKMETHODTYPE#
+          ,NVL(#FMLCREATECODE#, 'F')
+          ,#CHECKCYCLE#
+          ,#IMPORTANTCODE#
+          ,#CHECKINTERVAL#
+          ,#INTERVALCNT#
+          ,TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+          ,TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+          ,SYSDATE
+          ,#REGISTID#
+          ,SYSDATE
+          ,#REGISTID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="master.check.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_CHECK_MASTER
+              SET ITEM_CODE = #ITEMCODE#
+                  ,CHECK_BIG = #CHECKBIG#
+                  ,CHECK_MIDDLE = #CHECKMIDDLE#
+                  ,CHECK_SMALL = #CHECKSMALL#
+                  ,ROUTING_ID = #ROUTINGID#
+                  ,ROUTING_NO = #ROUTINGNO#
+                  ,CHECK_UOM = #UOM#
+                  ,CHECK_STANDARD = #CHECKSTANDARD#
+                  ,EXT_STANDARD = #EXTSTANDARD#
+                  ,STANDARD_VALUE = #STANDARDVALUE#
+                  ,MAX_VALUE = #MAXVALUE#
+                  ,MIN_VALUE = #MINVALUE#
+                  ,CHECK_QTY = $CHECKQTY$
+                  ,ORDER_NO = $ORDERNO$
+                  ,SPECIAL_CHECK = #SPECIALCHECK#
+                  ,CHECK_METHOD_TYPE = #CHECKMETHODTYPE#
+                  ,FML_CREATE_CODE = NVL(#FMLCREATECODE#, 'F')
+                  ,CHECK_CYCLE = #CHECKCYCLE#
+                  ,IMPORTANT_CODE = #IMPORTANTCODE#
+				          ,CHECK_INTERVAL = #CHECKINTERVAL#
+				          ,INTERVAL_CNT = #INTERVALCNT#
+                  ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+                  ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+                  ,LAST_UPDATE_DATE = SYSDATE
+                  ,LAST_UPDATED_BY = #UPDATEID#
+         WHERE 1=1
+            AND ORG_ID = $ORGID$
+            AND COMPANY_ID = $COMPANYID$
+            AND CHECK_SEQ = $CHECKSEQ$
+    ]]>
+    </update>
+    
+    <delete id="master.check.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_CHECK_MASTER
+         WHERE 1=1
+            AND ORG_ID = $ORGID$
+            AND COMPANY_ID = $COMPANYID$
+            AND CHECK_SEQ = $CHECKSEQ$
+    </delete>
+    <!-- 품질기준마스터 내역 끝 -->
+
+  <!-- 2017.03.10 품질기준마스터 화면에서 입고검사 LIST // POPUP LIST  시작-->
+    <sql id="master.check.list.pop.sql-select">
+        SELECT RANK() OVER(ORDER BY IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE) AS RN
+					      ,ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,ITEM_CODE AS ITEMCODE
+					      ,ITEM_NAME AS ITEMNAME
+					      ,DRAWING_NO AS DRAWINGNO
+					      ,ORDER_NAME AS ORDERNAME
+					      ,UOM AS UOM
+					      ,UOM_NAME AS UOMNAME
+					      ,MODEL AS MODEL
+					      ,MODEL_NAME AS MODELNAME
+					      ,CAR_TYPE AS CARTYPE
+					      ,CAR_TYPE_NAME AS CARTYPENAME
+					      ,CUSTOMER_CODE AS CUSTOMERCODE
+					      ,CUSTOMER_NAME AS CUSTOMERNAME
+			  FROM CB_ITEM_MASTER_V IM
+    </sql>
+    
+    <sql id="master.check.list.pop.sql-where">
+         WHERE 1 = 1
+           AND TO_CHAR(SYSDATE, 'YYYY-MM-DD') BETWEEN IM.EFFECTIVE_START_DATE AND NVL(IM.EFFECTIVE_END_DATE, '4999-12-31')
+            AND DECODE((SELECT COUNT(CCM.ITEM_CODE)
+								               FROM CB_CHECK_MASTER CCM
+								              WHERE CCM.ORG_ID = IM.ORG_ID
+								                 AND CCM.COMPANY_ID = IM.COMPANY_ID
+								                 AND CCM.ITEM_CODE = IM.ITEM_CODE), 0, 'N', 'Y') = 'Y'
+        <isNotEmpty property="ORGID" prepend="AND">
+            IM.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            IM.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMTYPE" prepend="AND">
+            IM.ITEM_TYPE = #ITEMTYPE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+            IM.ITEM_CODE LIKE  '%' || #ITEMCODE# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="DRAWINGNO" prepend="AND">
+            IM.DRAWING_NO LIKE '%' || #DRAWINGNO# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="MODELNAME" prepend="AND">
+            IM.MODEL_NAME LIKE '%' || #MODELNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CARTYPENAME" prepend="AND">
+            IM.CAR_TYPE_NAME LIKE '%' || #CARTYPENAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERNAME" prepend="AND">
+            IM.CUSTOMER_NAME LIKE '%' || #CUSTOMERNAME# || '%'
+        </isNotEmpty>
+        ORDER BY  IM.ORG_ID, IM.COMPANY_ID, IM.ITEM_CODE
+    </sql>
+
+    <select id="master.check.list.pop.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap" remapResults="true">
+            <include refid="master.check.list.pop.sql-select" />
+            <include refid="master.check.list.pop.sql-where" />
+    </select>
+    
+    <select id="master.check.list.pop.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="master.check.list.pop.sql-select" />
+            <include refid="master.check.list.pop.sql-where" />
+        ) TOT
+    </select>
+  <!-- 2017.03.10 품질기준마스터 화면에서 입고검사 LIST // POPUP LIST 끝 -->
+  
+  <!-- 2017.03.10 품질기준마스터 화면에서 아이템별 품질 기준 마스터 LIST // POPUP LIST 시작 -->
+  <sql id="master.check.list.popcheck.sql-select">
+      SELECT  RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, CHECK_BIG, CCM.ROUTING_ID, CCM.ROUTING_NO, CCM.ORDER_NO) AS RNUM,
+<!--          SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, (SELECT  RC.ROUTING_OP -->
+<!--                                                                               FROM CB_ROUTING_CONTROL RC -->
+<!--                                                                              WHERE RC.ORG_ID = CCM.ORG_ID -->
+<!--                                                                                AND RC.COMPANY_ID = CCM.COMPANY_ID -->
+<!--                                                                                AND RC.ROUTING_ID = CCM.ROUTING_ID), CCM.ORDER_NO) AS RNUM, -->
+                 ORG_ID AS ORGID,
+                 COMPANY_ID AS COMPANYID,
+                 CHECK_SEQ AS CHECKSEQ,
+                 ITEM_CODE AS ITEMCODE,
+                 CHECK_BIG AS CHECKBIG,
+                 (SELECT CB.BIG_NAME
+                    FROM CB_CHECK_BIG_CODE CB
+                   WHERE CB.ORG_ID = CCM.ORG_ID
+                     AND CB.COMPANY_ID = CCM.COMPANY_ID
+                     AND CB.BIG_CODE = CCM.CHECK_BIG) AS CHECKBIGNAME,
+                 CHECK_MIDDLE AS CHECKMIDDLE,
+                 (SELECT CM.MIDDLE_NAME
+                    FROM CB_CHECK_MIDDLE_CODE CM
+                   WHERE CM.ORG_ID = CCM.ORG_ID
+                     AND CM.COMPANY_ID = CCM.COMPANY_ID
+                     AND CM.BIG_CODE = CCM.CHECK_BIG
+                     AND CM.MIDDLE_CODE = CCM.CHECK_MIDDLE) AS CHECKMIDDLENAME,
+                 CHECK_SMALL AS CHECKSMALL,
+                 (SELECT CS.SMALL_NAME
+                    FROM CB_CHECK_SMALL_CODE CS
+                   WHERE CS.ORG_ID = CCM.ORG_ID
+                     AND CS.COMPANY_ID = CCM.COMPANY_ID
+                     AND CS.BIG_CODE = CCM.CHECK_BIG
+                     AND CS.MIDDLE_CODE = CCM.CHECK_MIDDLE
+                     AND CS.SMALL_CODE = CCM.CHECK_SMALL) AS CHECKSMALLNAME,
+                 ROUTING_ID AS ROUTINGID,
+                 ROUTING_NO AS ROUTINGNO,
+                 (SELECT  (SELECT SC.SMALL_NAME
+                               FROM CB_SMALL_CODE SC
+                              WHERE 1=1
+                                AND SC.ORG_ID = RC.ORG_ID
+                                AND SC.COMPANY_ID = RC.COMPANY_ID
+                                AND SC.BIG_CODE = 'MFG'
+                                AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+                                AND SC.SMALL_CODE = RC.ROUTING_NO)
+                    FROM CB_ROUTING_CONTROL RC
+                   WHERE RC.ORG_ID = CCM.ORG_ID
+                     AND RC.COMPANY_ID = CCM.COMPANY_ID
+                     AND RC.ROUTING_ID = CCM.ROUTING_ID) AS ROUTINGNAME,
+                 CHECK_UOM AS UOM,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'CMM'
+                     AND CC.MIDDLE_CODE = 'UOM'
+                     AND CC.SMALL_CODE = CCM.CHECK_UOM) AS UOMNAME,
+                 STANDARD_VALUE AS STANDARDVALUE,
+                 MAX_VALUE AS MAXVALUE,
+                 MIN_VALUE AS MINVALUE,
+                 TO_CHAR(EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE,
+                 TO_CHAR(EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE,
+                 CREATED_BY AS CREATEDBY,
+                 TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CREATIONDATE,
+                 LAST_UPDATED_BY AS LASTUPDATEDBY,
+                 TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LASTUPDATEDATE,
+                 CCM.CHECK_QTY AS CHECKQTY,
+                 CCM.ORDER_NO AS ORDERNO,
+                 CCM.SPECIAL_CHECK AS SPECIALCHECK,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'QM'
+                     AND CC.MIDDLE_CODE = 'SPECIAL_CHECK'
+                     AND CC.SMALL_CODE = CCM.SPECIAL_CHECK) AS SPECIALCHECKNAME,
+                 CCM.CHECK_METHOD_TYPE AS CHECKMETHODTYPE,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'QM'
+                     AND CC.MIDDLE_CODE = 'CHECK_METHOD_TYPE'
+                     AND CC.SMALL_CODE = CCM.CHECK_METHOD_TYPE) AS CHECKMETHODTYPENAME,
+                 CCM.FML_CREATE_CODE AS FMLCREATECODE,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'QM'
+                     AND CC.MIDDLE_CODE = 'FML_TYPE'
+                     AND CC.SMALL_CODE = CCM.FML_CREATE_CODE) AS FMLCREATENAME,
+                 CCM.CHECK_STANDARD AS CHECKSTANDARD,
+                 CCM.CHECK_CYCLE AS CHECKCYCLE,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'QM'
+                     AND CC.MIDDLE_CODE = 'CHECK_CYCLE'
+                     AND CC.SMALL_CODE = CCM.CHECK_CYCLE) AS CHECKCYCLENAME,
+                 CCM.CHECK_INTERVAL AS CHECKINTERVAL,
+                 CCM.INTERVAL_CNT AS INTERVALCNT,
+                 CCM.EXT_STANDARD AS EXTSTANDARD,
+                 CCM.IMPORTANT_CODE AS IMPORTANTCODE,
+                 (SELECT CC.SMALL_NAME
+                    FROM CB_SMALL_CODE CC
+                   WHERE CC.ORG_ID = CCM.ORG_ID
+                     AND CC.COMPANY_ID = CCM.COMPANY_ID
+                     AND CC.BIG_CODE = 'QM'
+                     AND CC.MIDDLE_CODE = 'IMPORTANT_CODE'
+                     AND CC.SMALL_CODE = CCM.IMPORTANT_CODE) AS IMPORTANTNAME
+        FROM CB_CHECK_MASTER CCM
+  </sql>
+  
+  <sql id="master.check.list.popcheck.sql-where">
+       WHERE 1 = 1
+          AND SYSDATE BETWEEN NVL(CCM.EFFECTIVE_START_DATE,TO_DATE('2016-01-01','YYYY-MM-DD')) AND NVL(CCM.EFFECTIVE_END_DATE,TO_DATE('4999-12-31','YYYY-MM-DD'))
+      <isNotEmpty property="ORGID" prepend="AND">
+          CCM.ORG_ID = #ORGID#
+      </isNotEmpty>
+      <isNotEmpty property="COMPANYID" prepend="AND">
+          CCM.COMPANY_ID = #COMPANYID#
+      </isNotEmpty>
+      <isNotEmpty property="ITEMCODE" prepend="AND">
+          CCM.ITEM_CODE =   #ITEMCODE#
+      </isNotEmpty>
+    ORDER BY ORG_ID, COMPANY_ID, CHECK_BIG, CCM.ROUTING_ID, CCM.ROUTING_NO, CCM.ORDER_NO
+  </sql>
+
+  <select id="master.check.list.popcheck.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap" remapResults="true">
+          <include refid="master.check.list.popcheck.sql-select" />
+          <include refid="master.check.list.popcheck.sql-where" />
+  </select>
+  
+  <select id="master.check.list.popcheck.count" parameterClass="java.util.Map"
+      resultClass="java.lang.Integer">
+      SELECT COUNT(*) FROM (
+          <include refid="master.check.list.popcheck.sql-select" />
+          <include refid="master.check.list.popcheck.sql-where" />
+      ) TOT
+  </select>
+  <!-- 2017.03.10 품질기준마스터 화면에서 상세화면에서 아이템별 품질 기준 마스터 LIST // POPUP LIST 끝 -->
+  
+  
+  <!-- 변경이력관리 시작 -->
+  <sql id="checkmaster.history.list.sql-select">
+      SELECT RANK() OVER(ORDER BY CH.ORG_ID, CH.COMPANY_ID, CHECK_BIG, (SELECT RC.ROUTING_OP
+														                                                                       FROM CB_ROUTING_CONTROL RC
+														                                                                      WHERE RC.ORG_ID = CH.ORG_ID
+														                                                                         AND RC.COMPANY_ID = CH.COMPANY_ID
+														                                                                         AND RC.ROUTING_ID = CH.ROUTING_ID), HISTORY_ID) AS RNUM
+				      ,ORG_ID AS ORGID
+				      ,COMPANY_ID AS COMPANYID
+				      ,HISTORY_ID AS HISTORYID
+				      ,ITEM_CODE AS ITEMCODE
+				      ,CHECK_BIG AS CHECKBIG
+				      ,(SELECT CB.BIG_NAME
+				          FROM CB_CHECK_BIG_CODE CB
+				         WHERE CB.ORG_ID = CH.ORG_ID
+				           AND CB.COMPANY_ID = CH.COMPANY_ID
+				           AND CB.BIG_CODE = CH.CHECK_BIG) AS CHECKBIGNAME
+				      ,ROUTING_ID AS ROUTINGID
+				      ,(SELECT (SELECT SC.SMALL_NAME
+				                  FROM CB_SMALL_CODE SC
+				                 WHERE 1=1
+				                   AND SC.ORG_ID = RC.ORG_ID
+				                   AND SC.COMPANY_ID = RC.COMPANY_ID
+				                   AND SC.BIG_CODE = 'MFG'
+				                   AND SC.MIDDLE_CODE = 'ROUTING_NAME'
+				                   AND SC.SMALL_CODE = RC.ROUTING_NO)
+				          FROM CB_ROUTING_CONTROL RC
+				         WHERE RC.ORG_ID = CH.ORG_ID
+				           AND RC.COMPANY_ID = CH.COMPANY_ID
+				           AND RC.ROUTING_ID = CH.ROUTING_ID) AS ROUTINGNAME
+				      ,MARK AS MARK
+				      ,CHANGE_DESCRIPTION AS CHANGEDISCRIPTION
+				      ,CHANGE_PERSON AS CHANGEPERSON
+				      ,APPROVAL_PERSON AS APPROVALPERSON
+				      ,TO_CHAR(EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+				      ,TO_CHAR(EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+				      ,REMARKS
+		  FROM CB_CHECK_HISTORY CH
+  </sql>
+  
+  <sql id="checkmaster.history.list.sql-where">
+       WHERE 1 = 1
+          AND SYSDATE BETWEEN NVL(CH.EFFECTIVE_START_DATE, TO_DATE('2016-01-01', 'YYYY-MM-DD')) AND NVL(CH.EFFECTIVE_END_DATE, TO_DATE('4999-12-31', 'YYYY-MM-DD'))
+      <isNotEmpty property="orgid" prepend="AND">
+          CH.ORG_ID = #orgid#
+      </isNotEmpty>
+      <isNotEmpty property="companyid" prepend="AND">
+          CH.COMPANY_ID = #companyid#
+      </isNotEmpty>
+      <isNotEmpty property="itemcode" prepend="AND">
+          CH.ITEM_CODE = #itemcode#
+      </isNotEmpty>
+    ORDER BY CH.ORG_ID, CH.COMPANY_ID, CHECK_BIG, (SELECT RC.ROUTING_OP
+						                                                           FROM CB_ROUTING_CONTROL RC
+						                                                          WHERE RC.ORG_ID = CH.ORG_ID
+						                                                             AND RC.COMPANY_ID = CH.COMPANY_ID
+						                                                             AND RC.ROUTING_ID = CH.ROUTING_ID), HISTORY_ID
+  </sql>
+
+  <select id="checkmaster.history.list.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap" remapResults="true">
+          <include refid="checkmaster.history.list.sql-select" />
+          <include refid="checkmaster.history.list.sql-where" />
+  </select>
+  
+  <select id="checkmaster.history.list.count" parameterClass="java.util.Map"
+      resultClass="java.lang.Integer">
+      SELECT COUNT(*) FROM (
+          <include refid="checkmaster.history.list.sql-select" />
+          <include refid="checkmaster.history.list.sql-where" />
+      ) TOT
+  </select>
+  
+  <insert id="checkmaster.history.list.insert" parameterClass="java.util.Map">
+      <![CDATA[
+      INSERT INTO CB_CHECK_HISTORY
+      (
+        ORG_ID
+			 ,COMPANY_ID
+			 ,HISTORY_ID
+		 	 ,ITEM_CODE
+		 	 ,CHECK_BIG
+			 ,ROUTING_ID
+			 ,MARK
+			 ,CHANGE_DESCRIPTION
+			 ,CHANGE_PERSON
+			 ,APPROVAL_PERSON
+			 ,EFFECTIVE_START_DATE
+			 ,EFFECTIVE_END_DATE
+			 ,CREATED_BY
+			 ,CREATION_DATE
+			 ,LAST_UPDATED_BY
+			 ,LAST_UPDATE_DATE
+      )
+      VALUES
+      (
+        #ORGID#
+       ,#COMPANYID#
+       ,(SELECT TO_NUMBER(NVL(MAX(HISTORY_ID), 0)) + 1
+          FROM CB_CHECK_HISTORY)
+        ,#ITEMCODE#
+        ,#CHECKBIG#
+        ,#ROUTINGID#
+        ,#MARK#
+        ,#CHANGEDISCRIPTION#
+        ,#CHANGEPERSON#
+        ,#APPROVALPERSON#
+        ,TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+        ,TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+        ,#REGISTID#
+        ,SYSDATE
+        ,#REGISTID#
+        ,SYSDATE
+      )
+      ]]>
+  </insert>
+  
+  <update id="checkmaster.history.list.update" parameterClass="java.util.Map">
+  <![CDATA[
+      UPDATE CB_CHECK_HISTORY
+            SET LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+                ,CHECK_BIG = #CHECKBIG#
+                ,ROUTING_ID = #ROUTINGID#
+                ,MARK = #MARK#
+                ,CHANGE_DESCRIPTION = #CHANGEDISCRIPTION#
+                ,CHANGE_PERSON = #CHANGEPERSON#
+                ,APPROVAL_PERSON = #APPROVALPERSON#
+                ,EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#,'YYYY-MM-DD')
+                ,EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#,'YYYY-MM-DD')
+       WHERE 1=1
+          AND ORG_ID = $ORGID$
+          AND COMPANY_ID = $COMPANYID$
+          AND HISTORY_ID = $HISTORYID$
+  ]]>
+  </update>
+  
+  <delete id="checkmaster.history.list.delete" parameterClass="java.util.Map">
+      DELETE FROM CB_CHECK_HISTORY
+       WHERE 1=1
+          AND ORG_ID = $ORGID$
+          AND COMPANY_ID = $COMPANYID$
+          AND HISTORY_ID = $HISTORYID$
+  </delete>
+  <!-- 변경이력관리 끝 -->
+</sqlMap>

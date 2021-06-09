@@ -1,0 +1,15 @@
+@CHARSET "EUC-KR";
+
+.mobile_back {
+  background-image: url(../images/mobile/back.png);
+  background-repeat: no-repeat;
+  background-size: 40px 40px;
+  margin-top: 10px;
+}
+
+.mobile_logout {
+	background-image: url(../images/mobile/Log_Out.png);
+	background-repeat: no-repeat;
+	background-size: 40px 40px;
+  margin-top: 10px;
+}

@@ -1,0 +1,157 @@
+@charset "utf-8";
+
+#container .titleDep1 { background-image:url("../../../biztino/common/images/business/visual.jpg"); }
+#container .location .locationIn .sub.fixed { width:155px; }
+#container .location .locationIn .sub a.last { min-width:7em; }
+
+.btnTop { text-align:right; margin-top:-60px; margin-bottom:20px; }
+.proInfo { margin-top:-60px; padding-bottom:70px; }
+.proInfo .pointTxt { padding:80px 0 18px; display:block; }
+.proInfo .proTxt p { padding-top:15px; line-height:1.85; }
+.proInfo .btnArea { margin-top:40px; }
+
+.deveCurrent { overflow:hidden; margin-top:-10px; }
+.deveCurrent dt { float:left; width:62px; clear:both; font-weight:bold; padding-top:15px; }
+.deveCurrent dd { float:left; width:780px; padding-top:15px; }
+.mainProdT { color:#000; font-weight:bold; padding-top:7px; }
+.mainProd li { background:url("../../../biztino/common/images/common/bg_bul.gif") 0 8px no-repeat; padding:0 0 0 10px; margin-top:10px; font-weight:bold; }
+.mainProd li .small { color:#666; font-weight:normal; }
+
+.buyerT { color:#d63700; font-weight:bold; font-size:16px; margin-top:8px; }
+.buyer { overflow:hidden; margin-top:-4px; }
+.buyer li { float:left; margin:15px 15px 0 0; }
+.buyer + .buyerT { margin-top:37px; }
+
+.proInfo.pro1 { min-height:424px; background:url("../../../biztino/common/images/business/pro1_1_1.jpg") 100% 0 no-repeat; }
+.proInfo.pro2 { min-height:389px; background:url("../../../biztino/common/images/business/pro2_1_1.jpg") 100% 0 no-repeat; }
+.proInfo.pro3 { min-height:408px; background:url("../../../biztino/common/images/business/pro3_1_1.jpg") 100% 0 no-repeat; }
+.proInfo.pro4 { min-height:494px; background:url("../../../biztino/common/images/business/pro4_1_1.jpg") 100% 0 no-repeat; }
+.proInfo.pro5 { min-height:441px; padding-bottom:0; background:url("../../../biztino/common/images/business/pro5_1_1.jpg") 100% 0 no-repeat; }
+
+.proList { border-top:solid 2px #000;}
+.proList.none { border-top:none;}
+.proList .proItem { overflow:hidden; padding-top:50px; margin-top:50px; border-top:solid 1px #cacaca; }
+.proList .proItem.first { overflow:hidden; padding-top:0; margin-top:30px; border-top:none; }
+.proList.none .proItem:first-child { border-top:0; margin-top:0; padding-top:0; }
+.proList .btnArea { margin-top:45px; }
+.proList .proItem:first-child { border-top:0;  margin-top:0; padding-top:40px; }
+.proList .proItem .col1 { width:520px; float:right; }
+.proList .proItem .col2 { width:420px; float:left; }
+.proList .proItem .proName { font-weight:bold; font-size:24px; margin:4px 0 30px; color:#000; }
+.proList .proItem .proName.mg2 { margin:4px 0 20px; }
+.proList .proItem .proPoint { display:block; margin:-10px 0 34px; font-size:15px; }
+.proList .proItem .sTitle { background:url("../../../biztino/common/images/common/bg_bul.gif") 0 8px no-repeat; padding:0 0 0 10px; font-weight:bold; margin:27px 0 10px; color:#333; }
+.proList .proItem .sTitle2 { font-size:16px; font-weight:bold; margin:30px 0 10px; color:#333; }
+.proList .proItem .dataTy2 { margin-left:10px; }
+.proList .proItem .sTxt { padding:0 0 0 10px; font-size:13px; color:#333; }
+
+.proThumb { position:relative; height:417px; }
+.proThumb .list { position:absolute; bottom:0; overflow:hidden; }
+.proThumb .list li { float:left; width:126px; height:75px; }
+.proThumb .list li a { display:block; overflow:hidden; position:relative; }
+.proThumb .list li a:hover,.proThumb .list li a:focus,.proThumb .list li a.active { border:3px solid #d63700; height:69px; }
+.proThumb .list li a:hover img,.proThumb .list li a:focus img,.proThumb .list li a.active img { margin:-3px 0 0 -3px; }
+.proThumb .list li a span.cover { position:absolute; display:block; width:100%; height:75px; background:#000; opacity:0.6; filter:alpha(opacity=60); }
+.proThumb .list li a:hover span.cover,.proThumb .list li a:focus span.cover,.proThumb .list li a.active span.cover { display:none; }
+.proThumb .list li.last { width:128px; }
+
+.proImg { width:100%; overflow:hidden; }
+.proImg li { float:left; margin:35px 0 0 44px; white-space:nowrap; }
+.pro5 .proImg li { margin-left:42px; margin-top:34px; }
+.pro5_2_1 .proImg { margin-top:-17px; }
+.pro5_2_1 .proImg li { margin-left:17px; margin-top:17px; }
+.pro5_2_1 .proImg li .desc { font-size:12px; }
+.pro5_2_2 .proImg { background:url("../../../biztino/common/images/business/pro5_2_5_0.jpg") 0 0 no-repeat; }
+.pro5_2_2 .proImg li { margin-left:10px; margin-top:0; background-color:#fff; }
+.pro5_2_2 .proImg li .desc { font-size:12px; }
+.pro5_2_2 .proImg li.row2 { margin-left:10px; margin-top:259px; }
+.pro5_3 .proImg li { margin-left:16px; margin-top:19px; }
+.pro5_3 .proImg li .desc { font-size:12px; }
+.proImg li.ml0 { margin-left:0 !important; }
+.proImg li .img { display:block; }
+.proImg li .desc { display:block; text-align:center; margin-top:7px; color:#333; font-size:13px; white-space:nowrap; margin-left:-10px; margin-right:-10px; }
+
+/* 해외영업망 */
+.pro1Global { position:relative; width:910px; height:455px; background:url("../../../biztino/common/images/business/pro1_1_global.gif") 0 0 no-repeat; }
+.pro1Global li { position:absolute; }
+.pro1Global a { display:block; width:6px; height:6px; cursor:default; }
+.pro1Global a .country { display:block; position:absolute; margin-left:-8px; bottom:100%; visibility:hidden; margin-bottom:6px; padding:7px 9px 0; border:1px solid #000; font-size:12px; color:#333; text-transform:uppercase; background-color:#fff; white-space:nowrap; }
+.pro1Global a .country span { display:block; position:relative; padding:0 0 18px 0; margin-bottom:-11px; background:url("../../../biztino/common/images/business/pro1_1_global_arrow.png") 0 100% no-repeat; }
+.pro1Global a:hover,.pro1Global a:focus { z-index:20 !important; }
+.pro1Global a:hover .country, a:focus .country { visibility:visible; z-index:20 !important; }
+.pro1Global .countryP1 { left:93px; top:128px }  /*Sweden*/
+.pro1Global .countryP2 { left:122px; top:147px } /*Estonia*/
+.pro1Global .countryP3 { left:80px; top:163px } /*Denmark*/
+.pro1Global .countryP4 { left:76px; top:170px } /*Netherlands*/
+.pro1Global .countryP5 { left:68px; top:175px } /*Belgium*/
+.pro1Global .countryP6 { left:94px; top:157px } /*Germany*/
+.pro1Global .countryP7 { left:104px; top:162px } /*Poland*/
+.pro1Global .countryP8 { left:118px; top:162px } /*Belarus*/
+.pro1Global .countryP9 { left:50px; top:163px } /*U.K*/
+.pro1Global .countryP10 { left:92px; top:172px } /*Czech*/
+.pro1Global .countryP11 { left:129px; top:172px } /*Ukraine*/
+.pro1Global .countryP12 { left:62px; top:180px } /*France*/
+.pro1Global .countryP13 { left:85px; top:189px } /*Italy*/
+.pro1Global .countryP14 { left:116px; top:184px } /*Romania*/
+.pro1Global .countryP15 { left:50px; top:197px } /*Spain*/
+.pro1Global .countryP16 { left:38px; top:202px } /*Portugal*/
+.pro1Global .countryP17 { left:106px; top:178px } /*Hungary*/
+.pro1Global .countryP18 { left:76px; top:182px } /*Switzerland*/
+.pro1Global .countryP19 { left:226px; top:168px } /*Russia*/
+.pro1Global .countryP20 { left:138px; top:222px } /*Israel*/
+.pro1Global .countryP21 { left:150px; top:224px } /*Turkey*/
+.pro1Global .countryP22 { left:184px; top:247px } /*U.A.E*/
+.pro1Global .countryP23 { left:110px; top:371px } /*South Africa*/
+.pro1Global .countryP24 { left:240px; top:257px } /*India*/
+.pro1Global .countryP25 { left:327px; top:211px } /*China-1*/
+.pro1Global .countryP25_2 { left:331px; top:235px } /*China-2*/
+.pro1Global .countryP26 { left:311px; top:261px } /*Hongkong*/
+.pro1Global .countryP27 { left:299px; top:266px } /*Thailand*/
+.pro1Global .countryP28 { left:344px; top:268px } /*Philippines*/
+.pro1Global .countryP29 { left:311px; top:273px } /*Vietnam*/
+.pro1Global .countryP30 { left:297px; top:284px } /*Malaysia*/
+.pro1Global .countryP31 { left:306px; top:296px } /*Singapore*/
+.pro1Global .countryP32 { left:299px; top:305px } /*Indonesia*/
+.pro1Global .countryP33 { left:398px; top:369px } /*Australia*/
+.pro1Global .countryP34 { left:627px; top:133px } /*Canada*/
+.pro1Global .countryP35 { left:655px; top:199px } /*U.S.A*/
+.pro1Global .countryP36 { left:728px; top:274px } /*Venezuela*/
+.pro1Global .countryP37 { left:759px; top:312px } /*Brazil*/
+.pro1Global .countryP38 { left:746px; top:357px } /*Argentina*/
+
+/* 자동화 */
+.automation { height:598px; background:url("../../../biztino/common/images/business/pro3_1_2.png") 0 100% no-repeat;  text-indent: 100%; line-height:1000px; white-space: nowrap; overflow: hidden; }
+
+/* 항공 */
+.pro5 .proTxt .jus { width:420px; }
+.pro5 .proImg { margin-top:34px; }
+.airplane { background:url("../../../biztino/common/images/business/pro5_2_1.jpg") 100% 0 no-repeat; }
+.airplane + .proList { margin-top:40px; }
+.testFac { margin-top:-5px; }
+.depotM { padding-top:16px; }
+
+/* 파워트레인 */
+.trainLine { overflow:hidden; margin:-25px 0 0 -42px; }
+.trainLine li { float:left; width:285px; margin-left:42px; margin-top:25px; }
+.trainLine li span { display:block; color:#000; text-align:center; margin-top:8px; }
+#perf .tabCont { min-height:430px; padding-top:90px; }
+#perf #perf1 .tabCont { background:url("../../../biztino/common/images/business/pro4_2_map1.gif") 0 120px no-repeat; }
+#perf #perf2 .tabCont { background:url("../../../biztino/common/images/business/pro4_2_map2.gif") 0 120px no-repeat; }
+#perf #perf3 .tabCont { background:url("../../../biztino/common/images/business/pro4_2_map3.gif") 0 120px no-repeat; }
+#perf .tabCont .korea { background:url("../../../biztino/common/images/business/pro4_2_flag1.gif") 0 5px no-repeat; }
+#perf .tabCont .china { background:url("../../../biztino/common/images/business/pro4_2_flag2.gif") 0 5px no-repeat; }
+#perf .tabCont .rumania { background:url("../../../biztino/common/images/business/pro4_2_flag3.gif") 0 5px no-repeat; }
+#perf .tabCont .thailand { background:url("../../../biztino/common/images/business/pro4_2_flag4.gif") 0 5px no-repeat; }
+#perf .tabCont .cezch { background:url("../../../biztino/common/images/business/pro4_2_flag5.gif") 0 5px no-repeat; }
+#perf .tabCont .usa { background:url("../../../biztino/common/images/business/pro4_2_flag6.gif") 0 5px no-repeat; }
+#perf .tabCont .canada { background:url("../../../biztino/common/images/business/pro4_2_flag7.gif") 0 5px no-repeat; }
+#perf .tabCont .mexico { background:url("../../../biztino/common/images/business/pro4_2_flag8.gif") 0 5px no-repeat; }
+#perf .tabCont .brazil { background:url("../../../biztino/common/images/business/pro4_2_flag9.gif") 0 5px no-repeat; }
+#perf .tabCont dl { padding-left:80px; overflow:hidden; width: 440px; margin-left:440px; margin-top:30px; }
+#perf .tabCont dl dt { width: 440px; font-size:15px; color:#000; font-weight:bold; margin-bottom:4px; }
+#perf .tabCont dl dd { font-size:12px; background:url("../../../biztino/common/images/common/bg_bul.gif") 0 15px no-repeat; padding:9px 0 0 10px; }
+#perf .tabCont dl dd.w1 { width:210px; float:left; }
+#perf .tabCont dl dd.w2 { width:190px; float:left; }
+#perf .tabCont dl dd.w3 { width:140px; float:left; }
+#perf .tabCont dl dd.w4{ width:260px; float:left; }
+#perf .tabCont dl dd.last { clear:both; }

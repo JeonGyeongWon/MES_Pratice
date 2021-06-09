@@ -1,0 +1,72 @@
+
+ul {
+    padding: 0;
+    margin: 0
+}
+
+.subImage {
+    width: 100%;   
+    background-image: url("/images/layout/sub_bg.png");
+}
+.subImage li {width:100%;max-width:1180px;margin:-10px auto 0;
+    text-align:right}
+
+
+
+/*****
+    footer
+*****/
+div.footer {
+    width: 100%;padding:5px 10px;
+    background-color: #cccccc;
+}
+
+.footer-no-border {
+    width:100%;max-width:1180px;margin:0 auto;
+    border-top: 0px none !important;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+
+
+
+.companyInfo {
+    width: 100%;
+    max-width: 992px;
+    margin: 0 auto;
+    padding: 15px 0;
+}
+
+.companyInfo li {
+    float: left
+}
+
+.companyInfo li.footerLogo {
+    width: 192px;
+    text-align: center;
+    color: #a1a1a1;
+}
+
+.footer-box .footer-box-header {
+    position: relative;
+    width: 95%;
+    max-width: 992px;
+    margin: 0 auto;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    -webkit-border-bottom-right-radius: 0;
+    -webkit-border-bottom-left-radius: 0;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -moz-border-radius-bottomright: 0;
+    -moz-border-radius-bottomleft: 0;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom: 0px solid #f4f4f4;
+    color: #444;
+    background-color: #383737;
+}

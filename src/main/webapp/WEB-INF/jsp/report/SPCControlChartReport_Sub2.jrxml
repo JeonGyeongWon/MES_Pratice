@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SPCControlChartReport_Sub2" language="groovy" pageWidth="1669" pageHeight="280" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1669" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryWithPageHeaderAndFooter="true" uuid="5936a088-b2ff-4fb4-9a59-21a4fdbe5826">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="619"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ITEMCODE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CHECKLISTID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHFROM" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHTO" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT '평균' AS GUBUN
+      ,LEV AS RN
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'DEV_TOTAL'
+                                           ,1
+                                            ) AS VALUE
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'UCR'
+                                           ,1
+                                            ) AS USL
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'LCR'
+                                           ,1
+                                            ) AS LSL
+  FROM (SELECT LEVEL AS LEV
+              ,$P{ORGID} AS ORG_ID
+              ,$P{COMPANYID} AS COMPANY_ID
+              ,$P{ITEMCODE} AS ITEM_CODE
+              ,$P{CHECKLISTID} AS CHECK_LIST_ID
+              ,TO_DATE($P{SEARCHFROM}, 'YYYY-MM-DD') AS SEARCH_FROM
+              ,TO_DATE($P{SEARCHTO}, 'YYYY-MM-DD') AS SEARCH_TO
+          FROM DUAL
+       CONNECT BY LEVEL <= 25) TMP
+ WHERE 1=1
+ UNION ALL
+SELECT '값' AS GUBUN
+      ,LEV AS RN
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'DEVIATION_AVERAGE'
+                                           ,LEV
+                                            ) AS VALUE
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'UCR'
+                                           ,1
+                                            ) AS USL
+      ,CB_REPORT_PKG.CB_SPC_CALC_CHECK_FIND(ORG_ID
+                                           ,COMPANY_ID
+                                           ,ITEM_CODE
+                                           ,NULL
+                                           ,CHECK_LIST_ID
+                                           ,SEARCH_FROM
+                                           ,SEARCH_TO
+                                           ,'LCR'
+                                           ,1
+                                            ) AS LSL
+FROM (SELECT LEVEL AS LEV
+            ,$P{ORGID} AS ORG_ID
+            ,$P{COMPANYID} AS COMPANY_ID
+            ,$P{ITEMCODE} AS ITEM_CODE
+            ,$P{CHECKLISTID} AS CHECK_LIST_ID
+            ,TO_DATE($P{SEARCHFROM}, 'YYYY-MM-DD') AS SEARCH_FROM
+            ,TO_DATE($P{SEARCHTO}, 'YYYY-MM-DD') AS SEARCH_TO
+        FROM DUAL
+     CONNECT BY LEVEL <= 25) TMP
+WHERE 1=1]]>
+	</queryString>
+	<field name="GUBUN" class="java.lang.String"/>
+	<field name="RN" class="java.math.BigDecimal"/>
+	<field name="VALUE" class="java.math.BigDecimal"/>
+	<field name="USL" class="java.math.BigDecimal"/>
+	<field name="LSL" class="java.math.BigDecimal"/>
+	<summary>
+		<band height="280" splitType="Stretch">
+			<lineChart>
+				<chart isShowLegend="false">
+					<reportElement x="0" y="0" width="1669" height="280" uuid="7d6ece0a-9c14-49cb-bfcd-e524c6ebfbe4"/>
+					<box>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<chartTitle>
+						<font fontName="맑은 고딕" size="24" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{GUBUN}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{RN}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{VALUE}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot>
+						<seriesColor seriesOrder="0" color="#FF0000"/>
+						<seriesColor seriesOrder="1" color="#0000FF"/>
+					</plot>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{LSL}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{USL}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+		</band>
+	</summary>
+</jasperReport>

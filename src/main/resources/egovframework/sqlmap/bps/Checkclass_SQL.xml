@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="checkclass">
+
+    <!-- 검사항목 대분류 select -->
+    <sql id="checkclass.big.sql-select">
+        SELECT ROWNUM as RNUM,
+		       BIG_CODE AS BIGCD,
+		       BIG_NAME AS BIGCDNM,
+		       REMARKS AS NOTES,
+		       USE_YN AS USEYN,
+		       CREATED_BY AS CRBY,
+		       TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CRDATE,
+		       LAST_UPDATED_BY AS LUBY,
+		       TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LUDATE
+		       ,ORG_ID AS ORGID
+            ,COMPANY_ID AS COMPANYID
+		  FROM CB_CHECK_BIG_CODE
+    </sql>
+
+    <sql id="checkclass.big.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="searchParam2" prepend="AND">
+            BIG_CODE = #searchParam2#
+        </isNotEmpty>
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+    </sql>
+
+    <select id="checkclass.big.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="checkclass.big.sql-select" />
+        <include refid="checkclass.big.sql-where" />
+        ORDER BY BIG_CODE
+    </select>
+    
+    <select id="checkclass.big.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="checkclass.big.sql-select" />
+	        <include refid="checkclass.big.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- cmmbigclass lov select -->
+    <sql id="checkclass.lov.sql-select">
+        SELECT ROWNUM AS RNUM
+		        ,BIG_CODE AS VALUE
+		        ,BIG_NAME AS LABEL
+          FROM CB_CHECK_BIG_CODE
+    </sql>
+
+    <sql id="checkclass.lov.sql-where">
+        WHERE 1=1
+        <isNotEmpty property="keyword" prepend="AND">
+            BIG_NAME LIKE '%' || #keyword# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+    </sql>
+
+    <select id="checkclass.lov.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT rownum RNUM, TA.*
+          FROM (
+	        <include refid="checkclass.lov.sql-select" />
+	        <include refid="checkclass.lov.sql-where" />
+            ORDER BY BIG_NAME
+        ) TA
+    </select>
+
+    <select id="checkclass.lov.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="checkclass.lov.sql-select" />
+	        <include refid="checkclass.lov.sql-where" />
+        ) TOT
+    </select>
+
+    <!-- 검사항목 중분류 select -->
+    <sql id="checkclass.middle.sql-select">
+        SELECT ROWNUM AS RNUM,
+		       BIG_CODE AS BIGCD,
+		       MIDDLE_CODE AS MIDDLECD,
+		       MIDDLE_NAME AS MIDDLECDNM,
+		       REMARKS AS NOTES,
+		       USE_YN AS USEYN,
+		       CREATED_BY AS CRBY,
+		       TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CRDATE,
+		       LAST_UPDATED_BY AS LUBY,
+		       TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LUDATE
+		       ,ORG_ID AS ORGID
+            ,COMPANY_ID AS COMPANYID
+		  FROM CB_CHECK_MIDDLE_CODE
+    </sql>
+
+    <sql id="checkclass.middle.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="bigcd" prepend="AND">
+            BIG_CODE = #bigcd#
+        </isNotEmpty>
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+    </sql>
+
+    <select id="checkclass.middle.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="checkclass.middle.sql-select" />
+        <include refid="checkclass.middle.sql-where" />
+        ORDER BY BIG_CODE, MIDDLE_CODE
+    </select>
+
+    <select id="checkclass.middle.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="checkclass.middle.sql-select" />
+	        <include refid="checkclass.middle.sql-where" />
+        ) TOT
+    </select>
+
+    <select id="checkclass.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT BIGCD
+          FROM (
+	        <include refid="checkclass.middle.sql-select" />
+	        <include refid="checkclass.middle.sql-where" />
+            ORDER BY 2, 3
+        )
+        WHERE 1=1
+          AND ROWNUM = 1
+    </select>
+    
+    <sql id="checkclass.small.sql-select">
+       SELECT ROWNUM AS RNUM,
+		       BIG_CODE AS BIGCD,
+		       MIDDLE_CODE AS MIDDLECD,
+		       SMALL_CODE AS SMALLCD,
+		       SMALL_NAME AS SMALLCDNM,
+		       REMARKS AS NOTES,
+		       USE_YN AS USEYN,
+		       CREATED_BY AS CRBY,
+		       TO_CHAR(CREATION_DATE, 'YYYY-MM-DD') AS CRDATE,
+		       LAST_UPDATED_BY AS LUBY,
+		       TO_CHAR(LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LUDATE
+		       ,ORG_ID AS ORGID
+            ,COMPANY_ID AS COMPANYID
+		  FROM CB_CHECK_SMALL_CODE
+    </sql>
+
+    <sql id="checkclass.small.sql-where">
+        WHERE 1=1
+           AND USE_YN = 'Y'
+        <isNotEmpty property="bigcd" prepend="AND">
+            BIG_CODE = #bigcd#
+        </isNotEmpty>
+        <isNotEmpty property="middlecd" prepend="AND">
+            MIDDLE_CODE = #middlecd#
+        </isNotEmpty>
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+    </sql>
+
+    <select id="checkclass.small.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="checkclass.small.sql-select" />
+        <include refid="checkclass.small.sql-where" />
+        ORDER BY BIG_CODE, MIDDLE_CODE, SMALL_CODE
+    </select>
+
+    <select id="checkclass.small.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+	        <include refid="checkclass.small.sql-select" />
+	        <include refid="checkclass.small.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="checkclass.mfirst.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT BIGCD, MIDDLECD
+          FROM (
+	        <include refid="checkclass.small.sql-select" />
+	        <include refid="checkclass.small.sql-where" />
+	        ORDER BY BIG_CODE, MIDDLE_CODE, SMALL_CODE
+        )
+        WHERE 1=1
+          AND ROWNUM = 1
+    </select>
+    
+    <!-- 대분류 sql -->
+    <insert id="checkclass.big.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_CHECK_BIG_CODE
+        (
+	        BIG_CODE
+	        ,BIG_NAME
+	        ,REMARKS
+	        ,USE_YN
+	        ,CREATION_DATE
+	        ,CREATED_BY
+	        ,LAST_UPDATE_DATE
+	        ,LAST_UPDATED_BY
+	        ,ORG_ID  
+          ,COMPANY_ID 
+        )
+        VALUES
+        (
+	        #BIGCD#
+	        ,#BIGCDNM#
+	        ,#NOTES#
+	        ,#USEYN#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,#ORGID#
+          ,#COMPANYID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="checkclass.big.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_CHECK_BIG_CODE
+            SET BIG_NAME = #BIGCDNM#
+                ,REMARKS = #NOTES#
+                ,USE_YN = #USEYN#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+          WHERE BIG_CODE = #BIGCD#
+          AND ORG_ID = #ORGID#
+             AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </update>
+    
+    <delete id="checkclass.big.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_CHECK_BIG_CODE
+         WHERE BIG_CODE = #BIGCD#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    </delete>
+    
+    <!-- 중분류 sql -->
+    <insert id="checkclass.middle.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_CHECK_MIDDLE_CODE
+        (
+	        BIG_CODE
+	        ,MIDDLE_CODE
+	        ,MIDDLE_NAME
+	        ,REMARKS
+	        ,USE_YN
+	        ,CREATION_DATE
+	        ,CREATED_BY
+	        ,LAST_UPDATE_DATE
+	        ,LAST_UPDATED_BY
+	        ,ORG_ID  
+          ,COMPANY_ID 
+        )
+        VALUES
+        (
+	        #BIGCD#
+	        ,#MIDDLECD#
+	        ,#MIDDLECDNM#
+	        ,#NOTES#
+	        ,#USEYN#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,#ORGID#
+          ,#COMPANYID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="checkclass.middle.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_CHECK_MIDDLE_CODE
+            SET MIDDLE_NAME = #MIDDLECDNM#
+                ,REMARKS = #NOTES#
+                ,USE_YN = #USEYN#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+          WHERE BIG_CODE = #BIGCD#
+            AND MIDDLE_CODE = #MIDDLECD#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </update>
+    
+    <delete id="checkclass.middle.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_CHECK_MIDDLE_CODE
+         WHERE BIG_CODE = #BIGCD#
+            AND MIDDLE_CODE = #MIDDLECD#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    </delete>
+    
+    <!-- 소분류 sql -->
+    <insert id="checkclass.small.insert" parameterClass="java.util.Map">
+        <![CDATA[
+        INSERT INTO CB_CHECK_SMALL_CODE
+        (
+	        BIG_CODE
+	        ,MIDDLE_CODE
+	        ,SMALL_CODE
+	        ,SMALL_NAME
+	        ,REMARKS
+	        ,USE_YN
+	        ,CREATION_DATE
+	        ,CREATED_BY
+	        ,LAST_UPDATE_DATE
+	        ,LAST_UPDATED_BY
+	        ,ORG_ID  
+          ,COMPANY_ID 
+        )
+        VALUES
+        (
+	        #BIGCD#
+	        ,#MIDDLECD#
+	        ,#SMALLCD#
+	        ,#SMALLCDNM#
+	        ,#NOTES#
+	        ,#USEYN#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,SYSDATE
+	        ,#REGISTID#
+	        ,#ORGID#
+          ,#COMPANYID#
+        )
+        ]]>
+    </insert>
+    
+    <update id="checkclass.small.update" parameterClass="java.util.Map">
+    <![CDATA[
+        UPDATE CB_CHECK_SMALL_CODE
+            SET SMALL_NAME = #SMALLCDNM#
+                ,REMARKS = #NOTES#
+                ,USE_YN = #USEYN#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,LAST_UPDATED_BY = #UPDATEID#
+         WHERE BIG_CODE = #BIGCD#
+            AND MIDDLE_CODE = #MIDDLECD#
+            AND SMALL_CODE = #SMALLCD#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    ]]>
+    </update>
+    
+    <delete id="checkclass.small.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_CHECK_SMALL_CODE
+         WHERE BIG_CODE = #BIGCD#
+            AND MIDDLE_CODE = #MIDDLECD#
+            AND SMALL_CODE = #SMALLCD#
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+    </delete>
+</sqlMap>

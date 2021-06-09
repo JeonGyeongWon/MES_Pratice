@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FaultTypeReport_Sub1" language="groovy" pageWidth="1724" pageHeight="900" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1724" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryWithPageHeaderAndFooter="true" uuid="86e65b24-469b-4586-98b8-a81dba00055e">
+	<property name="ireport.zoom" value="0.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHDATE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE) AS RN
+      ,SC.ORG_ID AS ORGID
+      ,SC.COMPANY_ID AS COMPANYID
+      ,TMP.SEARCH_DATE AS SEARCHDATE
+      ,SC.SMALL_CODE AS FAULTTYPE
+      ,SC.SMALL_NAME AS FAULTTYPENAME
+      ,CB_REPORT_PKG.CB_FAULT_TYPE_FIND(SC.ORG_ID
+                                       ,SC.COMPANY_ID
+                                       ,TMP.SEARCH_DATE
+                                       ,RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE)) AS FAULTQTY
+  FROM CB_SMALL_CODE SC
+      ,(SELECT $P{ORGID} AS ORG_ID
+              ,$P{COMPANYID} AS COMPANY_ID
+              ,$P{SEARCHDATE} AS SEARCH_DATE
+          FROM DUAL) TMP
+ WHERE 1=1
+   AND SC.ORG_ID = TMP.ORG_ID
+   AND SC.COMPANY_ID = TMP.COMPANY_ID
+   AND SC.BIG_CODE = 'MFG'
+   AND SC.MIDDLE_CODE = 'FAULT_TYPE'
+   AND SC.USE_YN = 'Y'
+ ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE]]>
+	</queryString>
+	<field name="RN" class="java.math.BigDecimal"/>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="SEARCHDATE" class="java.lang.String"/>
+	<field name="FAULTTYPE" class="java.lang.String"/>
+	<field name="FAULTTYPENAME" class="java.lang.String"/>
+	<field name="FAULTQTY" class="java.lang.Integer"/>
+	<summary>
+		<band height="900" splitType="Stretch">
+			<bar3DChart>
+				<chart isShowLegend="false">
+					<reportElement x="0" y="0" width="1724" height="900" uuid="c7856b34-3bff-4c2a-af2c-b9cea6abedcd">
+						<property name="net.sf.jasperreports.chart.range.axis.tick.interval" value="1"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="3.0"/>
+						<leftPen lineWidth="3.0"/>
+						<bottomPen lineWidth="3.0"/>
+						<rightPen lineWidth="3.0"/>
+					</box>
+					<chartTitle>
+						<font fontName="맑은 고딕" isBold="true" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend>
+						<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["불량유형현황"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{FAULTTYPENAME}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{FAULTQTY}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<bar3DPlot isShowLabels="false">
+					<plot/>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat verticalTickLabels="false">
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat verticalTickLabels="false">
+							<labelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" size="10" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</bar3DPlot>
+			</bar3DChart>
+		</band>
+	</summary>
+</jasperReport>

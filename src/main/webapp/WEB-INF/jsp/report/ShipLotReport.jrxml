@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ShipLotReport" language="groovy" pageWidth="302" pageHeight="226" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="292" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="edd79099-54b3-4d81-a1ea-10fd466bdcc7">
+	<property name="ireport.zoom" value="2.5937424601000023"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String"/>
+	<parameter name="COMPANYID" class="java.lang.String"/>
+	<parameter name="SHIPNO" class="java.lang.String"/>
+	<parameter name="SHIPSEQ" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT ORG_ID AS ORGID
+      ,ORG_NAME AS ORGNAME
+      ,COMPANY_ID AS COMPANYID
+      ,SHIP_NO AS SHIPNO
+      ,SHIP_SEQ AS SHIPSEQ
+      ,SHIP_DATE AS SHIPDATE
+      ,ITEM_CODE AS ITEMCODE
+      ,MODEL_NAME AS MODELNAME
+      ,ORDER_NAME AS ORDERNAME
+      ,ITEM_NAME AS ITEMNAME
+      ,CUSTOMER_NAME AS CUSTOMERNAME
+      ,LOT_NO AS LOTNO
+      ,LOT_CNT AS LOTCNT
+      ,SHIP_QTY AS SHIPQTY
+      ,KR_NAME AS KRNAME
+      ,WORKER_NAME AS WORKERNAME
+      ,WORK_ORDER_DATE AS WORKORDERDATE
+      ,'출고일:' || SHIP_DATE || CHR(13) ||
+       '차종:' || MODEL_NAME || CHR(13) ||
+       '품명:' || ITEM_NAME || CHR(13) ||
+       '납품처:' || CUSTOMER_NAME || CHR(13) ||
+       'LOTNO:' || CUSTOMER_LOT || '(' || SHIP_NO || '-' || SHIP_SEQ || ')' || CHR(13) ||
+       '수량:' || SHIP_QTY || CHR(13) ||
+       '검사자:' || KR_NAME || CHR(13) ||
+       '작업자:' || WORKER_NAME || CHR(13) ||
+       '작업일:' || WORK_ORDER_DATE AS BARCODEINFO
+  FROM CB_SHIPPING_LOT_REPORT_V
+ WHERE 1=1
+   AND ORG_ID = $P{ORGID}
+   AND COMPANY_ID = $P{COMPANYID}
+   AND SHIP_NO = $P{SHIPNO}
+   AND SHIP_SEQ = $P{SHIPSEQ}]]>
+	</queryString>
+	<field name="ORGID" class="java.math.BigDecimal"/>
+	<field name="ORGNAME" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.math.BigDecimal"/>
+	<field name="SHIPNO" class="java.lang.String"/>
+	<field name="SHIPSEQ" class="java.math.BigDecimal"/>
+	<field name="SHIPDATE" class="java.lang.String"/>
+	<field name="ITEMCODE" class="java.lang.String"/>
+	<field name="MODELNAME" class="java.lang.String"/>
+	<field name="ORDERNAME" class="java.lang.String"/>
+	<field name="ITEMNAME" class="java.lang.String"/>
+	<field name="CUSTOMERNAME" class="java.lang.String"/>
+	<field name="LOTNO" class="java.lang.String"/>
+	<field name="LOTCNT" class="java.math.BigDecimal"/>
+	<field name="SHIPQTY" class="java.lang.String"/>
+	<field name="KRNAME" class="java.lang.String"/>
+	<field name="WORKERNAME" class="java.lang.String"/>
+	<field name="WORKORDERDATE" class="java.lang.String"/>
+	<field name="BARCODEINFO" class="java.lang.String"/>
+	<detail>
+		<band height="216" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="0" width="292" height="66" forecolor="#000000" backcolor="#FFFFFF" uuid="16b30fe3-bd94-4d15-a48b-91093797838f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="24" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[출하 로트]]></text>
+			</staticText>
+			<image onErrorType="Blank">
+				<reportElement x="226" y="1" width="66" height="65" uuid="a46a5ef3-ce28-44b4-97c9-0d6c8858ea41"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(
+    new com.google.zxing.qrcode.QRCodeWriter().encode(
+        new String( ($F{BARCODEINFO}).getBytes("UTF-8"), "ISO-8859-1"),
+        com.google.zxing.BarcodeFormat.QR_CODE, 300, 300
+    )
+)]]></imageExpression>
+			</image>
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="66" height="65" uuid="127975f0-7be5-4ec0-a0a2-64a1c5c159d3"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(
+    new com.google.zxing.qrcode.QRCodeWriter().encode(
+        new String( ($F{BARCODEINFO}).getBytes("UTF-8"), "ISO-8859-1"),
+        com.google.zxing.BarcodeFormat.QR_CODE, 300, 300
+    )
+)]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="55" y="126" width="105" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="7b0d7dd3-66bb-43ea-8862-88d8f570a750"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{SHIPDATE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="55" y="96" width="237" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="ba310146-ba76-46cb-b213-0cc1db8611cc"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ITEMNAME}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="215" y="126" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="520e0dec-6b5e-45d5-a672-06601c33c09d"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{SHIPQTY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="66" width="55" height="30" uuid="91373935-eddb-41f0-a07d-271875f335b9"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[품번]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="160" y="66" width="55" height="30" uuid="61b1fd96-96a1-43ce-a1f6-b5daee3b21a4"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[차종]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="215" y="66" width="77" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="94bd002e-3c15-417e-af51-ad65a435c69b"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MODELNAME}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="96" width="55" height="30" uuid="f3508bab-c878-4ed1-af50-d2a97a7b82f6"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[품명]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="126" width="55" height="30" uuid="234968cd-0ff2-4ce1-ba8d-a95e731a5d86"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[출고일]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="55" y="66" width="105" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="bf76ffeb-6af5-463c-8b81-4ec25a906874"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ORDERNAME}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="160" y="126" width="55" height="30" uuid="b7e8583d-df04-4c50-99fc-5dd62c38824a"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[수량]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="55" y="156" width="237" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="f2b69ff7-d41c-4fdb-9d2a-9ed50fa58182"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CUSTOMERNAME}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="156" width="55" height="30" uuid="102a3f22-9f9e-4ab8-bab0-ca2a1f20272a"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[납품처]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="0" y="186" width="292" height="30" forecolor="#000000" backcolor="#FFFFFF" uuid="7f2cdf67-2557-4ea7-ad43-2a7b65ea2e05"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="맑은 고딕" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ORGNAME}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

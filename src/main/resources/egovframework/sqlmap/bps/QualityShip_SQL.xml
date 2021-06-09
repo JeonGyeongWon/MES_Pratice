@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="quality.ship">
+
+    <!-- 출하검사 저장 시 출하등록의 출하검사 상태 변경 시작 -->
+    <update id="ship.order.shipcheckstatus.change.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , SHIP_CHECK_STATUS = 'Y'
+        WHERE 1=1
+            AND ORG_ID = #searchOrgId#
+            AND COMPANY_ID = #searchCompanyId#
+            AND SHIP_NO = #shipno#
+            AND SHIP_SEQ = #shipseq#
+        ]]>
+    </update>
+    <!-- 출하검사 저장 시 출하등록의 출하검사 상태 변경 끝 -->
+    
+    <!-- 출하검사 저장 시 수주등록의 수주상태 변경 시작 -->
+    <update id="ship.order.salesorderstatus.change.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SALES_ORDER_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , SO_STATUS = 'COMPLETE'
+        WHERE 1=1
+            AND ORG_ID = 1
+            AND COMPANY_ID = 1
+            AND SO_NO = (SELECT SD.SO_NO
+                                   FROM CB_SHIPPING_D SD
+                                  WHERE 1=1
+                                    AND SD.ORG_ID = #searchOrgId#
+                                    AND SD.COMPANY_ID = #searchCompanyId#
+                                    AND SD.SHIP_NO = #shipno#
+                                    AND SD.SHIP_SEQ = #shipseq#
+                                    )
+        ]]>
+    </update>
+    <!-- 출하검사 저장 시 수주등록의 수주상태 변경 끝 -->
+    
+    <select id="quality.ship.new.inspno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT #GUBUN# || TO_CHAR(TO_DATE(#MfgDate#, 'YYYY-MM-DD'), 'YYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS SHIPINSNO
+          FROM (SELECT NVL(TO_NUMBER(SUBSTR(MAX(SIH.SHIP_INS_NO), -3)), 0) AS NUM
+                  FROM CB_SHIPMENT_INSPECTION_H SIH
+                 WHERE 1 = 1
+                   AND SHIP_INS_NO LIKE #GUBUN# || TO_CHAR(TO_DATE(#MfgDate#, 'YYYY-MM-DD'), 'YYMMDD') || '%')
+    </select>
+    
+    <insert id="quality.ship.header.insert" parameterClass="java.util.Map">
+       <![CDATA[
+            INSERT INTO CB_SHIPMENT_INSPECTION_H
+              (ORG_ID
+               ,COMPANY_ID
+               ,SHIP_INS_NO
+               ,MFG_DATE
+               ,SHIP_NO
+               ,SHIP_SEQ
+               ,SHIP_QTY
+               ,PASS_QTY
+               ,FAULT_QTY
+               ,CHECK_YN
+               ,MFG_NO
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#searchOrgId#
+              ,#searchCompanyId#
+              ,#SHIPINSNO#
+               ,TO_DATE(#MfgDate#, 'YYYY-MM-DD')
+               ,#ShipNo#
+               ,#ShipSeq#
+               ,#ShipQty#
+               ,#PassQty#
+               ,#FaultQty#
+               ,#CheckYn#
+               ,#MfgNo#
+        ]]>
+        <isNotEmpty property="Remarks" prepend=",">
+              #Remarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+     <insert id="quality.ship.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPMENT_INSPECTION_D
+              (ORG_ID
+               ,COMPANY_ID
+               ,SHIP_INS_NO
+               ,SHIP_INSPECTION_NO
+               ,CHECK_LIST_ID
+               ,ITEM_CODE
+               ,CHECK_RESULT1
+               ,CHECK_RESULT2
+               ,CHECK_RESULT3
+               ,CHECK_RESULT4
+               ,CHECK_RESULT5
+               ,CHECK_RESULT6
+               ,CHECK_RESULT7
+               ,CHECK_RESULT8
+               ,CHECK_RESULT9
+               ,CHECK_RESULT10
+               ,CHECK_YN
+               ,EMPLOYEE_NUMBER
+               ,MANAGE_EMPLOYEE
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+               ,#COMPANYID#
+               ,#SHIPINSNO#
+               ,(SELECT NVL(TO_NUMBER(MAX(SID.SHIP_INSPECTION_NO)), 0) + 1
+                  FROM CB_SHIPMENT_INSPECTION_D SID
+                 WHERE 1 = 1
+                   AND SID.ORG_ID = #ORGID#
+                   AND SID.COMPANY_ID = #COMPANYID#)
+               ,#CHECKLISTID#
+               ,#ITEMCODE#
+               ,#CHECKRESULT1#
+               ,#CHECKRESULT2#
+               ,#CHECKRESULT3#
+               ,#CHECKRESULT4#
+               ,#CHECKRESULT5#
+               ,#CHECKRESULT6#
+               ,#CHECKRESULT7#
+               ,#CHECKRESULT8#
+               ,#CHECKRESULT9#
+               ,#CHECKRESULT10#
+               ,#CHECKYN#
+               ,#PERSONID#
+               ,#MANAGEEMPLOYEE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="quality.ship.header.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPMENT_INSPECTION_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,MFG_DATE = TO_DATE(#MfgDate#, 'YYYY-MM-DD')
+                ,SHIP_QTY = NVL(#ShipQty#, 0)
+                ,PASS_QTY = NVL(#PassQty#, 0)
+                ,FAULT_QTY = NVL(#FaultQty#, 0)
+                ,CHECK_YN = #CheckYn#
+                ,MFG_NO = #MfgNo#
+                ,REMARKS = #Remarks#
+        WHERE 1=1
+            AND ORG_ID = #searchOrgId#
+            AND COMPANY_ID = #searchCompanyId#
+            AND SHIP_INS_NO = #ShipInsNo#
+        ]]>
+    </update>
+    
+    <delete id="quality.ship.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPMENT_INSPECTION_H
+         WHERE 1=1
+            AND ORG_ID = #searchOrgId#
+            AND COMPANY_ID = #searchCompanyId#
+            AND SHIP_INS_NO = #ShipInsNo#
+    </delete>
+    
+   <sql id="quality.ship.detail.find.sql-select">
+        SELECT COUNT(SD.SHIP_INSPECTION_NO) AS COUNT
+          FROM CB_SHIPMENT_INSPECTION_H SH
+                 , CB_SHIPMENT_INSPECTION_D SD
+    </sql>
+
+    <sql id="quality.ship.detail.find.sql-where">
+         WHERE 1 = 1
+           AND SH.ORG_ID = SD.ORG_ID
+           AND SH.COMPANY_ID = SD.COMPANY_ID
+           AND SH.SHIP_INS_NO = SD.SHIP_INS_NO
+        <isNotEmpty property="ORGID" prepend="AND">
+          SD.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          SD.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPINSNO" prepend="AND">
+          SD.SHIP_INS_NO = #SHIPINSNO#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPINSPECTIONNO" prepend="AND">
+          SD.SHIP_INSPECTION_NO = #SHIPINSPECTIONNO#
+        </isNotEmpty>
+    </sql>
+
+    <select id="quality.ship.detail.find.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="quality.ship.detail.find.sql-select" />
+        <include refid="quality.ship.detail.find.sql-where" />
+    </select>
+    
+    <update id="quality.ship.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPMENT_INSPECTION_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,EMPLOYEE_NUMBER = #PERSONID#
+                ,MANAGE_EMPLOYEE = #MANAGEEMPLOYEE#
+                ,CHECK_RESULT1 = #CHECKRESULT1#
+                ,CHECK_RESULT2 = #CHECKRESULT2#
+                ,CHECK_RESULT3 = #CHECKRESULT3#
+                ,CHECK_RESULT4 = #CHECKRESULT4#
+                ,CHECK_RESULT5 = #CHECKRESULT5#
+                ,CHECK_RESULT6 = #CHECKRESULT6#
+                ,CHECK_RESULT7 = #CHECKRESULT7#
+                ,CHECK_RESULT8 = #CHECKRESULT8#
+                ,CHECK_RESULT9 = #CHECKRESULT9#
+                ,CHECK_RESULT10 = #CHECKRESULT10#
+                ,CHECK_YN = #CHECKYN#
+                ,REMARKS = #REMARKS#
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_INS_NO = #SHIPINSNO#
+            AND SHIP_INSPECTION_NO = #SHIPINSPECTIONNO#
+        ]]>
+    </update>
+    
+    <delete id="quality.ship.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPMENT_INSPECTION_D
+         WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_INS_NO = #SHIPINSNO#
+            AND SHIP_INSPECTION_NO = #SHIPINSPECTIONNO#
+    </delete>
+    
+  <sql id="quality.ship.popup.list.sql-select">
+  <![CDATA[
+       SELECT SD.ORG_ID AS ORGID
+              ,SD.COMPANY_ID AS COMPANYID
+              ,SD.SHIP_NO AS SHIPNO
+              ,SD.SHIP_SEQ AS SHIPSEQ
+              ,TO_CHAR(SH.SHIP_DATE, 'YYYY-MM-DD') AS SHIPDATE
+              ,SH.CUSTOMER_CODE AS CUSTOMERCODE
+              ,(SELECT CC.CUSTOMER_NAME
+                  FROM CB_CUSTOMER CC
+                 WHERE 1=1
+                   AND CC.ORG_ID = SH.ORG_ID
+                   AND CC.COMPANY_ID = SH.COMPANY_ID
+                   AND CC.CUSTOMER_CODE = SH.CUSTOMER_CODE) AS CUSTOMERNAME
+              ,IMV.ITEM_CODE AS ITEMCODE
+              ,IMV.ORDER_NAME AS ORDERNAME
+              ,IMV.DRAWING_NO AS DRAWINGNO
+              ,IMV.ITEM_NAME AS ITEMNAME
+              ,IMV.CAR_TYPE AS CARTYPE
+              ,IMV.CAR_TYPE_NAME AS CARTYPENAME
+              ,IMV.MATERIAL_TYPE AS MATERIALTYPE
+              ,IMV.UOM AS UOM
+              ,IMV.UOM_NAME AS UOMNAME
+              ,SD.SHIP_QTY AS SHIPQTY
+              ,SD.SHIPMENT_INSPECTION_YN AS SHIPMENTINSPECTIONYN
+              ,NVL((SELECT SUM(SIH.SHIP_QTY)
+                      FROM CB_SHIPMENT_INSPECTION_H SIH
+                     WHERE 1=1
+                       AND SIH.ORG_ID = SD.ORG_ID
+                       AND SIH.COMPANY_ID = SD.COMPANY_ID
+                       AND SIH.SHIP_NO = SD.SHIP_NO
+                       /*AND SIH.SHIP_SEQ = SD.SHIP_SEQ*/
+                       ), 0) AS CHECKQTY
+              ,SD.SHIP_QTY - NVL((SELECT SUM(SIH.SHIP_QTY)
+                                    FROM CB_SHIPMENT_INSPECTION_H SIH
+                                   WHERE 1=1
+                                     AND SIH.ORG_ID = SD.ORG_ID
+                                     AND SIH.COMPANY_ID = SD.COMPANY_ID
+                                     AND SIH.SHIP_NO = SD.SHIP_NO
+                                     /*AND SIH.SHIP_SEQ = SD.SHIP_SEQ*/
+                                     ), 0) AS CHECKREMAINQTY
+              ,(SELECT WO.LOT_NO_VISUAL
+                 FROM CB_WAREHOUSING CW
+                     ,CB_WORK_ORDER WO
+                WHERE 1=1
+                 AND CW.ORG_ID = WO.ORG_ID
+                 AND CW.COMPANY_ID = WO.COMPANY_ID
+                 AND CW.WORK_ORDER_ID = WO.WORK_ORDER_ID
+                 AND CW.WORK_ORDER_SEQ = WO.WORK_ORDER_SEQ
+                 AND CW.ORG_ID = SD.ORG_ID
+                 AND CW.COMPANY_ID = SD.COMPANY_ID
+                 AND CW.WAREHOUSING_NO = SD.WAREHOUSING_NO) AS LOTNOVISUAL
+              ,(SELECT CW.WORK_ORDER_ID
+                 FROM CB_WAREHOUSING CW
+                WHERE 1=1
+                 AND CW.ORG_ID = SD.ORG_ID
+                 AND CW.COMPANY_ID = SD.COMPANY_ID
+                 AND CW.WAREHOUSING_NO = SD.WAREHOUSING_NO) AS WORKORDERID
+              ,(SELECT CW.WORK_ORDER_SEQ
+                 FROM CB_WAREHOUSING CW
+                WHERE 1=1
+                 AND CW.ORG_ID = SD.ORG_ID
+                 AND CW.COMPANY_ID = SD.COMPANY_ID
+                 AND CW.WAREHOUSING_NO = SD.WAREHOUSING_NO) AS WORKORDERSEQ
+        FROM CB_SHIPPING_H SH
+            ,CB_SHIPPING_D SD
+            ,CB_SALES_ORDER_D OD
+            ,CB_ITEM_MASTER_V IMV
+   ]]>
+  </sql>
+
+  <sql id="quality.ship.popup.list.sql-where">
+           WHERE 1=1
+	            AND SH.ORG_ID = SD.ORG_ID
+	            AND SH.COMPANY_ID = SD.COMPANY_ID
+	            AND SH.SHIP_NO = SD.SHIP_NO
+	            AND SD.ORG_ID = OD.ORG_ID
+	            AND SD.COMPANY_ID = OD.COMPANY_ID
+	            AND SD.SO_NO = OD.SO_NO
+	            AND SD.SO_SEQ = OD.SO_SEQ
+	            AND SD.ORG_ID = IMV.ORG_ID
+	            AND SD.COMPANY_ID = IMV.COMPANY_ID
+	            AND NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = IMV.ITEM_CODE
+          <isNotEmpty property="ORGID" prepend="AND">
+            SD.ORG_ID = #ORGID#
+          </isNotEmpty>
+          <isNotEmpty property="COMPANYID" prepend="AND">
+            SD.COMPANY_ID = #COMPANYID#
+          </isNotEmpty>
+          <isNotEmpty property="SHIPNO" prepend="AND">
+            SD.SHIP_NO = #SHIPNO#
+          </isNotEmpty>
+          <isNotEmpty property="POPGUBUN" prepend="AND">
+          <![CDATA[
+            SD.SHIP_QTY - NVL((SELECT SUM(SIH.SHIP_QTY)
+                                    FROM CB_SHIPMENT_INSPECTION_H SIH
+                                   WHERE 1=1
+                                     AND SIH.ORG_ID = SD.ORG_ID
+                                     AND SIH.COMPANY_ID = SD.COMPANY_ID
+                                     AND SIH.SHIP_NO = SD.SHIP_NO
+                                     /*AND SIH.SHIP_SEQ = SD.SHIP_SEQ*/
+                                     ), 0) > 0
+               AND NVL(SD.SHIPMENT_INSPECTION_YN, 'N') = 'Y'
+          ]]>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                SH.SHIP_DATE BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SEARCHFROM" prepend="AND">
+                SH.SHIP_DATE = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+                NVL(SD.ITEM_CODE_POST, SD.ITEM_CODE) = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+                IMV.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+                IMV.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+          </isNotEmpty>
+  </sql>
+
+  <select id="quality.ship.popup.list.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, WORKORDERID, WORKORDERSEQ, SHIPNO, SHIPDATE, CUSTOMERCODE, CUSTOMERNAME, ITEMCODE, ORDERNAME, DRAWINGNO, ITEMNAME, CARTYPE, CARTYPENAME, MATERIALTYPE, UOM, UOMNAME) AS RN 
+      ,ORGID
+      ,COMPANYID
+      ,WORKORDERID
+      ,WORKORDERSEQ
+      ,SHIPNO
+      ,MIN(SHIPSEQ) AS SHIPSEQ
+      ,SHIPDATE
+      ,CUSTOMERCODE
+      ,CUSTOMERNAME
+      ,ITEMCODE
+      ,ORDERNAME
+      ,DRAWINGNO
+      ,ITEMNAME
+      ,CARTYPE
+      ,CARTYPENAME
+      ,MATERIALTYPE
+      ,UOM
+      ,UOMNAME
+      ,SUM(SHIPQTY) AS SHIPQTY
+      ,SUM(CHECKQTY) AS CHECKQTY
+      ,SUM(CHECKREMAINQTY) AS CHECKREMAINQTY
+      ,MAX(LOTNOVISUAL) AS LOTNOVISUAL
+  FROM (
+    <include refid="quality.ship.popup.list.sql-select" />
+    <include refid="quality.ship.popup.list.sql-where" />
+    ) GA
+ WHERE 1=1
+ GROUP BY ORGID, COMPANYID, WORKORDERID, WORKORDERSEQ, SHIPNO, SHIPDATE, CUSTOMERCODE, CUSTOMERNAME, ITEMCODE, ORDERNAME, DRAWINGNO, ITEMNAME, CARTYPE, CARTYPENAME, MATERIALTYPE, UOM, UOMNAME
+ ORDER BY ORGID, COMPANYID, WORKORDERID, WORKORDERSEQ, SHIPNO, SHIPDATE, CUSTOMERCODE, CUSTOMERNAME, ITEMCODE, ORDERNAME, DRAWINGNO, ITEMNAME, CARTYPE, CARTYPENAME, MATERIALTYPE, UOM, UOMNAME
+  </select>
+
+  <select id="quality.ship.popup.list.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+		    SELECT ORGID
+		      ,COMPANYID
+		      ,WORKORDERID
+		      ,WORKORDERSEQ
+		      ,SHIPNO
+		      ,MIN(SHIPSEQ) AS SHIPSEQ
+		      ,SHIPDATE
+		      ,CUSTOMERCODE
+		      ,CUSTOMERNAME
+		      ,ITEMCODE
+		      ,ORDERNAME
+		      ,DRAWINGNO
+		      ,ITEMNAME
+		      ,CARTYPE
+		      ,CARTYPENAME
+		      ,MATERIALTYPE
+		      ,UOM
+		      ,UOMNAME
+		      ,SUM(SHIPQTY) AS SHIPQTY
+		      ,SUM(CHECKQTY) AS CHECKQTY
+		      ,SUM(CHECKREMAINQTY) AS CHECKREMAINQTY
+		      ,MAX(LOTNOVISUAL) AS LOTNOVISUAL
+		  FROM (
+		      <include refid="quality.ship.popup.list.sql-select" />
+		      <include refid="quality.ship.popup.list.sql-where" />
+		         ) GA
+		 WHERE 1=1
+		 GROUP BY ORGID, COMPANYID, WORKORDERID, WORKORDERSEQ, SHIPNO, SHIPDATE, CUSTOMERCODE, CUSTOMERNAME, ITEMCODE, ORDERNAME, DRAWINGNO, ITEMNAME, CARTYPE, CARTYPENAME, MATERIALTYPE, UOM, UOMNAME
+    ) TOT
+  </select>
+  
+</sqlMap>

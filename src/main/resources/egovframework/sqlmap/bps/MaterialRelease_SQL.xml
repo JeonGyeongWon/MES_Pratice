@@ -1,0 +1,2047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="material.release">
+     <!-- Dummy Lov 시작 -->
+    <sql id="material.release.dummy.month.sql-select">
+        SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS DATEFROM
+                ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+                ,TO_CHAR(SYSDATE, 'YYYY-MM') AS DATEMONTH
+                ,TO_CHAR(SYSDATE, 'YYYY') AS DATEYEAR
+          FROM DUAL
+    </sql>
+
+    <sql id="material.release.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="material.release.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="material.release.dummy.month.sql-select" />
+        <include refid="material.release.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+ 
+    <!-- 자재수불조회 조회 시작 -->
+<!--     <sql id="material.release.inventory.list.sql-select"> -->
+<!--         SELECT Z.YYYYMM AS YYYYMM -->
+<!--                 ,RANK() OVER(ORDER BY CIM.ORG_ID -->
+<!--                                                ,CIM.COMPANY_ID -->
+<!--                                                ,CIM.GROUP_CODE -->
+<!--                                                ,(SELECT BC.BIG_NAME -->
+<!--                                                    FROM CB_BIG_CLASS BC -->
+<!--                                                   WHERE 1 = 1 -->
+<!--                                                     AND BC.ORG_ID = CIM.ORG_ID -->
+<!--                                                     AND BC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                                                     AND BC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                                                     AND BC.BIG_CODE = CIM.BIG_CODE) -->
+<!--                                                ,(SELECT MC.MIDDLE_NAME -->
+<!--                                                    FROM CB_MIDDLE_CLASS MC -->
+<!--                                                   WHERE 1 = 1 -->
+<!--                                                     AND MC.ORG_ID = CIM.ORG_ID -->
+<!--                                                     AND MC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                                                     AND MC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                                                     AND MC.BIG_CODE = CIM.BIG_CODE -->
+<!--                                                     AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE) -->
+<!--                                                ,(SELECT SC.SMALL_NAME -->
+<!--                                                    FROM CB_SMALL_CLASS SC -->
+<!--                                                   WHERE 1 = 1 -->
+<!--                                                     AND SC.ORG_ID = CIM.ORG_ID -->
+<!--                                                     AND SC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                                                     AND SC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                                                     AND SC.BIG_CODE = CIM.BIG_CODE -->
+<!--                                                     AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE -->
+<!--                                                     AND SC.SMALL_CODE = CIM.SMALL_CODE) -->
+<!--                                                ,CIM.ITEM_NAME, CIM.ITEM_CODE) AS RN -->
+<!--                 ,CIM.ORG_ID AS ORGID -->
+<!--                 ,CIM.COMPANY_ID AS COMPANYID -->
+<!--                 ,CIM.GROUP_CODE AS GROUPCODE -->
+<!--                 ,CIM.BIG_CODE AS BIGCODE -->
+<!--                 ,(SELECT BC.BIG_NAME -->
+<!--                     FROM CB_BIG_CLASS BC -->
+<!--                    WHERE 1 = 1 -->
+<!--                      AND BC.ORG_ID = CIM.ORG_ID -->
+<!--                      AND BC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND BC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                      AND BC.BIG_CODE = CIM.BIG_CODE) AS BIGNAME -->
+<!--                 ,CIM.MIDDLE_CODE AS MIDDLECODE -->
+<!--                 ,(SELECT MC.MIDDLE_NAME -->
+<!--                     FROM CB_MIDDLE_CLASS MC -->
+<!--                    WHERE 1 = 1 -->
+<!--                      AND MC.ORG_ID = CIM.ORG_ID -->
+<!--                      AND MC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND MC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                      AND MC.BIG_CODE = CIM.BIG_CODE -->
+<!--                      AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE) AS MIDDLENAME -->
+<!--                 ,CIM.SMALL_CODE AS SMALLCODE -->
+<!--                 ,(SELECT SC.SMALL_NAME -->
+<!--                     FROM CB_SMALL_CLASS SC -->
+<!--                    WHERE 1 = 1 -->
+<!--                      AND SC.ORG_ID = CIM.ORG_ID -->
+<!--                      AND SC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND SC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                      AND SC.BIG_CODE = CIM.BIG_CODE -->
+<!--                      AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE -->
+<!--                      AND SC.SMALL_CODE = CIM.SMALL_CODE) AS SMALLNAME -->
+<!--                 ,CIM.ITEM_TYPE AS ITEMTYPE -->
+<!--                 ,(SELECT SC.SMALL_NAME -->
+<!--                     FROM CB_SMALL_CODE SC -->
+<!--                    WHERE 1 = 1 -->
+<!--                      AND SC.ORG_ID = CIM.ORG_ID -->
+<!--                      AND SC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND SC.BIG_CODE = 'CMM' -->
+<!--                      AND SC.MIDDLE_CODE = 'ITEM_TYPE' -->
+<!--                      AND SC.SMALL_CODE = CIM.ITEM_TYPE) AS ITEMTYPENAME -->
+<!--                 ,CIM.ITEM_CODE AS ITEMCODE -->
+<!--                 ,CIM.ITEM_NAME AS ITEMNAME -->
+<!--                 ,CIM.ORDER_NAME AS ORDERNAME -->
+<!--                 ,CIM.ITEM_STANDARD AS ITEMSTANDARD -->
+<!--                 ,CIM.MATERIAL_TYPE AS MATERIALTYPE -->
+<!--                 ,CIM.INV_SAFE_QTY AS INVSAFEQTY -->
+<!--                 ,CIM.CUSTOMER_CODE AS CUSTOMERCODE -->
+<!--                 ,(SELECT CC.CUSTOMER_NAME -->
+<!--                     FROM CB_CUSTOMER CC -->
+<!--                    WHERE 1=1 -->
+<!--                      AND CC.ORG_ID = CIM.ORG_ID -->
+<!--                      AND CC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND CC.CUSTOMER_CODE = CIM.CUSTOMER_CODE) AS CUSTOMERNAME -->
+<!--                 ,(SELECT SUM(NVL(C.PRESENT_INVENTORY_QTY, 0)) -->
+<!--                     FROM CB_INVENTORY_V1 C -->
+<!--                    WHERE 1=1 -->
+<!--                      AND C.ORGID = CIM.ORG_ID -->
+<!--                      AND C.COMPANYID = CIM.COMPANY_ID -->
+<!--                      AND C.YYYYMM <![CDATA[ <= ]]> (SELECT MAX(F.YYYYMM) -->
+<!--                                                 FROM CB_INVENTORY_V1 F -->
+<!--                                                WHERE 1=1 -->
+<!--                                                  AND F.ORGID = #ORGID# -->
+<!--                                                  AND F.COMPANYID = #COMPANYID# -->
+<!--                                                  AND F.YYYYMM <![CDATA[ < ]]> #YYYYMM# -->
+<!--                                                  AND F.ITEM_CODE = CIM.ITEM_CODE) -->
+<!--                      AND C.ITEM_CODE = CIM.ITEM_CODE) AS PREINVENTORYQTY -->
+<!--                 ,NVL(Z.TRANS_QTY, 0) AS TRANSQTY -->
+<!--                 ,NVL(Z.TRANS_QTY, 0) * NVL(CIM.UNIT_COST, 0) AS TRANSPRICE -->
+<!--                 ,NVL(Z.RELEASE_QTY, 0) AS RELEASEQTY -->
+<!--                 ,NVL(Z.RELEASE_QTY, 0) * NVL(CIM.UNIT_COST, 0) AS RELEASEPRICE -->
+<!--                 ,NVL(CIM.SAFETY_INVENTORY, 0) AS SAFETYINVENTORY -->
+<!--                 ,(SELECT CIV.RELEASE_WATING_QTY -->
+<!--                     FROM CB_INVENTORY_V CIV -->
+<!--                    WHERE 1=1 -->
+<!--                      AND CIV.ORG_ID = CIM.ORG_ID -->
+<!--                      AND CIV.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND CIV.ITEM_CODE = CIM.ITEM_CODE) AS RELEASEWATINGQTY -->
+<!--                 ,NVL(NULL, 0) AS PRETRANSQTY -->
+<!--                 ,NVL(CIM.SAFETY_INVENTORY, 0) - -->
+<!--                  (SELECT CIV.RELEASE_WATING_QTY -->
+<!--                     FROM CB_INVENTORY_V CIV -->
+<!--                    WHERE 1=1 -->
+<!--                      AND CIV.ORG_ID = CIM.ORG_ID -->
+<!--                      AND CIV.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                      AND CIV.ITEM_CODE = CIM.ITEM_CODE) + NVL(NULL, 0) AS PREDICTIONQTY -->
+<!--                 ,NVL(CIM.UNIT_COST, 0) AS UNIT_PRICE_A -->
+<!--                FROM ( -->
+<!--                     SELECT A.ORGID -->
+<!--                           ,A.COMPANYID -->
+<!--                           ,A.YYYYMM -->
+<!--                           ,A.ITEM_CODE -->
+<!--                           ,A.TRANS_QTY -->
+<!--                           ,A.RELEASE_QTY -->
+                     
+<!--                       FROM ( -->
+<!--                           SELECT ORGID -->
+<!--                                 ,COMPANYID -->
+<!--                                 ,YYYYMM -->
+<!--                                 ,ITEM_CODE -->
+<!--                                 ,TRANS_QTY -->
+<!--                                 ,RELEASE_QTY -->
+<!--                            FROM CB_INVENTORY_V1 CIV -->
+<!--                           ) A -->
+                     
+<!--                      WHERE 1 = 1 -->
+<!--                        AND A.ORGID = #ORGID# -->
+<!--                        AND A.COMPANYID = #COMPANYID# -->
+<!--                        AND A.YYYYMM = #YYYYMM# -->
+<!--                       ) Z -->
+<!--                    ,CB_ITEM_MASTER CIM -->
+<!--                WHERE 1=1 -->
+<!--                  AND CIM.GROUP_CODE = 'M' -->
+<!--                  AND CIM.ORG_ID = Z.ORGID(+) -->
+<!--                  AND CIM.COMPANY_ID = Z.COMPANYID(+) -->
+<!--                  AND CIM.ITEM_CODE = Z.ITEM_CODE(+) -->
+<!--                  AND CIM.INVENTORY_MANAGE_YN = 'Y' -->
+<!--            <isNotEmpty property="ORGID" prepend="AND"> -->
+<!--               CIM.ORG_ID = #ORGID# -->
+<!--            </isNotEmpty> -->
+<!--            <isNotEmpty property="COMPANYID" prepend="AND"> -->
+<!--               CIM.COMPANY_ID = #COMPANYID# -->
+<!--            </isNotEmpty> -->
+<!--            <isNotEmpty property="ITEMTYPE" prepend="AND"> -->
+<!--               CIM.ITEM_TYPE = #ITEMTYPE# -->
+<!--            </isNotEmpty> -->
+<!--            <isNotEmpty property="ITEMCODE" prepend="AND"> -->
+<!--               CIM.ITEM_CODE = #ITEMCODE# -->
+<!--            </isNotEmpty> -->
+<!--            <isNotEmpty property="CUSTOMERCODE" prepend="AND"> -->
+<!--               CIM.CUSTOMER_CODE = #CUSTOMERCODE# -->
+<!--            </isNotEmpty> -->
+<!--             ORDER BY CIM.ORG_ID -->
+<!--                          ,CIM.COMPANY_ID -->
+<!--                          ,CIM.GROUP_CODE -->
+<!--                          ,(SELECT BC.BIG_NAME -->
+<!--                              FROM CB_BIG_CLASS BC -->
+<!--                             WHERE 1 = 1 -->
+<!--                               AND BC.ORG_ID = CIM.ORG_ID -->
+<!--                               AND BC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                               AND BC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                               AND BC.BIG_CODE = CIM.BIG_CODE) -->
+<!--                          ,(SELECT MC.MIDDLE_NAME -->
+<!--                              FROM CB_MIDDLE_CLASS MC -->
+<!--                             WHERE 1 = 1 -->
+<!--                               AND MC.ORG_ID = CIM.ORG_ID -->
+<!--                               AND MC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                               AND MC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                               AND MC.BIG_CODE = CIM.BIG_CODE -->
+<!--                               AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE) -->
+<!--                          ,(SELECT SC.SMALL_NAME -->
+<!--                              FROM CB_SMALL_CLASS SC -->
+<!--                             WHERE 1 = 1 -->
+<!--                               AND SC.ORG_ID = CIM.ORG_ID -->
+<!--                               AND SC.COMPANY_ID = CIM.COMPANY_ID -->
+<!--                               AND SC.GROUP_CODE = CIM.GROUP_CODE -->
+<!--                               AND SC.BIG_CODE = CIM.BIG_CODE -->
+<!--                               AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE -->
+<!--                               AND SC.SMALL_CODE = CIM.SMALL_CODE) -->
+<!--                          ,CIM.ITEM_NAME, CIM.ITEM_CODE -->
+<!--     </sql> -->
+
+<!--     <select id="material.release.inventory.list.select" parameterClass="java.util.Map" -->
+<!--         resultClass="java.util.HashMap"> -->
+<!--         SELECT M.YYYYMM AS YYYYMM, -->
+<!--              M.RN AS RN, -->
+<!--              M.ORGID AS ORGID, -->
+<!--              M.COMPANYID AS COMPANYID, -->
+<!--              M.ITEMCODE AS ITEMCODE, -->
+<!--              M.GROUPCODE AS GROUPCODE, -->
+<!--              M.BIGCODE AS BIGCODE, -->
+<!--              M.BIGNAME AS BIGNAME, -->
+<!--              M.MIDDLECODE AS MIDDLECODE, -->
+<!--              M.MIDDLENAME AS MIDDLENAME, -->
+<!--              M.SMALLCODE AS SMALLCODE, -->
+<!--              M.SMALLNAME AS SMALLNAME, -->
+<!--              M.ITEMTYPE AS ITEMTYPE, -->
+<!--              M.ITEMTYPENAME AS ITEMTYPENAME, -->
+<!--              M.INVSAFEQTY AS INVSAFEQTY, -->
+<!--              M.ITEMNAME AS ITEMNAME, -->
+<!--              M.ORDERNAME AS ORDERNAME, -->
+<!--              M.ITEMSTANDARD AS ITEMSTANDARD, -->
+<!--              M.MATERIALTYPE AS MATERIALTYPE, -->
+<!--              M.CUSTOMERCODE AS CUSTOMERCODE, -->
+<!--              M.CUSTOMERNAME AS CUSTOMERNAME, -->
+<!--              NVL(M.SAFETYINVENTORY, 0) AS SAFETYINVENTORY, -->
+<!--              NVL(M.PREINVENTORYQTY, 0) AS PREINVENTORYQTY, -->
+<!--              NVL(M.PREINVENTORYQTY, 0) * NVL(M.UNIT_PRICE_A, 0) AS PREINVENTORYPRICE, -->
+<!--              NVL(M.TRANSQTY, 0) AS TRANSQTY, -->
+<!--              NVL(M.TRANSPRICE, 0) AS TRANSPRICE, -->
+<!--              NVL(M.RELEASEQTY, 0) AS RELEASEQTY, -->
+<!--              NVL(M.RELEASEPRICE, 0) AS RELEASEPRICE, -->
+<!--              (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) AS PRESENTINVENTORYQTY, -->
+<!--              (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) * NVL(M.UNIT_PRICE_A, 0) AS PRESENTINVENTORYPRICE -->
+<!--       FROM ( -->
+<!--         <include refid="material.release.inventory.list.sql-select" /> -->
+<!--        ) M -->
+<!--     </select> -->
+
+<!--     <select id="material.release.inventory.list.count" parameterClass="java.util.Map" -->
+<!--         resultClass="java.lang.Integer"> -->
+<!--         SELECT COUNT(*) FROM ( -->
+<!--             <include refid="material.release.inventory.list.sql-select" /> -->
+<!--         ) TOT -->
+<!--     </select> -->
+
+    <sql id="material.release.inventory.list.sql-select">
+    <![CDATA[
+         SELECT RANK() OVER(ORDER BY ITEMCODE) AS RN
+                  ,ORGID
+                  ,COMPANYID
+                  ,TRXMONTHS
+                  ,ITEMCODE
+                  ,ITEMNAME
+                  ,ORDERNAME
+                  ,UOMNAME
+                  ,ITEMTYPENAME
+                  ,ITEMSTANDARD
+                  ,MATERIALTYPE
+                  ,CUSTOMERCODE
+                  ,CUSTOMERNAME
+                  ,SAFETYINVENTORY
+                  ,BACKQTY
+                  ,INQTY
+                  ,OUTQTY
+                  ,Z.BACKQTY + Z.INQTY - Z.OUTQTY AS INVQTY 
+         FROM (
+                   SELECT DISTINCT V.ORG_ID AS ORGID
+                            ,V.COMPANY_ID AS COMPANYID
+                            ,#YYYYMM# AS TRXMONTHS
+                             ,V.ITEM_CODE AS ITEMCODE
+                             ,V.ORDER_NAME AS ORDERNAME
+                             ,V.ITEM_NAME AS ITEMNAME
+                             ,V.UOM_NAME AS UOMNAME
+                             ,V.ITEM_TYPE AS ITEMTYPE
+                             ,V.ITEM_TYPE_NAME AS ITEMTYPENAME
+                             ,V.ITEM_STANDARD AS ITEMSTANDARD
+                             ,V.MATERIAL_TYPE AS MATERIALTYPE
+											       ,V.CUSTOMER_CODE AS CUSTOMERCODE
+											       ,V.CUSTOMER_NAME AS CUSTOMERNAME
+                             ,NVL(V.SAFETY_INVENTORY, 0) AS SAFETYINVENTORY
+                             ,NVL((SELECT SUM(M.INQTY) - SUM(M.OUTQTY)
+                                     FROM CB_INV_MONTHS_V M
+                                    WHERE M.ORGID = V.ORG_ID
+                                      AND M.COMPANYID = V.COMPANY_ID
+                                      AND M.ITEMCODE = V.ITEM_CODE
+                                      AND M.TRXMONTHS  <  #YYYYMM#),0) AS BACKQTY
+                             ,NVL((SELECT SUM(M.INQTY)
+                                     FROM CB_INV_MONTHS_V M
+                                    WHERE M.ORGID = V.ORG_ID
+                                      AND M.COMPANYID = V.COMPANY_ID
+                                      AND M.ITEMCODE = V.ITEM_CODE
+                                      AND M.TRXMONTHS = #YYYYMM#),0) AS INQTY
+                             ,NVL((SELECT SUM(M.OUTQTY)
+                                     FROM CB_INV_MONTHS_V M
+                                    WHERE M.ORGID = V.ORG_ID
+                                      AND M.COMPANYID = V.COMPANY_ID
+                                      AND M.ITEMCODE = V.ITEM_CODE
+                                      AND M.TRXMONTHS = #YYYYMM#),0) AS OUTQTY
+                     FROM CB_ITEM_MASTER_V V
+                             ,CB_ITEM_TRANSACTION C
+                   WHERE 1 = 1
+                      AND C.ORG_ID(+) = V.ORG_ID
+                      AND C.COMPANY_ID(+) = V.COMPANY_ID
+                      AND C.ITEM_CODE(+) = V.ITEM_CODE
+                      AND V.GROUP_CODE = 'M'
+                      AND V.ORG_ID = #ORGID#
+                      AND V.COMPANY_ID = #COMPANYID#
+                      
+        ]]>
+                      <isNotEmpty property="ITEMTYPE" prepend="AND">
+                          V.ITEM_TYPE = #ITEMTYPE#
+                      </isNotEmpty>
+                      <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+                          V.CUSTOMER_CODE = #CUSTOMERCODE#
+                      </isNotEmpty>
+                      <isNotEmpty property="ITEMCODE" prepend="AND">
+                          V.ITEM_CODE = #ITEMCODE#
+                      </isNotEmpty>
+                     <isNotEmpty property="ORDERNAME" prepend="AND">
+                         V.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+                     </isNotEmpty>
+                     <isNotEmpty property="ITEMNAME" prepend="AND">
+                         V.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+                     </isNotEmpty>
+                     <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+                         V.ITEM_STANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+                     </isNotEmpty>
+                  ) Z
+        WHERE 1 = 1
+          <isNotEmpty property="SAFETYINVENTORY" prepend="AND">
+            <![CDATA[ #SAFETYINVENTORY# = CASE WHEN (Z.BACKQTY + Z.INQTY - Z.OUTQTY) < 0 OR (Z.BACKQTY + Z.INQTY - Z.OUTQTY) < SAFETYINVENTORY THEN
+                                                            'Y'
+                                                    ELSE 
+                                                            'N'
+                                                    END ]]>
+          </isNotEmpty>
+       ORDER BY ITEMCODE
+    </sql>
+
+    <select id="material.release.inventory.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="material.release.inventory.list.sql-select" />
+    </select>
+
+    <select id="material.release.inventory.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="material.release.inventory.list.sql-select" />
+        ) TOT
+    </select>
+    <!-- 자재수불조회 조회 종료 -->
+    
+    <!-- 공구수불조회 조회 시작 -->
+    <sql id="material.release.tool.inventory.list.sql-select">
+        SELECT Z.YYYYMM AS YYYYMM
+                ,RANK() OVER(ORDER BY CIM.ORG_ID
+                                               ,CIM.COMPANY_ID
+                                               ,CIM.GROUP_CODE
+                                               ,(SELECT BC.BIG_NAME
+                                                   FROM CB_BIG_CLASS BC
+                                                  WHERE 1 = 1
+                                                    AND BC.ORG_ID = CIM.ORG_ID
+                                                    AND BC.COMPANY_ID = CIM.COMPANY_ID
+                                                    AND BC.GROUP_CODE = CIM.GROUP_CODE
+                                                    AND BC.BIG_CODE = CIM.BIG_CODE)
+                                               ,(SELECT MC.MIDDLE_NAME
+                                                   FROM CB_MIDDLE_CLASS MC
+                                                  WHERE 1 = 1
+                                                    AND MC.ORG_ID = CIM.ORG_ID
+                                                    AND MC.COMPANY_ID = CIM.COMPANY_ID
+                                                    AND MC.GROUP_CODE = CIM.GROUP_CODE
+                                                    AND MC.BIG_CODE = CIM.BIG_CODE
+                                                    AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE)
+                                               ,(SELECT SC.SMALL_NAME
+                                                   FROM CB_SMALL_CLASS SC
+                                                  WHERE 1 = 1
+                                                    AND SC.ORG_ID = CIM.ORG_ID
+                                                    AND SC.COMPANY_ID = CIM.COMPANY_ID
+                                                    AND SC.GROUP_CODE = CIM.GROUP_CODE
+                                                    AND SC.BIG_CODE = CIM.BIG_CODE
+                                                    AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE
+                                                    AND SC.SMALL_CODE = CIM.SMALL_CODE)
+                                               ,CIM.ITEM_NAME, CIM.ITEM_CODE) AS RN
+                ,CIM.ORG_ID AS ORGID
+                ,CIM.COMPANY_ID AS COMPANYID
+                ,CIM.GROUP_CODE AS GROUPCODE
+                ,CIM.BIG_CODE AS BIGCODE
+                ,(SELECT BC.BIG_NAME
+                    FROM CB_BIG_CLASS BC
+                   WHERE 1 = 1
+                     AND BC.ORG_ID = CIM.ORG_ID
+                     AND BC.COMPANY_ID = CIM.COMPANY_ID
+                     AND BC.GROUP_CODE = CIM.GROUP_CODE
+                     AND BC.BIG_CODE = CIM.BIG_CODE) AS BIGNAME
+                ,CIM.MIDDLE_CODE AS MIDDLECODE
+                ,(SELECT MC.MIDDLE_NAME
+                    FROM CB_MIDDLE_CLASS MC
+                   WHERE 1 = 1
+                     AND MC.ORG_ID = CIM.ORG_ID
+                     AND MC.COMPANY_ID = CIM.COMPANY_ID
+                     AND MC.GROUP_CODE = CIM.GROUP_CODE
+                     AND MC.BIG_CODE = CIM.BIG_CODE
+                     AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE) AS MIDDLENAME
+                ,CIM.SMALL_CODE AS SMALLCODE
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CLASS SC
+                   WHERE 1 = 1
+                     AND SC.ORG_ID = CIM.ORG_ID
+                     AND SC.COMPANY_ID = CIM.COMPANY_ID
+                     AND SC.GROUP_CODE = CIM.GROUP_CODE
+                     AND SC.BIG_CODE = CIM.BIG_CODE
+                     AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE
+                     AND SC.SMALL_CODE = CIM.SMALL_CODE) AS SMALLNAME
+                ,CIM.ITEM_TYPE AS ITEMTYPE
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1 = 1
+                     AND SC.ORG_ID = CIM.ORG_ID
+                     AND SC.COMPANY_ID = CIM.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                     AND SC.SMALL_CODE = CIM.ITEM_TYPE) AS ITEMTYPENAME
+                ,CIM.ITEM_CODE AS ITEMCODE
+                ,CIM.ITEM_NAME AS ITEMNAME
+                ,CIM.ORDER_NAME AS ORDERNAME
+                ,CIM.ITEM_STANDARD AS ITEMSTANDARD
+                ,CIM.MATERIAL_TYPE AS MATERIALTYPE
+                ,CIM.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE 1=1
+                     AND CC.ORG_ID = CIM.ORG_ID
+                     AND CC.COMPANY_ID = CIM.COMPANY_ID
+                     AND CC.CUSTOMER_CODE = CIM.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,(SELECT SUM(NVL(C.PRESENT_INVENTORY_QTY, 0))
+                    FROM CB_INVENTORY_V5 C
+                   WHERE 1=1
+                     AND C.ORGID = CIM.ORG_ID
+                     AND C.COMPANYID = CIM.COMPANY_ID
+                     AND C.YYYYMM <![CDATA[ <= ]]> (SELECT MAX(F.YYYYMM)
+                                                FROM CB_INVENTORY_V5 F
+                                               WHERE 1=1
+                                                 AND F.ORGID = #ORGID#
+                                                 AND F.COMPANYID = #COMPANYID#
+                                                 AND F.YYYYMM <![CDATA[ < ]]> #YYYYMM#
+                                                 AND F.ITEM_CODE = CIM.ITEM_CODE)
+                     AND C.ITEM_CODE = CIM.ITEM_CODE) AS PREINVENTORYQTY
+                ,NVL(Z.TRANS_QTY, 0) AS TRANSQTY
+                ,NVL(Z.TRANS_QTY, 0) * NVL(CIM.UNIT_COST, 0) AS TRANSPRICE
+                ,NVL(Z.RELEASE_QTY, 0) AS RELEASEQTY
+                ,NVL(Z.RELEASE_QTY, 0) * NVL(CIM.UNIT_COST, 0) AS RELEASEPRICE
+                ,NVL(CIM.SAFETY_INVENTORY, 0) AS SAFETYINVENTORY
+                ,(SELECT CIV.RELEASE_WATING_QTY
+                    FROM CB_INVENTORY_V CIV
+                   WHERE 1=1
+                     AND CIV.ORG_ID = CIM.ORG_ID
+                     AND CIV.COMPANY_ID = CIM.COMPANY_ID
+                     AND CIV.ITEM_CODE = CIM.ITEM_CODE) AS RELEASEWATINGQTY
+                ,NVL(NULL, 0) AS PRETRANSQTY
+                ,NVL(CIM.SAFETY_INVENTORY, 0) -
+                 (SELECT CIV.RELEASE_WATING_QTY
+                    FROM CB_INVENTORY_V CIV
+                   WHERE 1=1
+                     AND CIV.ORG_ID = CIM.ORG_ID
+                     AND CIV.COMPANY_ID = CIM.COMPANY_ID
+                     AND CIV.ITEM_CODE = CIM.ITEM_CODE) + NVL(NULL, 0) AS PREDICTIONQTY
+                ,NVL(CIM.UNIT_COST, 0) AS UNIT_PRICE_A
+               FROM (
+                    SELECT A.ORGID
+                          ,A.COMPANYID
+                          ,A.YYYYMM
+                          ,A.ITEM_CODE
+                          ,A.TRANS_QTY
+                          ,A.RELEASE_QTY
+                     
+                      FROM (
+                          SELECT ORGID
+                                ,COMPANYID
+                                ,YYYYMM
+                                ,ITEM_CODE
+                                ,TRANS_QTY
+                                ,RELEASE_QTY
+                           FROM CB_INVENTORY_V5 CIV
+                          ) A
+                     
+                     WHERE 1 = 1
+                       AND A.ORGID = #ORGID#
+                       AND A.COMPANYID = #COMPANYID#
+                       AND A.YYYYMM = #YYYYMM#
+                      ) Z
+                   ,CB_ITEM_MASTER CIM
+               WHERE 1=1
+                 AND CIM.GROUP_CODE = 'T'
+                 AND CIM.ORG_ID = Z.ORGID(+)
+                 AND CIM.COMPANY_ID = Z.COMPANYID(+)
+                 AND CIM.ITEM_CODE = Z.ITEM_CODE(+)
+                 AND CIM.INVENTORY_MANAGE_YN = 'Y'
+           <isNotEmpty property="ORGID" prepend="AND">
+              CIM.ORG_ID = #ORGID#
+           </isNotEmpty>
+           <isNotEmpty property="COMPANYID" prepend="AND">
+              CIM.COMPANY_ID = #COMPANYID#
+           </isNotEmpty>
+           <isNotEmpty property="ITEMTYPE" prepend="AND">
+              CIM.ITEM_TYPE = #ITEMTYPE#
+           </isNotEmpty>
+           <isNotEmpty property="ITEMCODE" prepend="AND">
+              CIM.ITEM_CODE = #ITEMCODE#
+           </isNotEmpty>
+           <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              CIM.CUSTOMER_CODE = #CUSTOMERCODE#
+           </isNotEmpty>
+            ORDER BY CIM.ORG_ID
+                         ,CIM.COMPANY_ID
+                         ,CIM.GROUP_CODE
+                         ,(SELECT BC.BIG_NAME
+                             FROM CB_BIG_CLASS BC
+                            WHERE 1 = 1
+                              AND BC.ORG_ID = CIM.ORG_ID
+                              AND BC.COMPANY_ID = CIM.COMPANY_ID
+                              AND BC.GROUP_CODE = CIM.GROUP_CODE
+                              AND BC.BIG_CODE = CIM.BIG_CODE)
+                         ,(SELECT MC.MIDDLE_NAME
+                             FROM CB_MIDDLE_CLASS MC
+                            WHERE 1 = 1
+                              AND MC.ORG_ID = CIM.ORG_ID
+                              AND MC.COMPANY_ID = CIM.COMPANY_ID
+                              AND MC.GROUP_CODE = CIM.GROUP_CODE
+                              AND MC.BIG_CODE = CIM.BIG_CODE
+                              AND MC.MIDDLE_CODE = CIM.MIDDLE_CODE)
+                         ,(SELECT SC.SMALL_NAME
+                             FROM CB_SMALL_CLASS SC
+                            WHERE 1 = 1
+                              AND SC.ORG_ID = CIM.ORG_ID
+                              AND SC.COMPANY_ID = CIM.COMPANY_ID
+                              AND SC.GROUP_CODE = CIM.GROUP_CODE
+                              AND SC.BIG_CODE = CIM.BIG_CODE
+                              AND SC.MIDDLE_CODE = CIM.MIDDLE_CODE
+                              AND SC.SMALL_CODE = CIM.SMALL_CODE)
+                         ,CIM.ITEM_NAME, CIM.ITEM_CODE
+    </sql>
+
+    <select id="material.release.tool.inventory.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT M.YYYYMM AS YYYYMM,
+             M.RN AS RN,
+             M.ORGID AS ORGID,
+             M.COMPANYID AS COMPANYID,
+             M.ITEMCODE AS ITEMCODE,
+             M.GROUPCODE AS GROUPCODE,
+             M.BIGCODE AS BIGCODE,
+             M.BIGNAME AS BIGNAME,
+             M.MIDDLECODE AS MIDDLECODE,
+             M.MIDDLENAME AS MIDDLENAME,
+             M.SMALLCODE AS SMALLCODE,
+             M.SMALLNAME AS SMALLNAME,
+             M.ITEMTYPE AS ITEMTYPE,
+             M.ITEMTYPENAME AS ITEMTYPENAME,
+             M.ITEMNAME AS ITEMNAME,
+             M.ORDERNAME AS ORDERNAME,
+             M.ITEMSTANDARD AS ITEMSTANDARD,
+             M.MATERIALTYPE AS MATERIALTYPE,
+             M.CUSTOMERCODE AS CUSTOMERCODE,
+             M.CUSTOMERNAME AS CUSTOMERNAME,
+             NVL(M.SAFETYINVENTORY, 0) AS SAFETYINVENTORY,
+             NVL(M.PREINVENTORYQTY, 0) AS PREINVENTORYQTY,
+             NVL(M.PREINVENTORYQTY, 0) * NVL(M.UNIT_PRICE_A, 0) AS PREINVENTORYPRICE,
+             NVL(M.TRANSQTY, 0) AS TRANSQTY,
+             NVL(M.TRANSPRICE, 0) AS TRANSPRICE,
+             NVL(M.RELEASEQTY, 0) AS RELEASEQTY,
+             NVL(M.RELEASEPRICE, 0) AS RELEASEPRICE,
+             (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) AS PRESENTINVENTORYQTY,
+             (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) * NVL(M.UNIT_PRICE_A, 0) AS PRESENTINVENTORYPRICE
+      FROM (
+        <include refid="material.release.tool.inventory.list.sql-select" />
+       ) M
+    </select>
+
+    <select id="material.release.tool.inventory.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="material.release.tool.inventory.list.sql-select" />
+        ) TOT
+    </select>
+    <!-- 공구수불조회 조회 종료 -->
+    
+  <!-- 자재입출고현황 시작 -->
+<!--   <sql id="material.release.matstorerelstatus.sql-select"> -->
+<!--       SELECT ROW_NUMBER() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE) AS RNUM -->
+<!--             ,DENSE_RANK() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE) AS RN -->
+<!--             ,AA.ORGID AS ORGID -->
+<!--             ,AA.COMPANYID AS COMPANYID -->
+<!--             ,AA.ITEMCODE AS ITEMCODE -->
+<!--             ,AA.ITEMNAME AS ITEMNAME -->
+<!--             ,AA.ORDERNAME AS ORDERNAME -->
+<!--             ,AA.GUBUN AS GUBUN -->
+<!--             ,AA.GUBUNNAME AS GUBUNNAME -->
+<!--             ,AA.ITEMTYPE -->
+<!--             ,AA.ALLGUBUN AS ALLGUBUN -->
+<!--             ,AA.CUSTOMERCODE AS CUSTOMERCODE -->
+<!--             ,(SELECT CC.CUSTOMER_NAME -->
+<!--                 FROM CB_CUSTOMER CC -->
+<!--                WHERE 1=1 -->
+<!--                  AND CC.ORG_ID = AA.ORGID -->
+<!--                  AND CC.COMPANY_ID = AA.COMPANYID -->
+<!--                  AND CC.CUSTOMER_CODE = AA.CUSTOMERCODE) AS CUSTOMERNAME -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'01' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS PREINV -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,NULL -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.ALLGUBUN) AS DAYALL -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'01' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY1 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'02' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY2 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'03' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY3 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'04' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY4 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'05' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY5 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'06' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY6 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'07' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY7 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'08' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY8 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'09' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY9 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'10' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY10 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'11' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY11 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'12' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY12 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'13' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY13 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'14' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY14 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'15' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY15 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'16' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY16 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'17' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY17 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'18' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY18 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'19' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY19 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'20' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY20 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'21' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY21 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'22' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY22 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'23' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY23 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'24' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY24 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'25' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY25 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'26' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY26 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'27' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY27 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'28' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY28 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'29' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY29 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'30' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY30 -->
+<!--             ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID -->
+<!--                                               ,AA.COMPANYID -->
+<!--                                               ,TMP.YYYYMM -->
+<!--                                               ,'31' -->
+<!--                                               ,AA.CUSTOMERCODE -->
+<!--                                               ,AA.ITEMCODE -->
+<!--                                               ,AA.GUBUN) AS DAY31 -->
+<!--         FROM (SELECT IM.ORG_ID AS ORGID -->
+<!--                     ,IM.COMPANY_ID AS COMPANYID -->
+<!--                     ,'입고' AS GUBUNNAME -->
+<!--                     ,'WAREH' AS GUBUN -->
+<!--                     ,'ALLWAREH' AS ALLGUBUN -->
+<!--                     ,'A-1' AS ORDERBYCODE -->
+<!--                     ,TD.CUSTOMERCODE AS CUSTOMERCODE -->
+<!--                     ,IM.ITEM_CODE AS ITEMCODE -->
+<!--                     ,IM.ITEM_NAME AS ITEMNAME -->
+<!--                     ,IM.ORDER_NAME AS ORDERNAME -->
+<!--                     ,IM.ITEM_TYPE AS ITEMTYPE -->
+<!--                     ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME -->
+<!--                 FROM CB_ITEM_MASTER_V IM -->
+<!--                     ,(SELECT * -->
+<!--                         FROM CB_TRANS_DETAIL_V) TD -->
+<!--                WHERE 1=1 -->
+<!--                  AND IM.GROUP_CODE = 'M' -->
+<!--                  AND IM.ORG_ID = TD.ORGID(+) -->
+<!--                  AND IM.COMPANY_ID = TD.COMPANYID(+) -->
+<!--                  AND IM.ITEM_CODE = TD.ITEMCODE(+) -->
+<!--                  AND TO_CHAR(TO_DATE(TD.TRANSDATE(+), 'YYYY-MM-DD'), 'YYYY-MM') = #SEARCHYEAR# -->
+<!--                  AND IM.ORG_ID = #ORGID# -->
+<!--                  AND IM.COMPANY_ID = #COMPANYID# -->
+<!--                UNION ALL -->
+<!--               SELECT RD.ORG_ID AS ORGID -->
+<!--                     ,RD.COMPANY_ID AS COMPANYID -->
+<!--                     ,'기타입고' AS GUBUNNAME -->
+<!--                     ,'ETCWAREH' AS GUBUN -->
+<!--                     ,'ALLETCWAREH' AS ALLGUBUN -->
+<!--                     ,'A-2' AS ORDERBYCODE -->
+<!--                     ,'ETCWAREHCUSTOMER' AS CUSTOMERCODE -->
+<!--                     ,IM.ITEM_CODE AS ITEMCODE -->
+<!--                     ,IM.ITEM_NAME AS ITEMNAME -->
+<!--                     ,IM.ORDER_NAME AS ORDERNAME -->
+<!--                     ,IM.ITEM_TYPE AS ITEMTYPE -->
+<!--                     ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME -->
+<!--               FROM CB_RELEASE_H RH -->
+<!--                   ,CB_RELEASE_D RD -->
+<!--                   ,CB_ITEM_MASTER_V IM -->
+<!--              WHERE 1=1 -->
+<!--                AND RH.ORG_ID = RD.ORG_ID -->
+<!--                AND RH.COMPANY_ID = RD.COMPANY_ID -->
+<!--                AND RH.RELEASE_NO = RD.RELEASE_NO -->
+<!--                AND RD.ORG_ID = IM.ORG_ID -->
+<!--                AND RD.COMPANY_ID = IM.COMPANY_ID -->
+<!--                AND RD.ITEM_CODE = IM.ITEM_CODE -->
+<!--                AND TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM') = #SEARCHYEAR# -->
+<!--                AND RD.ORG_ID = #ORGID# -->
+<!--                AND RD.COMPANY_ID = #COMPANYID# -->
+<!--                AND RH.USE_DIV = 'E' -->
+<!--                AND RD.ITEM_CODE IN (SELECT IM.ITEM_CODE -->
+<!--                                       FROM CB_ITEM_MASTER_V IM -->
+<!--                                      WHERE 1=1 -->
+<!--                                        AND IM.ORG_ID = RD.ORG_ID -->
+<!--                                        AND IM.COMPANY_ID = RD.COMPANY_ID -->
+<!--                                        AND IM.GROUP_CODE = 'M') -->
+<!--                UNION ALL -->
+<!--               SELECT IM.ORG_ID AS ORGID -->
+<!--                     ,IM.COMPANY_ID AS COMPANYID -->
+<!--                     ,'출고' AS GUBUNNAME -->
+<!--                     ,'REL' AS GUBUN -->
+<!--                     ,'ALLREL' AS ALLGUBUN -->
+<!--                     ,'B-2' AS ORDERBYCODE -->
+<!--                     ,DECODE(TM.RELEASE_DATE, NULL, NULL, TM.CUSTOMER_CODE) AS CUSTOMERCODE -->
+<!--                     ,IM.ITEM_CODE AS ITEMCODE -->
+<!--                     ,IM.ITEM_NAME AS ITEMNAME -->
+<!--                     ,IM.ORDER_NAME AS ORDERNAME -->
+<!--                     ,IM.ITEM_TYPE AS ITEMTYPE -->
+<!--                     ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME -->
+<!--                 FROM CB_ITEM_MASTER_V IM -->
+<!--                     ,(SELECT RD.ORG_ID -->
+<!--                             ,RD.COMPANY_ID -->
+<!--                             ,RD.ITEM_CODE -->
+<!--                             ,RH.RELEASE_DATE -->
+<!--                             ,TH.CUSTOMER_CODE -->
+<!--                             ,RH.RELEASE_NO -->
+<!--                         FROM CB_RELEASE_H RH -->
+<!--                             ,CB_RELEASE_D RD -->
+<!--                             ,CB_TRANS_LOT_D LD -->
+<!--                             ,CB_TRANS_D TD -->
+<!--                             ,CB_TRANS_H TH -->
+<!--                        WHERE 1=1 -->
+<!--                          AND RH.ORG_ID = RD.ORG_ID -->
+<!--                          AND RH.COMPANY_ID = RD.COMPANY_ID -->
+<!--                          AND RH.RELEASE_NO = RD.RELEASE_NO -->
+<!--                          AND RH.USE_DIV IN ('M', 'P') -->
+<!--                          AND RD.ORG_ID = LD.ORG_ID -->
+<!--                          AND RD.COMPANY_ID = LD.COMPANY_ID -->
+<!--                          AND RD.LOT_NO = LD.LOT_NO -->
+<!--                          AND LD.ORG_ID = TD.ORG_ID -->
+<!--                          AND LD.COMPANY_ID = TD.COMPANY_ID -->
+<!--                          AND LD.TRANS_NO = TD.TRANS_NO -->
+<!--                          AND LD.TRANS_SEQ = TD.TRANS_SEQ -->
+<!--                          AND TD.ORG_ID = TH.ORG_ID -->
+<!--                          AND TD.COMPANY_ID = TH.COMPANY_ID -->
+<!--                          AND TD.TRANS_NO = TH.TRANS_NO -->
+<!--                          AND TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM') = #SEARCHYEAR#) TM -->
+                         
+<!--                WHERE 1=1 -->
+<!--                  AND IM.GROUP_CODE = 'M' -->
+<!--                  AND IM.ORG_ID = TM.ORG_ID(+) -->
+<!--                  AND IM.COMPANY_ID = TM.COMPANY_ID(+) -->
+<!--                  AND IM.ITEM_CODE = TM.ITEM_CODE(+) -->
+<!--                  AND IM.ORG_ID = #ORGID# -->
+<!--                  AND IM.COMPANY_ID = #COMPANYID# -->
+<!--                UNION ALL -->
+<!--               SELECT RD.ORG_ID AS ORGID -->
+<!--                     ,RD.COMPANY_ID AS COMPANYID -->
+<!--                     ,'기타출고' AS GUBUNNAME -->
+<!--                     ,'ETCREL' AS GUBUN -->
+<!--                     ,'ALLETCREL' AS ALLGUBUN -->
+<!--                     ,'B-3' AS ORDERBYCODE -->
+<!--                     ,'ETCRELCUSTOMER' AS CUSTOMERCODE -->
+<!--                     ,IM.ITEM_CODE AS ITEMCODE -->
+<!--                     ,IM.ITEM_NAME AS ITEMNAME -->
+<!--                     ,IM.ORDER_NAME AS ORDERNAME -->
+<!--                     ,IM.ITEM_TYPE AS ITEMTYPE -->
+<!--                     ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME -->
+<!--               FROM CB_RELEASE_H RH -->
+<!--                   ,CB_RELEASE_D RD -->
+<!--                   ,CB_ITEM_MASTER_V IM -->
+<!--              WHERE 1=1 -->
+<!--                AND RH.ORG_ID = RD.ORG_ID -->
+<!--                AND RH.COMPANY_ID = RD.COMPANY_ID -->
+<!--                AND RH.RELEASE_NO = RD.RELEASE_NO -->
+<!--                AND RH.USE_DIV IN ('F') -->
+<!--                AND RD.ORG_ID = IM.ORG_ID -->
+<!--                AND RD.COMPANY_ID = IM.COMPANY_ID -->
+<!--                AND RD.ITEM_CODE = IM.ITEM_CODE -->
+<!--                AND TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM') = #SEARCHYEAR# -->
+<!--                AND RD.ITEM_CODE IN (SELECT IM.ITEM_CODE -->
+<!--                                       FROM CB_ITEM_MASTER_V IM -->
+<!--                                      WHERE 1=1 -->
+<!--                                        AND IM.ORG_ID = RD.ORG_ID -->
+<!--                                        AND IM.COMPANY_ID = RD.COMPANY_ID -->
+<!--                                        AND IM.GROUP_CODE = 'M') -->
+<!--                AND RH.ORG_ID = #ORGID# -->
+<!--                AND RH.COMPANY_ID = #COMPANYID# -->
+<!--                UNION ALL -->
+<!--               SELECT IM.ORG_ID AS ORGID -->
+<!--                     ,IM.COMPANY_ID AS COMPANYID -->
+<!--                     ,'재고' AS GUBUNNAME -->
+<!--                     ,'INV' AS GUBUN -->
+<!--                     ,'ALLINV' AS ALLGUBUN               -->
+<!--                     ,'C-1' AS ORDERBYCODE -->
+<!--                     ,'' AS CUSTOMERCODE -->
+<!--                     ,IM.ITEM_CODE AS ITEMCODE -->
+<!--                     ,IM.ITEM_NAME AS ITEMNAME -->
+<!--                     ,IM.ORDER_NAME AS ORDERNAME -->
+<!--                     ,IM.ITEM_TYPE AS ITEMTYPE -->
+<!--                     ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME -->
+<!--                 FROM CB_ITEM_MASTER_V IM -->
+<!--                WHERE 1=1 -->
+<!--                  AND IM.ORG_ID = #ORGID# -->
+<!--                  AND IM.COMPANY_ID = #COMPANYID# -->
+<!--                  AND IM.GROUP_CODE = 'M')AA -->
+<!--          ,(SELECT #ORGID# AS ORGID -->
+<!--                  ,#COMPANYID# AS COMPANYID -->
+<!--                  ,#SEARCHYEAR# AS YYYYMM -->
+<!--              FROM DUAL)TMP -->
+<!--   </sql> -->
+
+<!--   <sql id="material.release.matstorerelstatus.sql-where"> -->
+<!--        WHERE 1=1 -->
+<!--          AND AA.ORGID = TMP.ORGID -->
+<!--          AND AA.COMPANYID = TMP.COMPANYID -->
+<!--            <isNotEmpty property="ITEMTYPE" prepend="AND"> -->
+<!--               AA.ITEMTYPE = #ITEMTYPE# -->
+<!--            </isNotEmpty> -->
+<!--            <isNotEmpty property="ITEMCODE" prepend="AND"> -->
+<!--               AA.ITEMCODE = #ITEMCODE# -->
+<!--            </isNotEmpty> -->
+<!--        GROUP BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE, ORDERBYCODE, AA.COMPANYID, TMP.YYYYMM -->
+<!--                ,AA.ITEMCODE, AA.ITEMNAME, AA.ORDERNAME, AA.GUBUN, AA.GUBUNNAME, AA.ALLGUBUN -->
+<!--                ,AA.CUSTOMERCODE, AA.ITEMTYPE -->
+<!--        ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE, ORDERBYCODE -->
+<!--   </sql> -->
+
+  <sql id="material.release.matstorerelstatus.sql-select">
+      SELECT ROW_NUMBER() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE) AS RNUM
+            ,DENSE_RANK() OVER(ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE) AS RN
+            ,AA.ORGID AS ORGID
+            ,AA.COMPANYID AS COMPANYID
+            ,AA.ITEMCODE AS ITEMCODE
+            ,AA.ITEMNAME AS ITEMNAME
+            ,AA.ORDERNAME AS ORDERNAME
+            ,AA.GUBUN AS GUBUN
+            ,AA.GUBUNNAME AS GUBUNNAME
+            ,AA.ITEMTYPE
+            ,AA.ALLGUBUN AS ALLGUBUN
+            ,AA.CUSTOMERCODE AS CUSTOMERCODE
+            ,(SELECT CC.CUSTOMER_NAME
+                FROM CB_CUSTOMER CC
+               WHERE 1=1
+                 AND CC.ORG_ID = AA.ORGID
+                 AND CC.COMPANY_ID = AA.COMPANYID
+                 AND CC.CUSTOMER_CODE = AA.CUSTOMERCODE) AS CUSTOMERNAME
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'01'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,DECODE(AA.GUBUN, 'INV', AA.GUBUN, 'NOTSEARCH')) AS PREINV
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,NULL
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.ALLGUBUN) AS DAYALL
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'01'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY1
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'02'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY2
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'03'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY3
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'04'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY4
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'05'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY5
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'06'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY6
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'07'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY7
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'08'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY8
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'09'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY9
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'10'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY10
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'11'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY11
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'12'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY12
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'13'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY13
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'14'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY14
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'15'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY15
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'16'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY16
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'17'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY17
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'18'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY18
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'19'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY19
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'20'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY20
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'21'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY21
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'22'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY22
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'23'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY23
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'24'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY24
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'25'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY25
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'26'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY26
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'27'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY27
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'28'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY28
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'29'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY29
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'30'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY30
+            ,CB_MAT_PKG.CB_MAT_MONTH_INV_CHECK(AA.ORGID
+                                              ,AA.COMPANYID
+                                              ,TMP.YYYYMM
+                                              ,'31'
+                                              ,AA.CUSTOMERCODE
+                                              ,AA.ITEMCODE
+                                              ,AA.GUBUN) AS DAY31
+        FROM (SELECT IM.ORG_ID AS ORGID
+                    ,IM.COMPANY_ID AS COMPANYID
+                    ,'입고' AS GUBUNNAME
+                    ,'WAREH' AS GUBUN
+                    ,'ALLWAREH' AS ALLGUBUN
+                    ,'A-1' AS ORDERBYCODE
+                    ,TD.CUSTOMERCODE AS CUSTOMERCODE
+                    ,IM.ITEM_CODE AS ITEMCODE
+                    ,IM.ITEM_NAME AS ITEMNAME
+                    ,IM.ORDER_NAME AS ORDERNAME
+                    ,IM.ITEM_TYPE AS ITEMTYPE
+                    ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME
+                FROM CB_ITEM_MASTER_V IM
+                    ,(SELECT *
+                        FROM CB_TRANS_DETAIL_V) TD
+               WHERE 1=1
+                 AND IM.GROUP_CODE = 'M'
+                 AND IM.ORG_ID = TD.ORGID(+)
+                 AND IM.COMPANY_ID = TD.COMPANYID(+)
+                 AND IM.ITEM_CODE = TD.ITEMCODE(+)
+                 AND TO_CHAR(TO_DATE(TD.TRANSDATE(+), 'YYYY-MM-DD'), 'YYYY-MM') = #SEARCHYEAR#
+                 AND IM.ORG_ID = #ORGID#
+                 AND IM.COMPANY_ID = #COMPANYID#
+               UNION ALL
+              SELECT RD.ORG_ID AS ORGID
+                    ,RD.COMPANY_ID AS COMPANYID
+                    ,'기타입고' AS GUBUNNAME
+                    ,'ETCWAREH' AS GUBUN
+                    ,'ALLETCWAREH' AS ALLGUBUN
+                    ,'A-2' AS ORDERBYCODE
+                    ,'ETCWAREHCUSTOMER' AS CUSTOMERCODE
+                    ,IM.ITEM_CODE AS ITEMCODE
+                    ,IM.ITEM_NAME AS ITEMNAME
+                    ,IM.ORDER_NAME AS ORDERNAME
+                    ,IM.ITEM_TYPE AS ITEMTYPE
+                    ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME
+              FROM CB_RELEASE_H RH
+                  ,CB_RELEASE_D RD
+                  ,CB_ITEM_MASTER_V IM
+             WHERE 1=1
+               AND RH.ORG_ID = RD.ORG_ID
+               AND RH.COMPANY_ID = RD.COMPANY_ID
+               AND RH.RELEASE_NO = RD.RELEASE_NO
+               AND RD.ORG_ID = IM.ORG_ID
+               AND RD.COMPANY_ID = IM.COMPANY_ID
+               AND RD.ITEM_CODE = IM.ITEM_CODE
+               AND TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM') = #SEARCHYEAR#
+               AND RD.ORG_ID = #ORGID#
+               AND RD.COMPANY_ID = #COMPANYID#
+               AND RH.USE_DIV = 'E'
+               AND RD.ITEM_CODE IN (SELECT IM.ITEM_CODE
+                                      FROM CB_ITEM_MASTER_V IM
+                                     WHERE 1=1
+                                       AND IM.ORG_ID = RD.ORG_ID
+                                       AND IM.COMPANY_ID = RD.COMPANY_ID
+                                       AND IM.GROUP_CODE = 'M')
+               UNION ALL
+              SELECT IM.ORG_ID AS ORGID
+                    ,IM.COMPANY_ID AS COMPANYID
+                    ,'출고' AS GUBUNNAME
+                    ,'SHIPREL' AS GUBUN
+                    ,'ALLSHIPREL' AS ALLGUBUN
+                    ,'B-1' AS ORDERBYCODE
+                    ,DECODE(TM.SHIP_DATE, NULL, NULL, TM.CUSTOMER_CODE) AS CUSTOMERCODE
+                    ,IM.ITEM_CODE AS ITEMCODE
+                    ,IM.ITEM_NAME AS ITEMNAME
+                    ,IM.ORDER_NAME AS ORDERNAME
+                    ,IM.ITEM_TYPE AS ITEMTYPE
+                    ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME
+                FROM CB_ITEM_MASTER_V IM
+                    ,(SELECT CB.ORG_ID
+                            ,CB.COMPANY_ID
+                            ,CB.ITEM_CODE
+                            ,SH.SHIP_DATE
+                            ,SH.CUSTOMER_CODE
+                            ,SH.SHIP_NO
+                        FROM CB_BOM CB
+                            ,CB_SHIPPING_D SD
+                            ,CB_SHIPPING_H SH
+                       WHERE 1=1
+                         AND CB.ORG_ID = SD.ORG_ID
+                         AND CB.COMPANY_ID = SD.COMPANY_ID
+                         AND CB.UPPER_ITEM_CODE = SD.ITEM_CODE
+                         AND SD.ORG_ID = SH.ORG_ID
+                         AND SD.COMPANY_ID = SH.COMPANY_ID
+                         AND SD.SHIP_NO = SH.SHIP_NO
+                         AND TO_CHAR(SH.SHIP_DATE, 'YYYY-MM') = #SEARCHYEAR#) TM                         
+               WHERE 1=1
+                 AND IM.GROUP_CODE = 'M'
+                 AND IM.ORG_ID = TM.ORG_ID(+)
+                 AND IM.COMPANY_ID = TM.COMPANY_ID(+)
+                 AND IM.ITEM_CODE = TM.ITEM_CODE(+)
+                 AND IM.ORG_ID = #ORGID#
+                 AND IM.COMPANY_ID = #COMPANYID#
+               UNION ALL
+              SELECT IM.ORG_ID AS ORGID
+                    ,IM.COMPANY_ID AS COMPANYID
+                    ,'재고' AS GUBUNNAME
+                    ,'INV' AS GUBUN
+                    ,'ALLINV' AS ALLGUBUN              
+                    ,'C-1' AS ORDERBYCODE
+                    ,'' AS CUSTOMERCODE
+                    ,IM.ITEM_CODE AS ITEMCODE
+                    ,IM.ITEM_NAME AS ITEMNAME
+                    ,IM.ORDER_NAME AS ORDERNAME
+                    ,IM.ITEM_TYPE AS ITEMTYPE
+                    ,IM.ITEM_TYPE_NAME AS ITEMTYPENAME
+                FROM CB_ITEM_MASTER_V IM
+               WHERE 1=1
+                 AND IM.ORG_ID = #ORGID#
+                 AND IM.COMPANY_ID = #COMPANYID#
+                 AND IM.GROUP_CODE = 'M')AA
+         ,(SELECT #ORGID# AS ORGID
+                 ,#COMPANYID# AS COMPANYID
+                 ,#SEARCHYEAR# AS YYYYMM
+             FROM DUAL)TMP
+  </sql>
+
+  <sql id="material.release.matstorerelstatus.sql-where">
+       WHERE 1=1
+         AND AA.ORGID = TMP.ORGID
+         AND AA.COMPANYID = TMP.COMPANYID
+           <isNotEmpty property="ITEMTYPE" prepend="AND">
+              AA.ITEMTYPE = #ITEMTYPE#
+           </isNotEmpty>
+           <isNotEmpty property="ITEMCODE" prepend="AND">
+              AA.ITEMCODE = #ITEMCODE#
+           </isNotEmpty>
+       GROUP BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE, ORDERBYCODE, AA.COMPANYID, TMP.YYYYMM
+               ,AA.ITEMCODE, AA.ITEMNAME, AA.ORDERNAME, AA.GUBUN, AA.GUBUNNAME, AA.ALLGUBUN
+               ,AA.CUSTOMERCODE, AA.ITEMTYPE
+       ORDER BY AA.ORGID, AA.COMPANYID, AA.ITEMCODE, ORDERBYCODE
+  </sql>
+
+  <select id="material.release.matstorerelstatus.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+      <include refid="material.release.matstorerelstatus.sql-select" />
+      <include refid="material.release.matstorerelstatus.sql-where" />
+  </select>
+  
+  <select id="material.release.matstorerelstatus.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="material.release.matstorerelstatus.sql-select" />
+      <include refid="material.release.matstorerelstatus.sql-where" />
+    ) TOT
+  </select>
+  <!-- 자재입출고현황 끝 -->
+  
+  
+  <!-- 자재수불조회 (도급/사급) 조회 종료 -->
+  <sql id="material.release.subcontract.inventory.list.sql-select">
+  <![CDATA[
+      SELECT Z.YYYY_MM AS YYYYMM
+               ,RANK() OVER(ORDER BY IM.ORG_ID
+			                                      ,IM.COMPANY_ID
+			                                      ,IM.GROUP_CODE
+			                                      ,(SELECT BC.BIG_NAME
+			                                          FROM CB_BIG_CLASS BC
+			                                         WHERE 1 = 1
+			                                           AND BC.ORG_ID = IM.ORG_ID
+			                                           AND BC.COMPANY_ID = IM.COMPANY_ID
+			                                           AND BC.GROUP_CODE = IM.GROUP_CODE
+			                                           AND BC.BIG_CODE = IM.BIG_CODE)
+			                                      ,(SELECT MC.MIDDLE_NAME
+			                                          FROM CB_MIDDLE_CLASS MC
+			                                         WHERE 1 = 1
+			                                           AND MC.ORG_ID = IM.ORG_ID
+			                                           AND MC.COMPANY_ID = IM.COMPANY_ID
+			                                           AND MC.GROUP_CODE = IM.GROUP_CODE
+			                                           AND MC.BIG_CODE = IM.BIG_CODE
+			                                           AND MC.MIDDLE_CODE = IM.MIDDLE_CODE)
+			                                      ,(SELECT SC.SMALL_NAME
+			                                          FROM CB_SMALL_CLASS SC
+			                                         WHERE 1 = 1
+			                                           AND SC.ORG_ID = IM.ORG_ID
+			                                           AND SC.COMPANY_ID = IM.COMPANY_ID
+			                                           AND SC.GROUP_CODE = IM.GROUP_CODE
+			                                           AND SC.BIG_CODE = IM.BIG_CODE
+			                                           AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+			                                           AND SC.SMALL_CODE = IM.SMALL_CODE)
+			                                      ,IM.ITEM_NAME
+			                                      ,IM.ITEM_CODE
+			                                      ,Z.SMALL_CODE) AS RN
+               ,IM.ORG_ID AS ORGID
+               ,IM.COMPANY_ID AS COMPANYID
+               ,IM.GROUP_CODE AS GROUPCODE
+               ,IM.BIG_CODE AS BIGCODE
+               ,(SELECT BC.BIG_NAME
+                   FROM CB_BIG_CLASS BC
+                  WHERE 1 = 1
+                    AND BC.ORG_ID = IM.ORG_ID
+                    AND BC.COMPANY_ID = IM.COMPANY_ID
+                    AND BC.GROUP_CODE = IM.GROUP_CODE
+                    AND BC.BIG_CODE = IM.BIG_CODE) AS BIGNAME
+               ,IM.MIDDLE_CODE AS MIDDLECODE
+               ,(SELECT MC.MIDDLE_NAME
+                   FROM CB_MIDDLE_CLASS MC
+                  WHERE 1 = 1
+                    AND MC.ORG_ID = IM.ORG_ID
+                    AND MC.COMPANY_ID = IM.COMPANY_ID
+                    AND MC.GROUP_CODE = IM.GROUP_CODE
+                    AND MC.BIG_CODE = IM.BIG_CODE
+                    AND MC.MIDDLE_CODE = IM.MIDDLE_CODE) AS MIDDLENAME
+               ,IM.SMALL_CODE AS SMALLCODE
+               ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CLASS SC
+                  WHERE 1 = 1
+                    AND SC.ORG_ID = IM.ORG_ID
+                    AND SC.COMPANY_ID = IM.COMPANY_ID
+                    AND SC.GROUP_CODE = IM.GROUP_CODE
+                    AND SC.BIG_CODE = IM.BIG_CODE
+                    AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+                    AND SC.SMALL_CODE = IM.SMALL_CODE) AS SMALLNAME
+               ,NVL(Z.SMALL_CODE, '20') AS PRODSMALLCODE
+               ,NVL(Z.SMALL_NAME, '도급') AS PRODSMALLNAME
+               ,IM.ITEM_TYPE AS ITEMTYPE
+               ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE 1 = 1
+                    AND SC.ORG_ID = IM.ORG_ID
+                    AND SC.COMPANY_ID = IM.COMPANY_ID
+                    AND SC.BIG_CODE = 'CMM'
+                    AND SC.MIDDLE_CODE = 'ITEM_TYPE'
+                    AND SC.SMALL_CODE = IM.ITEM_TYPE) AS ITEMTYPENAME
+               ,IM.ITEM_CODE AS ITEMCODE
+               ,IM.ITEM_NAME AS ITEMNAME
+               ,IM.ORDER_NAME AS ORDERNAME
+               ,IM.ITEM_STANDARD AS ITEMSTANDARD
+               ,IM.MATERIAL_TYPE AS MATERIALTYPE
+               ,IM.INV_SAFE_QTY AS INVSAFEQTY
+               /*,IM.CUSTOMER_CODE AS CUSTOMERCODE
+               ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE 1=1
+                    AND CC.ORG_ID = IM.ORG_ID
+                    AND CC.COMPANY_ID = IM.COMPANY_ID
+                    AND CC.CUSTOMER_CODE = IM.CUSTOMER_CODE) AS CUSTOMERNAME*/
+               ,Z.CUSTOMER_CODE AS CUSTOMERCODE
+               ,(SELECT CC.CUSTOMER_NAME
+                   FROM CB_CUSTOMER CC
+                  WHERE 1=1
+                    AND CC.ORG_ID = Z.ORG_ID
+                    AND CC.COMPANY_ID = Z.COMPANY_ID
+                    AND CC.CUSTOMER_CODE = Z.CUSTOMER_CODE) AS CUSTOMERNAME
+               ,(SELECT SUM(NVL(C.PRESENT_INVENTORY_QTY, 0))
+                   FROM CB_INVENTORY_V6 C
+                  WHERE 1=1
+                    AND C.ORG_ID = IM.ORG_ID
+                    AND C.COMPANY_ID = IM.COMPANY_ID
+                    AND C.YYYY_MM <= (SELECT MAX(F.YYYY_MM)
+                                        FROM CB_INVENTORY_V6 F
+                                       WHERE 1=1
+                                         AND F.ORG_ID = Z.ORG_ID
+                                         AND F.COMPANY_ID = Z.COMPANY_ID
+                                         AND F.YYYY_MM < Z.YYYY_MM
+                                         AND F.ITEM_CODE = Z.ITEM_CODE)
+                    AND C.ITEM_CODE = IM.ITEM_CODE) AS PREINVENTORYQTY
+               ,NVL(Z.TRANS_QTY, 0) AS TRANSQTY
+               ,NVL(Z.TRANS_QTY, 0) * NVL(IM.UNIT_COST, 0) AS TRANSPRICE
+               ,NVL(Z.RELEASE_QTY, 0) AS RELEASEQTY
+               ,NVL(Z.RELEASE_QTY, 0) * NVL(IM.UNIT_COST, 0) AS RELEASEPRICE
+               ,NVL(IM.SAFETY_INVENTORY, 0) AS SAFETYINVENTORY
+               ,(SELECT CIV.RELEASE_WATING_QTY
+                   FROM CB_INVENTORY_V CIV
+                  WHERE 1=1
+                    AND CIV.ORG_ID = IM.ORG_ID
+                    AND CIV.COMPANY_ID = IM.COMPANY_ID
+                    AND CIV.ITEM_CODE = IM.ITEM_CODE) AS RELEASEWATINGQTY
+               ,NVL(NULL, 0) AS PRETRANSQTY
+               ,NVL(IM.SAFETY_INVENTORY, 0) -
+                (SELECT CIV.RELEASE_WATING_QTY
+                   FROM CB_INVENTORY_V CIV
+                  WHERE 1=1
+                    AND CIV.ORG_ID = IM.ORG_ID
+                    AND CIV.COMPANY_ID = IM.COMPANY_ID
+                    AND CIV.ITEM_CODE = IM.ITEM_CODE) + NVL(NULL, 0) AS PREDICTIONQTY
+               ,NVL(IM.UNIT_COST, 0) AS UNIT_PRICE_A
+        FROM (
+		             SELECT ORG_ID
+		                   ,COMPANY_ID
+		                   ,YYYY_MM
+		                   ,ITEM_CODE
+		                   ,CUSTOMER_CODE
+		                   ,SMALL_CODE
+		                   ,SMALL_NAME
+		                   ,TRANS_QTY
+		                   ,RELEASE_QTY
+		              FROM CB_INVENTORY_V6 CIV
+		             WHERE 1=1
+		               AND CIV.ORG_ID = #ORGID#
+		               AND CIV.COMPANY_ID = #COMPANYID#
+		               AND CIV.YYYY_MM = #YYYYMM#
+		               ) Z
+		            ,CB_ITEM_MASTER IM
+        WHERE 1=1
+          AND IM.GROUP_CODE = 'M'
+          AND IM.ORG_ID = Z.ORG_ID(+)
+          AND IM.COMPANY_ID = Z.COMPANY_ID(+)
+          AND IM.ITEM_CODE = Z.ITEM_CODE(+)
+          AND IM.INVENTORY_MANAGE_YN = 'Y'
+  ]]>
+	    <isNotEmpty property="ORGID" prepend="AND">
+	       IM.ORG_ID = #ORGID#
+	    </isNotEmpty>
+	    <isNotEmpty property="COMPANYID" prepend="AND">
+	       IM.COMPANY_ID = #COMPANYID#
+	    </isNotEmpty>
+	    <isNotEmpty property="ITEMCODE" prepend="AND">
+	       IM.ITEM_CODE = #ITEMCODE#
+	    </isNotEmpty>
+	    <isNotEmpty property="SMALLCODE" prepend="AND">
+	       Z.SMALL_CODE = #SMALLCODE#
+	    </isNotEmpty>
+	    <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+	       Z.CUSTOMER_CODE = #CUSTOMERCODE#
+	    </isNotEmpty>
+  <![CDATA[
+     ORDER BY IM.ORG_ID
+		             ,IM.COMPANY_ID
+		             ,IM.GROUP_CODE
+		             ,(SELECT BC.BIG_NAME
+		                 FROM CB_BIG_CLASS BC
+		                WHERE 1 = 1
+		                  AND BC.ORG_ID = IM.ORG_ID
+		                  AND BC.COMPANY_ID = IM.COMPANY_ID
+		                  AND BC.GROUP_CODE = IM.GROUP_CODE
+		                  AND BC.BIG_CODE = IM.BIG_CODE)
+		             ,(SELECT MC.MIDDLE_NAME
+		                 FROM CB_MIDDLE_CLASS MC
+		                WHERE 1 = 1
+		                  AND MC.ORG_ID = IM.ORG_ID
+		                  AND MC.COMPANY_ID = IM.COMPANY_ID
+		                  AND MC.GROUP_CODE = IM.GROUP_CODE
+		                  AND MC.BIG_CODE = IM.BIG_CODE
+		                  AND MC.MIDDLE_CODE = IM.MIDDLE_CODE)
+		             ,(SELECT SC.SMALL_NAME
+		                 FROM CB_SMALL_CLASS SC
+		                WHERE 1 = 1
+		                  AND SC.ORG_ID = IM.ORG_ID
+		                  AND SC.COMPANY_ID = IM.COMPANY_ID
+		                  AND SC.GROUP_CODE = IM.GROUP_CODE
+		                  AND SC.BIG_CODE = IM.BIG_CODE
+		                  AND SC.MIDDLE_CODE = IM.MIDDLE_CODE
+		                  AND SC.SMALL_CODE = IM.SMALL_CODE)
+		             ,IM.ITEM_NAME
+		             ,IM.ITEM_CODE
+		             ,Z.SMALL_CODE
+  ]]>
+  </sql>
+
+  <select id="material.release.subcontract.inventory.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT M.YYYYMM AS YYYYMM,
+             M.RN AS RN,
+             M.ORGID AS ORGID,
+             M.COMPANYID AS COMPANYID,
+             M.ITEMCODE AS ITEMCODE,
+             M.GROUPCODE AS GROUPCODE,
+             M.BIGCODE AS BIGCODE,
+             M.BIGNAME AS BIGNAME,
+             M.MIDDLECODE AS MIDDLECODE,
+             M.MIDDLENAME AS MIDDLENAME,
+             M.SMALLCODE AS SMALLCODE,
+             M.SMALLNAME AS SMALLNAME,
+             M.PRODSMALLCODE AS PRODSMALLCODE,
+             M.PRODSMALLNAME AS PRODSMALLNAME,
+             M.ITEMTYPE AS ITEMTYPE,
+             M.ITEMTYPENAME AS ITEMTYPENAME,
+             M.INVSAFEQTY AS INVSAFEQTY,
+             M.ITEMNAME AS ITEMNAME,
+             M.ORDERNAME AS ORDERNAME,
+             M.ITEMSTANDARD AS ITEMSTANDARD,
+             M.MATERIALTYPE AS MATERIALTYPE,
+             M.CUSTOMERCODE AS CUSTOMERCODE,
+             M.CUSTOMERNAME AS CUSTOMERNAME,
+             NVL(M.SAFETYINVENTORY, 0) AS SAFETYINVENTORY,
+             NVL(M.PREINVENTORYQTY, 0) AS PREINVENTORYQTY,
+             NVL(M.PREINVENTORYQTY, 0) * NVL(M.UNIT_PRICE_A, 0) AS PREINVENTORYPRICE,
+             NVL(M.TRANSQTY, 0) AS TRANSQTY,
+             NVL(M.TRANSPRICE, 0) AS TRANSPRICE,
+             NVL(M.RELEASEQTY, 0) AS RELEASEQTY,
+             NVL(M.RELEASEPRICE, 0) AS RELEASEPRICE,
+             (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) AS PRESENTINVENTORYQTY,
+             (NVL(M.PREINVENTORYQTY, 0) + NVL(M.TRANSQTY, 0) - NVL(M.RELEASEQTY, 0)) * NVL(M.UNIT_PRICE_A, 0) AS PRESENTINVENTORYPRICE
+      FROM (
+        <include refid="material.release.subcontract.inventory.list.sql-select" />
+       ) M
+  </select>
+
+  <select id="material.release.subcontract.inventory.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="material.release.subcontract.inventory.list.sql-select" />
+        ) TOT
+  </select>
+  <!-- 자재수불조회 (도급/사급) 조회 종료 -->
+    
+    
+    <!--     소재 입고현황 -->
+<sql id="material.release.warehousing.detail.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY ORGID, COMPANYID, CUSTOMERNAME, ITEMSTANDARD ) AS RN
+                ,ODV.ORGID AS ORGID
+                ,ODV.COMPANYID AS COMPANYID
+                ,ODV.CUSTOMERNAME AS CUSTOMERNAME
+                ,ODV.ITEMSTANDARD AS ITEMSTANDARD
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'MONTHLY'
+                                                    ,'PO_QTY') AS POQTY
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'MONTHLY'
+                                                    ,'TRANS_QTY') AS TRANSQTY
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY01
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,2
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY02
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,3
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY03
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,4
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY04
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,5
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY05
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,6
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY06
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,7
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY07
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,8
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY08
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,9
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY09
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,10
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY10
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,11
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY11
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,12
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY12
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,13
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY13
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,14
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY14
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,15
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY15
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,16
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY16
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,17
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY17
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,18
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY18
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,19
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY19
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,20
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY20
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,21
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY21
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,22
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY22
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,23
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY23
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,24
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY24
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,25
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY25
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,26
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY26
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,27
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY27
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,28
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY28
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,29
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY29
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,30
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY30
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(ODV.ORGID
+                                                    ,ODV.COMPANYID
+                                                    ,ODV.ITEMCODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,31
+                                                    ,'DAY'
+                                                    ,'TRANS_QTY') AS DAY31
+        FROM CB_ORDER_DETAIL_LIST_V ODV
+                ,(SELECT #SEARCHMONTH# AS SEARCH_MONTH
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="material.release.warehousing.detail.list.sql-where">
+          WHERE 1=1
+           AND ODV.ITEMTYPE='M'
+             <isNotEmpty property="ORGID" prepend="AND">
+            ODV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            ODV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            ODV.CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARD" prepend="AND">
+            ODV.ITEMSTANDARD LIKE '%' || #ITEMSTANDARD# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHMONTH" prepend="AND">
+                ODV.DUEDATE  BETWEEN TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM')  AND LAST_DAY(TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM'))
+        </isNotEmpty>
+          GROUP BY ODV.ORGID, ODV.COMPANYID, ODV.CUSTOMERNAME, ODV.ITEMSTANDARD, ODV.ITEMCODE, TMP.SEARCH_MONTH
+    </sql>
+    
+    <sql id="material.release.warehousing.total.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY CUSTOMERNAME, ITEMSTANDARD) AS RN
+                  ,ORGID
+                  ,COMPANYID
+                  ,CUSTOMERNAME
+                  ,ITEMSTANDARD
+                  ,NVL(SUM(POQTY),0) AS POQTY
+                  ,NVL(SUM(POQTY),0)-NVL(SUM(TRANSQTY),0) AS QTY
+                  ,SUM(TRANSQTY) AS TRANSQTY
+                  ,SUM(DAY01) AS DAY01
+                  ,SUM(DAY02) AS DAY02
+                  ,SUM(DAY03) AS DAY03
+                  ,SUM(DAY04) AS DAY04
+                  ,SUM(DAY05) AS DAY05
+                  ,SUM(DAY06) AS DAY06
+                  ,SUM(DAY07) AS DAY07
+                  ,SUM(DAY08) AS DAY08
+                  ,SUM(DAY09) AS DAY09
+                  ,SUM(DAY10) AS DAY10
+                  ,SUM(DAY11) AS DAY11
+                  ,SUM(DAY12) AS DAY12
+                  ,SUM(DAY13) AS DAY13
+                  ,SUM(DAY14) AS DAY14
+                  ,SUM(DAY15) AS DAY15
+                  ,SUM(DAY16) AS DAY16
+                  ,SUM(DAY17) AS DAY17
+                  ,SUM(DAY18) AS DAY18
+                  ,SUM(DAY19) AS DAY19
+                  ,SUM(DAY20) AS DAY20
+                  ,SUM(DAY21) AS DAY21
+                  ,SUM(DAY22) AS DAY22
+                  ,SUM(DAY23) AS DAY23
+                  ,SUM(DAY24) AS DAY24
+                  ,SUM(DAY25) AS DAY25
+                  ,SUM(DAY26) AS DAY26
+                  ,SUM(DAY27) AS DAY27
+                  ,SUM(DAY28) AS DAY28
+                  ,SUM(DAY29) AS DAY29
+                  ,SUM(DAY30) AS DAY30
+                  ,SUM(DAY31) AS DAY31
+          FROM (
+    ]]>
+    </sql>
+
+    <sql id="material.release.warehousing.total.list.sql-where">
+          )
+       WHERE 1=1
+       GROUP BY ORGID, COMPANYID, CUSTOMERNAME, ITEMSTANDARD
+    </sql>
+
+    <select id="material.release.warehousing.total.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="material.release.warehousing.total.list.sql-select" />
+        <include refid="material.release.warehousing.detail.list.sql-select" />
+        <include refid="material.release.warehousing.detail.list.sql-where" />
+        <include refid="material.release.warehousing.total.list.sql-where" />
+    </select>
+
+    <select id="material.release.warehousing.total.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="material.release.warehousing.total.list.sql-select" />
+        <include refid="material.release.warehousing.detail.list.sql-select" />
+        <include refid="material.release.warehousing.detail.list.sql-where" />
+        <include refid="material.release.warehousing.total.list.sql-where" />
+        ) TOT
+    </select>
+    
+</sqlMap>

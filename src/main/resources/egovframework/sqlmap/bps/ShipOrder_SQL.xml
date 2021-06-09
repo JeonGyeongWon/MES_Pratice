@@ -1,0 +1,2604 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ship">
+
+    <parameterMap class="java.util.Map" id="ShipOrderInsertParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="ShipmentInspectionCreateParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+
+    <parameterMap class="java.util.Map" id="TradeCreateParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="GUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="ShipSoCompleteParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="ShipSoCompDelParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="ShipItemTrxParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="LOTNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXGUBUN" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXTYPE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXQTY" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXUNITPRICE" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXWAREHOUSING" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="TRXSEQ" jdbcType="NUMBER" javaType="java.lang.Integer" mode="IN"/>
+        <parameter property="TRXIUD" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REMARKS" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    
+    <parameterMap class="java.util.Map" id="procUnitPriceParams">
+        <parameter property="ORGID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="COMPANYID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPNO" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="SHIPSEQ" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="ITEMCODE" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="REGISTID" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/>
+        <parameter property="RETURNSTATUS" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+        <parameter property="MSGDATA" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/>
+    </parameterMap>
+    <procedure id="ship.order.call.procedure" parameterClass="java.util.Map"  parameterMap="ShipOrderInsertParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_MFG_PKG.CB_SHIPPING_CARREIED_CREATE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="ship.inspection.create.call.procedure" parameterClass="java.util.Map"  parameterMap="ShipmentInspectionCreateParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SHIP_PKG.CB_SHIPMENT_INSPECTION_CREATE( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="ship.trade.create.call.Procedure" parameterClass="java.util.Map"  parameterMap="TradeCreateParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_EXCEL_UPLOAD_PKG.CB_TRADE_CREATE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="ship.soComplete.update.call.procedure" parameterClass="java.util.Map"  parameterMap="ShipSoCompleteParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SHIP_PKG.CB_SHIP_SO_COMPLETE_CHECK( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+    <procedure id="ship.soComplete.delete.call.procedure" parameterClass="java.util.Map"  parameterMap="ShipSoCompDelParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SHIP_PKG.CB_SHIP_SO_COMPLETE_UPDATE( ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+    <procedure id="ship.item.transaction.call.procedure" parameterClass="java.util.Map"  parameterMap="ShipItemTrxParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call ITEM_TRX.SHIP_TRX( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+    
+        
+    <procedure id="order.ship.unitprice.call.Procedure" parameterClass="java.util.Map"  parameterMap="procUnitPriceParams" resultClass="java.util.HashMap" >
+    <![CDATA[
+       {call CB_SHIP_PKG.CB_UNIT_PRICE_MANAGE( ?, ?, ?, ?, ?, ?, ?, ? ) }
+       ]]>
+    </procedure>
+
+    <!-- Dummy Lov 시작 -->
+    <sql id="ship.dummy.month.sql-select">
+        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS DATEFROM
+					      ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS DATETO
+					      ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS PREDATESYS
+					      ,TO_CHAR(SYSDATE,'YYYY-MM-DD') AS DATESYS
+					      ,TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM-DD') AS PREDATEFROM
+					      ,TO_CHAR(LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)), 'YYYY-MM-DD') AS PREDATETO
+					      ,TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM-DD') AS POSTDATEFROM
+					      ,TO_CHAR(LAST_DAY(SYSDATE), 'YYYY-MM-DD') AS POSTDATETO
+				  FROM DUAL
+    </sql>
+
+    <sql id="ship.dummy.month.sql-where">
+         WHERE 1 = 1
+    </sql>
+
+    <select id="ship.dummy.month.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.dummy.month.sql-select" />
+        <include refid="ship.dummy.month.sql-where" />
+    </select>
+    <!-- Dummy Lov 종료 -->
+    
+    
+    <sql id="ship.order.plan.sql-select">
+        SELECT RANK() OVER(ORDER BY SHV.SHIPNO DESC) AS RN
+                ,SHV.ORGID
+                ,SHV.COMPANYID
+                ,SHV.SHIPNO
+                ,SHV.OLDSHIPNO
+                ,SHV.SHIPDATE
+                ,SHV.CONFIRMDATE
+                ,SHV.PRINTDATE
+                ,SHV.PRINTUSER
+                ,(SELECT A.KR_NAME
+                  FROM CB_HUMANRESOURCE_MANAGER A
+                  WHERE A.EMPLOYEE_NUMBER = SHV.PRINTUSER) AS PRINTUSERNAME
+                ,SHV.CUSTOMERCODE
+                ,SHV.CUSTOMERNAME
+                ,SHV.SHIPGUBUN
+                ,SHV.SHIPGUBUNNAME
+                ,SHV.CONFIRMYN
+                ,SHV.CONFIRMYNNAME
+                ,SHV.ITEMCODE
+                ,SHV.ITEMNAME
+                ,SHV.ORDERNAME
+                ,SHV.UOM
+                ,SHV.UOMNAME
+                ,SHV.SHIPQTY
+                ,SHV.INPUTQTY
+                ,SHV.BOXCNT
+                ,SHV.RESTQTY
+                ,SHV.PRINTUSER
+                ,SHV.REMARKS
+                ,SHV.CREATEDBY
+                ,SHV.CREATIONDATE
+                ,SHV.LASTUPDATEDBY
+                ,SHV.LASTUPDATEDATE
+                ,SHV.LOTNO
+        FROM CB_SHIPPING_H_V SHV
+    </sql>
+
+    <sql id="ship.order.plan.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            SHV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SHV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SHV.SHIPNO = #SHIPNO#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPGUBUN" prepend="AND">
+            SHV.SHIPGUBUN = #SHIPGUBUN#
+         </isNotEmpty>
+         <isNotEmpty property="CONFIRMYN" prepend="AND">
+            SHV.CONFIRMYN = #CONFIRMYN#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            SHV.ITEMCODE LIKE '%'||#ITEMCODE#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            SHV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            SHV.ORDERNAME ='%'||#ORDERNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            SHV.CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPTO">
+             <isNotEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#SHIPFROM#,'YYYY-MM-DD')  AND TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  = TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="CONFIRMTO">
+             <isNotEmpty property="CONFIRMFROM" prepend="AND">
+                TO_DATE(SHV.CONFIRMDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#CONFIRMFROM#,'YYYY-MM-DD')  AND TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="CONFIRMFROM" prepend="AND">
+                TO_DATE(SHV.CONFIRMDATE,'YYYY-MM-DD')  = TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PRINTTO">
+             <isNotEmpty property="PRINTFROM" prepend="AND">
+                TO_DATE(SHV.PRINTDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#PRINTFROM#,'YYYY-MM-DD')  AND TO_DATE(#PRINTTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="PRINTFROM" prepend="AND">
+                TO_DATE(SHV.PRINTDATE,'YYYY-MM-DD')  = TO_DATE(#PRINTTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PRINTYN"  >
+              <isEqual prepend="AND" property="PRINTYN" compareValue="Y">
+                SHV.LOTNO IS NOT NULL
+              </isEqual>
+              <isEqual prepend="AND" property="PRINTYN" compareValue="N">
+                SHV.LOTNO IS NULL
+              </isEqual>
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.order.plan.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.order.plan.sql-select" />
+        <include refid="ship.order.plan.sql-where" />
+    </select>
+
+    <select id="ship.order.plan.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.order.plan.sql-select" />
+            <include refid="ship.order.plan.sql-where" />
+        ) TOT
+    </select>
+    
+       <insert id="ship.order.plan.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPPING_H
+              (ORG_ID
+              ,COMPANY_ID
+              ,SHIP_NO
+              ,SHIP_GUBUN
+              ,CUSTOMER_CODE
+              ,ITEM_CODE
+              ,SHIP_QTY
+              ,SHIP_DATE
+              ,CONFIRM_DATE
+              ,CONFIRM_YN
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#SHIPNO#
+              ,#SHIPGUBUN#
+              ,#CUSTOMERCODE#
+              ,#ITEMCODE#
+              ,#SHIPQTY#
+              ,TO_DATE(#SHIPDATE#, 'YYYY-MM-DD')
+              ,TO_DATE(#CONFIRMDATE#, 'YYYY-MM-DD')
+              ,'N'
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+
+    <update id="ship.order.plan.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+              ,COMPANY_ID = #COMPANYID#
+              ,SHIP_NO = #SHIPNO#
+              ,SHIP_GUBUN = #SHIPGUBUN#
+              ,CUSTOMER_CODE = #CUSTOMERCODE#
+              ,ITEM_CODE = #ITEMCODE#
+              ,SHIP_QTY = $SHIPQTY$
+              ,SHIP_DATE = #SHIPDATE#
+              ,CONFIRM_DATE = #CONFIRMDATE#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+        ]]>
+    </update>
+
+    <delete id="ship.order.plan.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPPING_H
+         WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+    </delete>
+
+    <sql id="ship.order.list.sql-select">
+        SELECT RANK() OVER(ORDER BY SHV.SHIPNO DESC) AS RN
+                ,SHV.ORGID
+                ,SHV.COMPANYID
+                ,SHV.SHIPNO
+                ,SHV.SHIPDATE
+                ,SHV.CONFIRMDATE
+                ,SHV.PRINTDATE
+                ,SHV.PRINTUSER
+                ,(SELECT A.KR_NAME
+                  FROM CB_HUMANRESOURCE_MANAGER A
+                  WHERE A.EMPLOYEE_NUMBER = SHV.PRINTUSER) AS PRINTUSERNAME
+                ,SHV.CUSTOMERCODE
+                ,SHV.CUSTOMERNAME
+                ,SHV.SHIPGUBUN
+                ,SHV.SHIPGUBUNNAME
+                ,SHV.CONFIRMYN
+                ,SHV.CONFIRMYNNAME
+                ,SHV.ITEMCODE
+                ,SHV.ITEMNAME
+                ,SHV.ORDERNAME
+                ,SHV.UOM
+                ,SHV.UOMNAME
+                ,SHV.SHIPQTY
+                ,NVL((SELECT SUM(CSD.SHIP_QTY)
+                        FROM CB_SHIPPING_D CSD
+	                    WHERE 1=1
+	                       AND CSD.ORG_ID = SHV.ORGID
+	                       AND CSD.COMPANY_ID = SHV.COMPANYID
+	                       AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS SUMQTY
+                ,SHV.SHIPQTY - NVL((SELECT SUM(CSD.SHIP_QTY)
+				                                   FROM CB_SHIPPING_D CSD
+				                                  WHERE 1=1
+				                                     AND CSD.ORG_ID = SHV.ORGID
+				                                     AND CSD.COMPANY_ID = SHV.COMPANYID
+				                                     AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS TRIPQTY
+                ,((SHV.SHIPQTY - NVL((SELECT SUM(CSD.SHIP_QTY)
+					                                   FROM CB_SHIPPING_D CSD
+					                                  WHERE 1=1
+					                                     AND CSD.ORG_ID = SHV.ORGID
+					                                     AND CSD.COMPANY_ID = SHV.COMPANYID
+					                                     AND CSD.SHIP_NO = SHV.SHIPNO), 0)) / DECODE(SHV.SNP ,0 ,NULL, SHV.SNP)) AS PLT
+                ,SHV.INPUTQTY
+                ,SHV.BOXCNT
+                ,SHV.RESTQTY
+                ,SHV.PRINTUSER
+                ,SHV.REMARKS
+                ,SHV.CREATEDBY
+                ,SHV.CREATIONDATE
+                ,SHV.LASTUPDATEDBY
+                ,SHV.LASTUPDATEDATE
+                ,SHV.LOTNO
+        FROM CB_SHIPPING_H_V SHV
+    </sql>
+
+    <sql id="ship.order.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            SHV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SHV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SHV.SHIPNO = #SHIPNO#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPGUBUN" prepend="AND">
+            SHV.SHIPGUBUN = #SHIPGUBUN#
+         </isNotEmpty>
+         <isNotEmpty property="CONFIRMYN" prepend="AND">
+            SHV.CONFIRMYN = #CONFIRMYN#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            SHV.ITEMCODE LIKE '%'||#ITEMCODE#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            SHV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            SHV.ORDERNAME ='%'||#ORDERNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            SHV.CUSTOMERCODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPTO">
+             <isNotEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#SHIPFROM#,'YYYY-MM-DD')  AND TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  = TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="CONFIRMTO">
+             <isNotEmpty property="CONFIRMFROM" prepend="AND">
+                TO_DATE(SHV.CONFIRMDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#CONFIRMFROM#,'YYYY-MM-DD')  AND TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="CONFIRMFROM" prepend="AND">
+                TO_DATE(SHV.CONFIRMDATE,'YYYY-MM-DD')  = TO_DATE(#CONFIRMTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PRINTTO">
+             <isNotEmpty property="PRINTFROM" prepend="AND">
+                TO_DATE(SHV.PRINTDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#PRINTFROM#,'YYYY-MM-DD')  AND TO_DATE(#PRINTTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="PRINTFROM" prepend="AND">
+                TO_DATE(SHV.PRINTDATE,'YYYY-MM-DD')  = TO_DATE(#PRINTTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="PRINTYN"  >
+		          <isEqual prepend="AND" property="PRINTYN" compareValue="Y">
+							  SHV.LOTNO IS NOT NULL
+						  </isEqual>
+              <isEqual prepend="AND" property="PRINTYN" compareValue="N">
+                SHV.LOTNO IS NULL
+              </isEqual>
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.order.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.order.list.sql-select" />
+        <include refid="ship.order.list.sql-where" />
+    </select>
+
+    <select id="ship.order.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.order.list.sql-select" />
+            <include refid="ship.order.list.sql-where" />
+        ) TOT
+    </select>
+    
+	  <select id="ship.order.list.first.select" parameterClass="java.util.Map"
+	      resultClass="java.util.HashMap">
+	      SELECT  ORGID, COMPANYID, SHIPNO FROM (
+            <include refid="ship.order.list.sql-select" />
+            <include refid="ship.order.list.sql-where" />
+	      )
+	      WHERE 1=1
+	        AND ROWNUM = 1
+	  </select>
+    
+    <sql id="ship.order.detail.sql-select">
+        SELECT ROWNUM AS RN 
+            ,CSD.ORG_ID AS ORGID
+            ,CSD.COMPANY_ID AS COMPANYID
+						,CSD.SHIP_NO AS SHIPNO
+						,CSD.SHIP_SEQ AS SHIPSEQ
+            ,CSD.SHIP_TYPE AS SHIPTYPE
+            ,(SELECT CS.SMALL_NAME FROM CB_SMALL_CODE CS
+               WHERE CS.ORG_ID = CSD.ORG_ID
+                 AND CS.COMPANY_ID = CSD.COMPANY_ID
+                 AND CS.BIG_CODE = 'OM'
+                 AND CS.MIDDLE_CODE = 'SHIP_TYPE'
+                 AND CS.SMALL_CODE = CSD.SHIP_TYPE) AS SHIPTYPENAME
+						,TO_CHAR(CSD.SHIP_DATE,'YYYY-MM-DD') AS SHIPDATE
+						,CSD.SHIP_QTY AS SHIPQTY
+						,CSD.REMARKS AS REMARKS
+						,'Y' AS SAVEYN
+            ,CSD.LOT_NO AS LOTNO
+            ,CSD.WORK_ORDER_ID AS WORKORDERID
+            ,CSD.WORK_ORDER_SEQ AS WORKORDERSEQ
+            ,CSD.LOT_CNT AS LOTCNT
+				FROM CB_SHIPPING_D CSD
+    </sql>
+
+    <sql id="ship.order.detail.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            CSD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            CSD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            CSD.SHIP_NO = #SHIPNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.order.detail.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.order.detail.sql-select" />
+        <include refid="ship.order.detail.sql-where" />
+    </select>
+
+    <select id="ship.order.detail.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.order.detail.sql-select" />
+            <include refid="ship.order.detail.sql-where" />
+        ) TOT
+    </select>
+    
+   <insert id="ship.order.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPPING_D
+              (ORG_ID
+              ,COMPANY_ID
+              ,SHIP_NO
+              ,SHIP_SEQ
+              ,SHIP_DATE
+              ,SHIP_TYPE
+              ,SHIP_QTY
+        ]]>
+        <isNotEmpty property="LOTNO" prepend=",">
+               LOT_NO
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+               WORK_ORDER_ID
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+               WORK_ORDER_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="LOTCNT" prepend=",">
+               LOT_CNT
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#SHIPNO#
+              ,#SHIPSEQ#
+              ,TO_DATE(#SHIPDATE#, 'YYYY-MM-DD')
+              ,#SHIPTYPE#
+              ,$SHIPQTY$
+        ]]>
+        <isNotEmpty property="LOTNO" prepend=",">
+               #LOTNO#
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+              #WORKORDERID#
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+              #WORKORDERSEQ#
+        </isNotEmpty>
+        <isNotEmpty property="LOTCNT" prepend=",">
+               $LOTCNT$
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+
+    <update id="ship.order.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+                ,SHIP_DATE = TO_DATE(#SHIPDATE#, 'YYYY-MM-DD')
+	              ,SHIP_TYPE = #SHIPTYPE#
+                ,SHIP_QTY = #SHIPQTY#
+        ]]>
+        <isNotEmpty property="LOTNO" prepend=",">
+            LOT_NO = #LOTNO#
+        </isNotEmpty>
+        <isEmpty property="LOTNO" prepend=",">
+            LOT_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+            WORK_ORDER_ID = #WORKORDERID#
+        </isNotEmpty>
+        <isEmpty property="WORKORDERID" prepend=",">
+            WORK_ORDER_ID = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+            WORK_ORDER_SEQ = #WORKORDERSEQ#
+        </isNotEmpty>
+        <isEmpty property="WORKORDERSEQ" prepend=",">
+            WORK_ORDER_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="LOTCNT" prepend=",">
+            LOT_CNT = $LOTCNT$
+        </isNotEmpty>
+        <isEmpty property="LOTCNT" prepend=",">
+            LOT_CNT = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+            AND SHIP_SEQ = #SHIPSEQ#
+        ]]>
+    </update>
+
+    <delete id="ship.order.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPPING_D
+         WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+            AND SHIP_SEQ = $SHIPSEQ$
+    </delete>
+
+<!-- 2016.12.30 출하지시번호 생성  -->
+    <select id="ship.order.new.shipno.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+       SELECT 'S' || TO_CHAR(TO_DATE(#SHIPDATE#, 'YYYY-MM-DD'), 'YYYYMMDD') || '-' ||
+               (CASE
+                  WHEN NUM BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NUM BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NUM + 1) AS SHIPNO
+          FROM (SELECT COUNT(*) AS NUM
+                  FROM CB_SHIPPING_H
+                 WHERE 1 = 1
+                   AND SHIP_NO LIKE 'S' || TO_CHAR(TO_DATE(#SHIPDATE#, 'YYYY-MM-DD'), 'YYYYMMDD') || '%')
+
+    </select>
+<!-- 2016.12.30 출하지시번호 생성  끝-->
+
+<!-- 2016.12.30 출하지시  생성 -->
+   <insert id="ship.order.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPPING_H
+              (ORG_ID
+              ,COMPANY_ID
+              ,SHIP_NO
+              ,SHIP_DATE
+              ,CUSTOMER_CODE
+              ,CONFIRM_YN
+              ,CONFIRM_DATE
+              ,SHIP_GUBUN
+              ,ITEM_CODE
+              ,SHIP_QTY
+              ,INPUT_QTY
+              ,BOX_CNT
+              ,REST_QTY
+              ,PRINT_DATE
+              ,PRINT_USER
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              (#ORGID#
+              ,#COMPANYID#
+              ,#SHIPNO#
+              ,TO_DATE(#SHIPDATE#, 'YYYY-MM-DD')
+              ,#CUSTOMERCODE#
+              ,#CONFIRMYN#
+              ,''
+              ,#SHIPGUBUN#
+              ,#ITEMCODE#
+              ,$SHIPQTY$
+              ,''
+              ,''
+              ,''
+              ,''
+              ,''
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+<!--  2016.12.30 출하지시  생성  끝-->
+
+ <!-- 2016.12.30 출하지시  수정 -->
+    <update id="ship.order.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+                ,SHIP_DATE = TO_DATE(#SHIPDATE#, 'YYYY-MM-DD')
+	              ,CUSTOMER_CODE = #CUSTOMERCODE#
+	              ,SHIP_GUBUN = #SHIPGUBUN#
+	              ,ITEM_CODE = #ITEMCODE#
+	              ,SHIP_QTY = #SHIPQTY#
+        ]]>
+        <isNotEmpty property="REMARKS" prepend=",">
+            REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+            REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+        ]]>
+    </update>
+ <!--  2016.12.30 출하지시 수정 -->
+
+  <!--  2016.12.30 출하지시 삭제 -->
+    <delete id="ship.order.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPPING_H
+         WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+    </delete>
+  <!--  2016.12.30 출하지시  삭제 -->
+      
+  <!--  2016.12.30 출하지시 확정 -->
+    <update id="ship.order.appr" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET CONFIRM_YN  = 'Y'
+                ,CONFIRM_DATE = SYSDATE
+                ,LAST_UPDATED_BY  = #UPDATEID#
+                ,LAST_UPDATE_DATE = SYSDATE
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+        ]]>
+    </update>
+  <!--  2016.12.30 출하지시 확정 -->
+ 
+<!--  2016.12.30 출하바코드 생성 시작 -->
+    <select id="ship.lot.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.order.list.sql-select" />
+        <include refid="ship.order.list.sql-where" />
+    </select>
+
+    <select id="ship.lot.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.order.list.sql-select" />
+            <include refid="ship.order.list.sql-where" />
+        ) TOT
+    </select>
+
+ 
+
+  <!-- 2016.12.30 출하 바코드 번호 생성  -->
+    <update id="ship.lot.create" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET LOT_NO  = #SHIPNO#||'-'||#ITEMCODE#||'-'||TO_CHAR(SHIP_DATE,'YYYYMMDD')||'-'||#SHIPQTY#
+               ,INPUT_QTY = $INPUTQTY$
+               ,REST_QTY = $RESTQTY$
+               ,BOX_CNT = $BOXCNT$
+               ,PRINT_USER = #UPDATEID#
+               ,PRINT_DATE = SYSDATE
+               ,LAST_UPDATED_BY  = #UPDATEID#
+               ,LAST_UPDATE_DATE = SYSDATE
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+        ]]>
+    </update>
+  <!-- 2016.12.26 자재 바코드 번호 생성 -->
+   
+   <sql id="ship.lot.create.sql-select">
+        SELECT LOT_NO AS CREATELOTNO
+        FROM CB_SHIPPING_H CIH
+    </sql>
+
+    <sql id="ship.lot.create.sql-where">
+         WHERE 1 = 1
+       <isNotEmpty property="ORGID" prepend="AND">
+          CIH.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+          CIH.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SHIP_NO = #SHIPNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.lot.create.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.lot.create.sql-select" />
+        <include refid="ship.lot.create.sql-where" />
+    </select>
+
+    <select id="ship.lot.create.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.lot.create.sql-select" />
+            <include refid="ship.lot.create.sql-where" />
+        ) TOT
+    </select>
+    
+ <!-- 2016.12.30 출하 바코드 번호 삭제  -->
+    <update id="ship.lot.delete" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET LOT_NO  = ''
+               ,INPUT_QTY = ''
+               ,REST_QTY =''
+               ,BOX_CNT = ''
+               ,PRINT_USER = ''
+               ,PRINT_DATE =''
+               ,LAST_UPDATED_BY  = #UPDATEID#
+               ,LAST_UPDATE_DATE = SYSDATE
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_NO = #SHIPNO#
+        ]]>
+    </update>
+  <!-- 2016.12.26 출하 바코드 번호 삭제 -->
+  
+ <!--  2016.12.30 출하바코드 생성 끝 -->
+    <sql id="ship.lot.detail.list.sql-select">
+        SELECT SD.ORG_ID AS ORGID
+						      ,SD.COMPANY_ID AS COMPANYID
+						      ,SD.SHIP_NO AS SHIPNO
+						      ,SD.SHIP_SEQ AS SHIPSEQ
+						      ,SD.LOT_NO AS LOTNO
+						      ,SD.SHIP_QTY AS SHIPQTY
+			  FROM CB_SHIPPING_D SD
+    </sql>
+
+    <sql id="ship.lot.detail.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            SD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SD.SHIP_NO = #SHIPNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.lot.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.lot.detail.list.sql-select" />
+        <include refid="ship.lot.detail.list.sql-where" />
+        ORDER BY SD.ORG_ID, SD.COMPANY_ID, SD.SHIP_NO, SD.SHIP_SEQ
+    </select>
+
+    <select id="ship.lot.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.lot.detail.list.sql-select" />
+            <include refid="ship.lot.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <!-- <sql id="ship.status.list.sql-select">
+        SELECT RANK() OVER(ORDER BY SHV.SHIPNO DESC) AS RN
+                ,SHV.ORGID
+                ,SHV.COMPANYID
+                ,SHV.SHIPNO
+                ,SHV.SHIPDATE
+                ,SHV.CONFIRMDATE
+                ,SHV.PRINTDATE
+                ,SHV.PRINTUSER
+                ,(SELECT A.KR_NAME
+                  FROM CB_HUMANRESOURCE_MANAGER A
+                  WHERE A.EMPLOYEE_NUMBER = SHV.PRINTUSER) AS PRINTUSERNAME
+                ,SHV.CUSTOMERCODE
+                ,SHV.CUSTOMERNAME
+                ,SHV.SHIPGUBUN
+                ,SHV.SHIPGUBUNNAME
+                ,SHV.CONFIRMYN
+                ,SHV.CONFIRMYNNAME
+                ,SHV.ITEMCODE
+                ,SHV.ITEMNAME
+                ,SHV.ORDERNAME
+                ,SHV.UOM
+                ,SHV.UOMNAME
+                ,SHV.SHIPQTY
+                ,NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                          WHERE 1=1
+                            AND CSD.ORG_ID = SHV.ORGID
+                            AND CSD.COMPANY_ID = SHV.COMPANYID
+                            AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS SUMQTY
+                ,SHV.SHIPQTY - NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                                            WHERE 1=1
+                                              AND CSD.ORG_ID = SHV.ORGID
+                                              AND CSD.COMPANY_ID = SHV.COMPANYID
+                                              AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS TRIPQTY
+                ,((NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                               WHERE 1=1
+                                 AND CSD.ORG_ID = SHV.ORGID
+                                 AND CSD.COMPANY_ID = SHV.COMPANYID
+                                 AND CSD.SHIP_NO = SHV.SHIPNO), 0) / SHV.SHIPQTY) * 100) || '%' AS ACHIEVEMENTRATE
+                ,(SELECT TO_CHAR(MAX(CSD.SHIP_DATE),'YYYY-MM-DD') FROM CB_SHIPPING_D CSD
+                    WHERE 1=1
+                     AND CSD.ORG_ID = SHV.ORGID
+                     AND CSD.COMPANY_ID = SHV.COMPANYID
+                     AND CSD.SHIP_NO = SHV.SHIPNO) AS DATESHIP
+                ,SHV.INPUTQTY
+                ,SHV.BOXCNT
+                ,SHV.RESTQTY
+                ,SHV.PRINTUSER
+                ,SHV.REMARKS
+                ,SHV.CREATEDBY
+                ,SHV.CREATIONDATE
+                ,SHV.LASTUPDATEDBY
+                ,SHV.LASTUPDATEDATE
+                ,SHV.LOTNO
+        FROM CB_SHIPPING_H_V SHV
+    </sql>
+    
+        <sql id="ship.status.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            SHV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SHV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPTO">
+             <isNotEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#SHIPFROM#,'YYYY-MM-DD')  AND TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  = TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            SHV.ITEMCODE LIKE '%'||#ITEMCODE#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            SHV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            SHV.ORDERNAME ='%'||#ORDERNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="BIGCODE" prepend="AND">
+            SHV.BIGCODE = #BIGCODE#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.status.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.status.list.sql-select" />
+        <include refid="ship.status.list.sql-where" />
+    </select>
+
+    <select id="ship.status.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.status.list.sql-select" />
+            <include refid="ship.status.list.sql-where" />
+        ) TOT
+    </select> -->
+    <sql id="ship.status.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, SHIP_DATE1 DESC, SHIP_NO, SHIP_SEQ) AS RN
+				      ,ORG_ID AS ORGID
+				      ,COMPANY_ID AS COMPANYID
+				      ,SHIP_NO AS SHIPNO
+				      ,SHIP_SEQ AS SHIPSEQ
+				      ,SHIP_DATE AS SHIPDATE
+				      ,CUSTOMER_CODE AS CUSTOMERCODE
+				      ,CUSTOMER_NAME AS CUSTOMERNAME
+				      ,SHIP_GUBUN AS SHIPGUBUN
+				      ,SHIP_GUBUN_NAME AS SHIPGUBUNNAME
+				      ,SMALL_CODE AS SMALLCODE
+				      ,SMALL_NAME AS SMALLNAME
+				      ,ITEM_CODE AS ITEMCODE
+				      ,ORDER_NAME AS ORDERNAME
+				      ,DRAWING_NO AS DRAWINGNO
+				      ,ITEM_NAME AS ITEMNAME
+				      ,CAR_TYPE AS CARTYPE
+				      ,CAR_TYPE_NAME AS CARTYPENAME
+				      ,MATERIAL_TYPE AS MATERIALTYPE
+				      ,UOM AS UOM
+				      ,UOM_NAME AS UOMNAME
+				      ,SO_QTY AS SOQTY
+				      ,SHIP_QTY AS SHIPQTY
+				      ,WAREHOUSING_QTY AS WAREHOUSINGQTY
+				      ,BEFORE_QTY AS BEFOREQTY
+				      ,UNSOLD_QTY AS UNSOLDQTY
+				      ,UNIT_PRICE AS UNITPRICE
+				      ,SUPPLY_PRICE AS SUPPLYPRICE
+				      ,ADDITIONAL_TAX AS ADDITIONALTAX
+				      ,TOTAL AS TOTAL
+				      ,SO_NO AS SONO
+				      ,SO_SEQ AS SOSEQ
+				      ,SHIP_CHECK_STATUS AS SHIPCHECKSTATUS
+				      ,SHIP_CHECK_STATUS_NAME AS SHIPCHECKSTATUSNAME
+				      ,TRADE_YN AS TRADEYN
+				      ,TRADE_YN_NAME AS TRADEYNNAME
+				      ,SHIPMENT_INSPECTION_YN AS SHIPMENTINSPECTIONYN
+				      ,CHECK_QTY AS CHECKQTY
+				      ,CHECK_REMAIN_QTY AS CHECKREMAINQTY
+				      ,MFG_NO AS MFGNO
+				      ,LOT_NO_VISUAL AS LOTNOVISUAL
+				      ,SO_NO_POST AS SONOPOST
+				      ,SO_SEQ_POST AS SOSEQPOST
+				      ,ITEM_CODE_POST AS ITEMCODEPOST
+				      ,LOT_NO_POST AS LOTNOPOST
+				      ,REMARKS AS REMARKS
+				      ,FILE_YN AS FILEYN
+				      ,DELIVERY_VAN AS DELIVERYVAN
+				      ,DELIVERY_VAN_NAME AS DELIVERYVANNAME
+				      ,TAX_DIV AS TAXDIV
+				      ,TAX_DIV_NAME AS TAXDIVNAME
+				      ,ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+		  FROM CB_SHIPPING_D_POST_V SV
+    </sql>
+    
+        <sql id="ship.status.list.sql-where">
+         WHERE 1=1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SHIP_NO = #SHIPNO#
+         </isNotEmpty>
+         <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+            CUSTOMER_CODE = #CUSTOMERCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="DATETO">
+           <isNotEmpty property="DATEFROM" prepend="AND">
+             SHIP_DATE1 BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+           </isNotEmpty>
+         </isNotEmpty>
+         ORDER BY ORG_ID, COMPANY_ID, SHIP_DATE1 DESC, SHIP_NO, SHIP_SEQ
+    </sql>
+
+    <select id="ship.status.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.status.list.sql-select" />
+        <include refid="ship.status.list.sql-where" />
+    </select>
+
+    <select id="ship.status.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.status.list.sql-select" />
+            <include refid="ship.status.list.sql-where" />
+        ) TOT
+    </select>
+    
+        <sql id="ship.status.excel.sql-select">
+        SELECT RANK() OVER(ORDER BY SHV.SHIPNO DESC) AS RN
+                ,SHV.SHIPNO AS SHIPNO
+                ,SHV.SHIPGUBUNNAME AS SHIPGUBUNNAME
+                ,SHV.CUSTOMERNAME AS CUSTOMERNAME
+                ,SHV.ITEMCODE AS ITEMCODE
+                ,SHV.ITEMNAME AS ITEMNAME
+                ,SHV.ORDERNAME AS ORDERNAME
+                ,SHV.UOMNAME AS UOMNAME
+                ,SHV.SHIPQTY AS SHIPQTY
+                ,NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                          WHERE 1=1
+                            AND CSD.ORG_ID = SHV.ORGID
+                            AND CSD.COMPANY_ID = SHV.COMPANYID
+                            AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS SUMQTY
+                ,SHV.SHIPQTY - NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                                            WHERE 1=1
+                                              AND CSD.ORG_ID = SHV.ORGID
+                                              AND CSD.COMPANY_ID = SHV.COMPANYID
+                                              AND CSD.SHIP_NO = SHV.SHIPNO), 0) AS TRIPQTY
+                ,((NVL((SELECT SUM(CSD.SHIP_QTY) FROM CB_SHIPPING_D CSD
+                               WHERE 1=1
+                                 AND CSD.ORG_ID = SHV.ORGID
+                                 AND CSD.COMPANY_ID = SHV.COMPANYID
+                                 AND CSD.SHIP_NO = SHV.SHIPNO), 0) / SHV.SHIPQTY) * 100) || '%' AS ACHIEVEMENTRATE
+                ,SHV.SHIPDATE AS SHIPDATE
+                ,SHV.CONFIRMDATE AS CONFIRMDATE
+                ,SHV.REMARKS AS REMARKS
+        FROM CB_SHIPPING_H_V SHVCONFIRMYN
+    </sql>
+    
+        <sql id="ship.status.excel.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            SHV.ORGID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SHV.COMPANYID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPTO">
+             <isNotEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  BETWEEN TO_DATE(#SHIPFROM#,'YYYY-MM-DD')  AND TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SHIPFROM" prepend="AND">
+                TO_DATE(SHV.SHIPDATE,'YYYY-MM-DD')  = TO_DATE(#SHIPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            SHV.ITEMCODE LIKE '%'||#ITEMCODE#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            SHV.ITEMNAME LIKE '%'||#ITEMNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            SHV.ORDERNAME ='%'||#ORDERNAME#||'%'
+         </isNotEmpty>
+         <isNotEmpty property="BIGCODE" prepend="AND">
+            SHV.BIGCODE = #BIGCODE#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.status.excel.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.status.excel.sql-select" />
+        <include refid="ship.status.excel.sql-where" />
+    </select>
+    
+    <!-- 출하검사등록 마스터 조회 시작 -->
+    <sql id="ship.inspection.master.list.sql-select">
+        SELECT RANK() OVER(
+         <isNotEmpty property="GUBUN" prepend="ORDER BY ">
+             ORG_ID, COMPANY_ID, SHIP_INS_NO
+         </isNotEmpty>
+         <isEmpty property="GUBUN" prepend="ORDER BY ">
+             ORG_ID, COMPANY_ID, SHIP_INS_NO DESC
+         </isEmpty>
+                 ) AS RN 
+                ,ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,SHIP_INS_NO AS SHIPINSNO
+					      ,MFG_DATE AS MFGDATE
+					      ,SHIP_NO AS SHIPNO
+					      ,SHIP_SEQ AS SHIPSEQ
+					      ,SHIP_DATE AS SHIPDATE
+					      ,CUSTOMER_CODE AS CUSTOMERCODE
+					      ,CUSTOMER_NAME AS CUSTOMERNAME
+					      ,ITEM_CODE AS ITEMCODE
+                ,ORDER_NAME AS ORDERNAME
+					      ,ITEM_NAME AS ITEMNAME
+					      ,DRAWING_NO AS DRAWINGNO
+					      ,SHIP_GUBUN AS SHIPGUBUN
+					      ,SHIP_GUBUN_NAME AS SHIPGUBUNNAME
+					      ,DETAIL_QTY AS DETAILQTY
+					      ,SHIP_QTY AS SHIPQTY
+					      ,PASS_QTY AS PASSQTY
+					      ,FAULT_QTY AS FAULTQTY
+					      ,CHECK_YN AS CHECKYN
+					      ,CHECK_YN_NAME AS CHECKYNNAME
+					      /*,SHIP_LOT AS SHIPLOT*/
+					      ,REMARKS AS REMARKS
+					      ,PERSON_ID AS PERSONID
+					      ,KR_NAME AS KRNAME
+					      ,MANAGE_EMPLOYEE AS MANAGEEMPLOYEE
+					      ,MANAGE_NAME AS MANAGENAME
+					      ,MFG_NO AS MFGNO
+			  FROM CB_SHIPMENT_INSPECTION_H_V
+    </sql>
+    
+        <sql id="ship.inspection.master.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPINSNO" prepend="AND">
+            SHIP_INS_NO = #SHIPINSNO#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPNO" prepend="AND">
+            SHIP_NO = #SHIPNO#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPSEQ" prepend="AND">
+            SHIP_SEQ = #SHIPSEQ#
+         </isNotEmpty>
+         <isNotEmpty property="INSPTO">
+             <isNotEmpty property="INSPFROM" prepend="AND">
+                NVL(MFG_DATE1, SYSDATE) BETWEEN TO_DATE(#INSPFROM#,'YYYY-MM-DD')  AND TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="INSPFROM" prepend="AND">
+                NVL(MFG_DATE1, SYSDATE) = TO_DATE(#INSPTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                NVL(SHIP_DATE1, SYSDATE) BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SEARCHFROM" prepend="AND">
+                NVL(SHIP_DATE1, SYSDATE) = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+         <isNotEmpty property="GUBUN" prepend="ORDER BY ">
+             ORG_ID, COMPANY_ID, SHIP_INS_NO
+         </isNotEmpty>
+         <isEmpty property="GUBUN" prepend="ORDER BY ">
+             ORG_ID, COMPANY_ID, SHIP_INS_NO DESC
+         </isEmpty>
+    </sql>
+
+    <select id="ship.inspection.master.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.inspection.master.list.sql-select" />
+        <include refid="ship.inspection.master.list.sql-where" />
+    </select>
+
+    <select id="ship.inspection.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.inspection.master.list.sql-select" />
+            <include refid="ship.inspection.master.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="ship.inspection.master.first.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        SELECT ORGID, COMPANYID, SHIPINSNO
+          FROM (
+          <include refid="ship.inspection.master.list.sql-select" />
+          <include refid="ship.inspection.master.list.sql-where" />
+        )
+        WHERE 1=1
+          AND RN = 1
+    </select>
+    
+    <update id="ship.inspection.master.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPMENT_INSPECTION_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,MFG_DATE = TO_DATE(#MfgDate#, 'YYYY-MM-DD')
+                ,SHIP_QTY = NVL($ShipQty$, 0)
+                ,PASS_QTY = NVL(#PassQty#, 0)
+                ,FAULT_QTY = NVL(#FaultQty#, 0)
+                ,REMARKS = #Remarks#
+        WHERE 1=1
+            AND ORG_ID = #searchOrgId#
+            AND COMPANY_ID = #searchCompanyId#
+            AND SHIP_INS_NO = #ShipInsNo#
+        ]]>
+    </update>
+    <!-- 출하검사등록 마스터 조회 끝 -->
+    
+    
+    <!-- 출하검사등록 상세 조회 시작 -->
+    <sql id="ship.inspection.detail.list.sql-select">
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, ITEM_CODE, ORDER_NO) AS RN
+					      ,ORG_ID AS ORGID
+					      ,COMPANY_ID AS COMPANYID
+					      ,SHIP_INS_NO AS SHIPINSNO
+					      ,SHIP_INSPECTION_NO AS SHIPINSPECTIONNO
+					      ,ITEM_CODE AS ITEMCODE
+					      ,CHECK_LIST_ID AS CHECKLISTID
+					      ,ORDER_NO AS ORDERNO
+					      ,CHECK_MIDDLE AS CHECKMIDDLE
+					      ,CHECK_MIDDLE_NAME AS CHECKMIDDLENAME
+					      ,CHECK_SMALL AS CHECKSMALL
+					      ,CHECK_SMALL_NAME AS CHECKSMALLNAME
+					      ,CHECK_UOM AS CHECKUOM
+					      ,CHECK_UOM_NAME AS CHECKUOMNAME
+                ,EXT_STANDARD AS EXTSTANDARD
+					      ,CHECK_STANDARD AS CHECKSTANDARD
+					      ,STANDARD_VALUE AS STANDARDVALUE
+					      ,MAX_VALUE AS MAXVALUE
+					      ,MIN_VALUE AS MINVALUE
+                ,CHECK_QTY AS CHECKQTY
+					      ,CHECK_RESULT1 AS CHECKRESULT1
+					      ,CHECK_RESULT2 AS CHECKRESULT2
+					      ,CHECK_RESULT3 AS CHECKRESULT3
+					      ,CHECK_RESULT4 AS CHECKRESULT4
+					      ,CHECK_RESULT5 AS CHECKRESULT5
+                ,CHECK_RESULT6 AS CHECKRESULT6
+                ,CHECK_RESULT7 AS CHECKRESULT7
+                ,CHECK_RESULT8 AS CHECKRESULT8
+                ,CHECK_RESULT9 AS CHECKRESULT9
+                ,CHECK_RESULT10 AS CHECKRESULT10
+					      ,CHECK_YN AS CHECKYN
+					      ,CHECK_YN_NAME AS CHECKYNNAME
+					      ,REMARKS AS REMARKS
+					      ,PERSON_ID AS PERSONID
+					      ,KR_NAME AS KRNAME
+					      ,MANAGE_EMPLOYEE AS MANAGEEMPLOYEE
+					      ,MANAGE_NAME AS MANAGENAME
+			  FROM CB_SHIPMENT_INSPECTION_D_V
+    </sql>
+    
+        <sql id="ship.inspection.detail.list.sql-where">
+         WHERE 1 = 1
+         <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="SHIPINSNO" prepend="AND">
+            SHIP_INS_NO = #SHIPINSNO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="ship.inspection.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.inspection.detail.list.sql-select" />
+        <include refid="ship.inspection.detail.list.sql-where" />
+    </select>
+
+    <select id="ship.inspection.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="ship.inspection.detail.list.sql-select" />
+            <include refid="ship.inspection.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <update id="ship.inspection.detail.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPMENT_INSPECTION_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+                ,LAST_UPDATE_DATE = SYSDATE
+                ,CHECK_RESULT1 = #CHECKRESULT1#
+                ,CHECK_RESULT2 = #CHECKRESULT2#
+                ,CHECK_RESULT3 = #CHECKRESULT3#
+                ,CHECK_RESULT4 = #CHECKRESULT4#
+                ,CHECK_RESULT5 = #CHECKRESULT5#
+                ,CHECK_YN = #CHECKYN#
+                ,REMARKS = #REMARKS#
+                ,EMPLOYEE_NUMBER = #PERSONID#
+        WHERE 1=1
+            AND ORG_ID = #ORGID#
+            AND COMPANY_ID = #COMPANYID#
+            AND SHIP_INS_NO = #SHIPINSNO#
+            AND SHIP_INSPECTION_NO = #SHIPINSPECTIONNO#
+        ]]>
+    </update>
+    <!-- 출하검사등록 상세 조회 끝 -->
+    
+  <!-- 출하등록관리 시작 -->
+  <sql id="order.ship.shipregistmanagelist.master.sql-select">
+          SELECT RANK() OVER(ORDER BY SH.ORG_ID, SH.COMPANY_ID, SH.SHIP_DATE DESC, SH.SHIP_NO) AS RN
+                ,SH.ORG_ID AS ORGID
+                ,SH.COMPANY_ID AS COMPANYID
+                ,SH.SHIP_NO AS SHIPNO
+                ,TO_CHAR(SH.SHIP_DATE, 'YYYY-MM-DD') AS SHIPDATE
+                ,SH.CUSTOMER_CODE AS CUSTOMERCODE
+                ,(SELECT CC.CUSTOMER_NAME
+                    FROM CB_CUSTOMER CC
+                   WHERE 1=1
+                     AND SH.ORG_ID = CC.ORG_ID
+                     AND SH.COMPANY_ID = CC.COMPANY_ID
+                     AND SH.CUSTOMER_CODE = CC.CUSTOMER_CODE) AS CUSTOMERNAME
+                ,SH.SHIP_PERSON AS SHIPPERSON
+                ,(SELECT HM.KR_NAME
+                    FROM CB_HUMANRESOURCE_MANAGER HM
+                   WHERE 1=1
+                     AND HM.EMPLOYEE_NUMBER = SH.SHIP_PERSON) AS SHIPPERSONNAME
+                ,(SELECT NVL(SUM(SD.SUPPLY_PRICE),0) + NVL(SUM(SD.ADDITIONAL_TAX), 0)
+                    FROM CB_SHIPPING_D SD
+                   WHERE 1=1
+                      AND SD.ORG_ID = SH.ORG_ID
+                      AND SD.COMPANY_ID = SH.COMPANY_ID
+                      AND SD.SHIP_NO = SH.SHIP_NO) AS TOTAL
+                ,SH.SHIP_GUBUN AS  SHIPGUBUN
+                ,(SELECT SC.SMALL_NAME
+                   FROM CB_SMALL_CODE SC
+                  WHERE 1=1
+                    AND SC.ORG_ID = SH.ORG_ID 
+                    AND SC.COMPANY_ID = SH.COMPANY_ID
+                    AND SC.BIG_CODE = 'OM'
+                    AND SC.MIDDLE_CODE = 'SHIP_GUBUN'
+                    AND SC.SMALL_CODE = SH.SHIP_GUBUN) AS SHIPGUBUNNAME
+                ,SH.REMARKS AS REMARKS
+                ,SH.DELIVERY_VAN AS DELIVERYVAN
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = SH.ORG_ID
+                     AND SC.COMPANY_ID = SH.COMPANY_ID
+                     AND SC.BIG_CODE = 'OM'
+                     AND SC.MIDDLE_CODE = 'DELIVERY_VAN'
+                     AND SC.SMALL_CODE = SH.DELIVERY_VAN) AS DELIVERYVANNAME
+	              ,SH.TAX_DIV AS TAXDIV
+	              ,(SELECT SC.SMALL_NAME
+	                 FROM CB_SMALL_CODE SC
+	                WHERE 1=1
+	                  AND SC.ORG_ID = SH.ORG_ID
+	                  AND SC.COMPANY_ID = SH.COMPANY_ID
+	                  AND SC.BIG_CODE = 'CMM'
+	                  AND SC.MIDDLE_CODE = 'TAX_DIV'
+	                  AND SC.SMALL_CODE = SH.TAX_DIV) AS TAXDIVNAME
+            FROM CB_SHIPPING_H SH
+  </sql>
+
+  <sql id="order.ship.shipregistmanagelist.master.sql-where">
+           WHERE 1=1
+             <isNotEmpty property="ORGID" prepend="AND">
+              SH.ORG_ID = #ORGID#
+            </isNotEmpty>
+            <isNotEmpty property="COMPANYID" prepend="AND">
+              SH.COMPANY_ID = #COMPANYID#
+            </isNotEmpty>
+            <isNotEmpty property="SHIPNO" prepend="AND">
+              SH.SHIP_NO = #SHIPNO#
+            </isNotEmpty>
+            <isNotEmpty property="CUSTOMERCODE" prepend="AND">
+              SH.CUSTOMER_CODE = #CUSTOMERCODE#
+            </isNotEmpty>
+            <isNotEmpty property="SHIPPERSON" prepend="AND">
+              SH.SHIP_PERSON = #SHIPPERSON#
+            </isNotEmpty>
+            <isNotEmpty property="DATETO">
+              <isNotEmpty property="DATEFROM" prepend="AND">
+                SH.SHIP_DATE BETWEEN TO_DATE(#DATEFROM#, 'YYYY-MM-DD') AND TO_DATE(#DATETO#, 'YYYY-MM-DD')
+              </isNotEmpty>
+            </isNotEmpty>
+            <isNotEmpty property="ITEMCODE" prepend="AND">
+              SH.SHIP_NO IN (SELECT SD.SHIP_NO 
+                                 FROM CB_SHIPPING_D SD
+                                        ,CB_SALES_ORDER_D OD
+                                    WHERE 1=1
+                                      AND SD.ORG_ID = OD.ORG_ID
+                                      AND SD.COMPANY_ID = OD.COMPANY_ID
+                                      AND SD.SO_NO = OD.SO_NO
+                                      AND SD.SO_SEQ = OD.SO_SEQ
+                                      AND SD.ORG_ID = SH.ORG_ID
+                                      AND SD.COMPANY_ID = SH.COMPANY_ID
+                                      AND OD.ITEM_CODE = #ITEMCODE#)
+            </isNotEmpty>
+        ORDER BY SH.ORG_ID, SH.COMPANY_ID, SH.SHIP_DATE DESC, SH.SHIP_NO DESC
+  </sql>
+
+  <select id="order.ship.shipregistmanagelist.master.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.ship.shipregistmanagelist.master.sql-select" />
+    <include refid="order.ship.shipregistmanagelist.master.sql-where" />
+  </select>
+
+  <select id="order.ship.shipregistmanagelist.master.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+      <include refid="order.ship.shipregistmanagelist.master.sql-select" />
+      <include refid="order.ship.shipregistmanagelist.master.sql-where" />
+        )TOT
+  </select>
+  
+  <sql id="order.ship.shipregistmanagelist.detail.sql-select">
+  <![CDATA[
+        SELECT RANK() OVER(ORDER BY ORG_ID, COMPANY_ID, SHIP_NO, SHIP_SEQ) AS RN
+				      ,ORG_ID AS ORGID
+				      ,COMPANY_ID AS COMPANYID
+				      ,SHIP_NO AS SHIPNO
+				      ,SHIP_SEQ AS SHIPSEQ
+				      ,SHIP_DATE AS SHIPDATE
+				      ,CUSTOMER_CODE AS CUSTOMERCODE
+				      ,CUSTOMER_NAME AS CUSTOMERNAME
+				      ,SMALL_CODE AS SMALLCODE
+				      ,SMALL_NAME AS SMALLNAME
+				      ,ITEM_CODE AS ITEMCODE
+				      ,ORDER_NAME AS ORDERNAME
+				      ,DRAWING_NO AS DRAWINGNO
+				      ,ITEM_NAME AS ITEMNAME
+				      ,CAR_TYPE AS CARTYPE
+				      ,CAR_TYPE_NAME AS CARTYPENAME
+				      ,MATERIAL_TYPE AS MATERIALTYPE
+				      ,UOM AS UOM
+				      ,UOM_NAME AS UOMNAME
+				      ,SO_QTY AS SOQTY
+				      ,SHIP_QTY AS SHIPQTY
+				      ,WAREHOUSING_QTY AS WAREHOUSINGQTY
+				      ,BEFORE_QTY AS BEFOREQTY
+				      ,UNSOLD_QTY AS UNSOLDQTY
+				      ,UNIT_PRICE AS UNITPRICE
+				      ,SUPPLY_PRICE AS SUPPLYPRICE
+				      ,ADDITIONAL_TAX AS ADDITIONALTAX
+				      ,TOTAL AS TOTAL
+				      ,SO_NO AS SONO
+				      ,SO_SEQ AS SOSEQ
+				      ,SHIP_CHECK_STATUS AS SHIPCHECKSTATUS
+				      ,SHIP_CHECK_STATUS_NAME AS SHIPCHECKSTATUSNAME
+				      ,TRADE_YN AS TRADEYN
+				      ,TRADE_YN_NAME AS TRADEYNNAME
+				      ,SHIPMENT_INSPECTION_YN AS SHIPMENTINSPECTIONYN
+				      ,CHECK_QTY AS CHECKQTY
+				      ,CHECK_REMAIN_QTY AS CHECKREMAINQTY
+				      ,MFG_NO AS MFGNO
+				      ,LOT_NO_VISUAL AS LOTNOVISUAL
+				      ,SO_NO_POST AS SONOPOST
+				      ,SO_SEQ_POST AS SOSEQPOST
+				      ,ITEM_CODE_POST AS ITEMCODEPOST
+				      ,LOT_NO_POST AS LOTNOPOST
+				      ,ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+				      ,CUSTOMER_WAREHOUSING AS CUSTOMERWAREHOUSING
+				      ,CUSTOMER_WAREHOUSING_NAME AS CUSTOMERWAREHOUSINGNAME
+		  FROM CB_SHIPPING_D_POST_V SV
+   ]]>
+  </sql>
+
+  <sql id="order.ship.shipregistmanagelist.detail.sql-where">
+           WHERE 1=1
+          <isNotEmpty property="ORGID" prepend="AND">
+            ORG_ID = #ORGID#
+          </isNotEmpty>
+          <isNotEmpty property="COMPANYID" prepend="AND">
+            COMPANY_ID = #COMPANYID#
+          </isNotEmpty>
+          <isNotEmpty property="SHIPNO" prepend="AND">
+            SHIP_NO = #SHIPNO#
+          </isNotEmpty>
+          <isNotEmpty property="POPGUBUN" prepend="AND">
+          <![CDATA[
+            CHECK_REMAIN_QTY > 0
+          ]]>
+         <isNotEmpty property="SEARCHTO">
+             <isNotEmpty property="SEARCHFROM" prepend="AND">
+                SHIP_DATE1 BETWEEN TO_DATE(#SEARCHFROM#,'YYYY-MM-DD')  AND TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isNotEmpty>
+             <isEmpty property="SEARCHFROM" prepend="AND">
+                SHIP_DATE1 = TO_DATE(#SEARCHTO#,'YYYY-MM-DD')
+             </isEmpty>
+         </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend="AND">
+                ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMNAME" prepend="AND">
+                ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="ORDERNAME" prepend="AND">
+                ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+        </isNotEmpty>
+          </isNotEmpty>
+          ORDER BY ORG_ID, COMPANY_ID, SHIP_NO, SHIP_SEQ
+  </sql>
+
+  <select id="order.ship.shipregistmanagelist.detail.select" parameterClass="java.util.Map"
+    resultClass="java.util.HashMap">
+    <include refid="order.ship.shipregistmanagelist.detail.sql-select" />
+    <include refid="order.ship.shipregistmanagelist.detail.sql-where" />
+  </select>
+
+  <select id="order.ship.shipregistmanagelist.detail.count" parameterClass="java.util.Map"
+    resultClass="java.lang.Integer">
+    SELECT COUNT(*) FROM (
+      <include refid="order.ship.shipregistmanagelist.detail.sql-select" />
+      <include refid="order.ship.shipregistmanagelist.detail.sql-where" />
+    ) TOT
+  </select>
+  
+  <select id="order.ship.shipno.find" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT 'SN' || TO_CHAR(TO_DATE(#ShipDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '-' ||
+               (CASE
+                  WHEN NVL(NUM, 0) BETWEEN 0 AND 8 THEN
+                   TO_CHAR('00')
+                  WHEN NVL(NUM, 0) BETWEEN 9 AND 98 THEN
+                   TO_CHAR('0')
+                  ELSE
+                   TO_CHAR('')
+                END) || TO_NUMBER(NVL(NUM, 0) + 1) AS FINDSHIPNO
+          FROM (SELECT MAX(SUBSTR(SHIP_NO, -3, 3)) AS NUM
+                  FROM CB_SHIPPING_H
+                 WHERE 1 = 1
+                   AND SHIP_NO LIKE 'SN' || TO_CHAR(TO_DATE(#ShipDate#, 'YYYY-MM-DD'), 'YYYYMMDD') || '%')
+    </select>
+    
+    <sql id="order.ship.shipseq.find.sql-select">
+        SELECT COUNT(SD.SHIP_NO) AS COUNT
+          FROM CB_SHIPPING_D SD
+    </sql>
+
+    <sql id="order.ship.shipseq.find.sql-where">
+         WHERE SD.ORG_ID = #Orgid#
+             AND SD.COMPANY_ID = #CompanyId#
+             AND SD.SHIP_NO = #SHIPNO#
+             AND SD.SHIP_SEQ = $SHIPSEQ$
+    </sql>
+
+    <select id="order.ship.shipseq.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.ship.shipseq.find.sql-select" />
+        <include refid="order.ship.shipseq.find.sql-where" />
+    </select>
+    
+    <insert id="order.ship.shipregistmanagelist.master.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPPING_H
+              (ORG_ID
+              ,COMPANY_ID
+              ,SHIP_NO
+              ,CONFIRM_YN
+        ]]>
+        <isNotEmpty property="ShipDate" prepend=",">
+               SHIP_DATE
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE
+        </isNotEmpty>
+        <isNotEmpty property="ShipPerson" prepend=",">
+               SHIP_PERSON
+        </isNotEmpty>
+        <isNotEmpty property="ShipGubun" prepend=",">
+               SHIP_GUBUN
+        </isNotEmpty>
+        <isNotEmpty property="DeliveryVan" prepend=",">
+               DELIVERY_VAN
+        </isNotEmpty>
+        <isNotEmpty property="TaxDiv" prepend=",">
+               TAX_DIV
+        </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+              ($searchOrgId$
+              ,$searchCompanyId$
+              ,#Shipno#
+              ,'N'
+        ]]>
+        <isNotEmpty property="ShipDate" prepend=",">
+               #ShipDate#
+        </isNotEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               #CustomerCode#
+        </isNotEmpty>
+        <isNotEmpty property="ShipPerson" prepend=",">
+               #ShipPerson#
+        </isNotEmpty>
+        <isNotEmpty property="ShipGubun" prepend=",">
+               #ShipGubun#
+        </isNotEmpty>
+        <isNotEmpty property="DeliveryVan" prepend=",">
+               #DeliveryVan#
+        </isNotEmpty>
+        <isNotEmpty property="TaxDiv" prepend=",">
+               #TaxDiv#
+        </isNotEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+               #ReMarks#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+        
+    <insert id="order.ship.shipregistmanagelist.detail.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_SHIPPING_D
+              (ORG_ID
+              ,COMPANY_ID
+              ,SHIP_NO
+              ,SHIP_SEQ
+              ,SHIP_CHECK_STATUS
+        ]]>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+              WORK_ORDER_ID
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+              WORK_ORDER_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="SONO" prepend=",">
+              SO_NO
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              SO_SEQ
+        </isNotEmpty>
+        <isNotEmpty property="SHIPQTY" prepend=",">
+              SHIP_QTY
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE
+        </isNotEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX
+        </isNotEmpty>
+        <isNotEmpty property="WAREHOUSINGNO" prepend=",">
+              WAREHOUSING_NO
+        </isNotEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+              SHIPMENT_INSPECTION_YN
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE
+        </isNotEmpty>
+        <isNotEmpty property="SONOPOST" prepend=",">
+              SO_NO_POST
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQPOST" prepend=",">
+              SO_SEQ_POST
+        </isNotEmpty>
+        <isNotEmpty property="LOTNOPOST" prepend=",">
+              LOT_NO_POST
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODEPOST" prepend=",">
+              ITEM_CODE_POST
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERWAREHOUSING" prepend=",">
+              CUSTOMER_WAREHOUSING
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES              
+              ($Orgid$
+              ,$CompanyId$
+              ,#Shipno#
+              ,(NVL((SELECT MAX(SD.SHIP_SEQ)
+                      FROM CB_SHIPPING_D SD
+                     WHERE 1=1
+                       AND SD.ORG_ID = $Orgid$
+                       AND SD.COMPANY_ID = $CompanyId$
+                       AND SD.SHIP_NO = #Shipno#), 0) + 1)
+              ,'N'
+        ]]>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+              #WORKORDERID#
+        </isNotEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+              $WORKORDERSEQ$
+        </isNotEmpty>
+        <isNotEmpty property="SONO" prepend=",">
+              #SONO#
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              $SOSEQ$
+        </isNotEmpty>
+        <isNotEmpty property="SHIPQTY" prepend=",">
+              $SHIPQTY$
+        </isNotEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              $UNITPRICE$
+        </isNotEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              $SUPPLYPRICE$
+        </isNotEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              $ADDITIONALTAX$
+        </isNotEmpty>
+        <isNotEmpty property="WAREHOUSINGNO" prepend=",">
+              #WAREHOUSINGNO#
+        </isNotEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+              #SHIPMENTINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              #ITEMCODE#
+        </isNotEmpty>
+        <isNotEmpty property="SONOPOST" prepend=",">
+              #SONOPOST#
+        </isNotEmpty>
+        <isNotEmpty property="SOSEQPOST" prepend=",">
+              #SOSEQPOST#
+        </isNotEmpty>
+        <isNotEmpty property="LOTNOPOST" prepend=",">
+              #LOTNOPOST#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODEPOST" prepend=",">
+              #ITEMCODEPOST#
+        </isNotEmpty>
+        <isNotEmpty property="CUSTOMERWAREHOUSING" prepend=",">
+              #CUSTOMERWAREHOUSING#
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="order.ship.shipregistmanagelist.master.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_H
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="ShipDate" prepend=",">
+               SHIP_DATE = #ShipDate#
+        </isNotEmpty>
+        <isEmpty property="ShipDate" prepend=",">
+               SHIP_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE = #CustomerCode#
+        </isNotEmpty>
+        <isEmpty property="CustomerCode" prepend=",">
+               CUSTOMER_CODE = NULL
+        </isEmpty>
+        <isNotEmpty property="ShipPerson" prepend=",">
+               SHIP_PERSON = #ShipPerson#
+        </isNotEmpty>
+        <isEmpty property="ShipPerson" prepend=",">
+               SHIP_PERSON = NULL
+        </isEmpty>
+        <isNotEmpty property="ShipGubun" prepend=",">
+               SHIP_GUBUN = #ShipGubun#
+        </isNotEmpty>
+        <isEmpty property="ShipGubun" prepend=",">
+               SHIP_GUBUN = NULL
+        </isEmpty>
+        <isNotEmpty property="DeliveryVan" prepend=",">
+               DELIVERY_VAN = #DeliveryVan#
+        </isNotEmpty>
+        <isEmpty property="DeliveryVan" prepend=",">
+               DELIVERY_VAN = NULL
+        </isEmpty>
+        <isNotEmpty property="TaxDiv" prepend=",">
+               TAX_DIV = #TaxDiv#
+        </isNotEmpty>
+        <isEmpty property="TaxDiv" prepend=",">
+               TAX_DIV = NULL
+        </isEmpty>
+        <isNotEmpty property="ReMarks" prepend=",">
+               REMARKS = #ReMarks#
+        </isNotEmpty>
+        <isEmpty property="ReMarks" prepend=",">
+               REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #searchOrgId#
+          AND COMPANY_ID = #searchCompanyId#
+          AND SHIP_NO = #ShipNo#
+        ]]>
+    </update>
+    
+    <update id="order.ship.shipregistmanagelist.detail.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_SHIPPING_D
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               
+               , CUSTOMER_WAREHOUSING = #CUSTOMERWAREHOUSING#
+        ]]>      
+        <isNotEmpty property="SONO" prepend=",">
+              SO_NO = #SONO#
+        </isNotEmpty>
+        <isEmpty property="SONO" prepend=",">
+              SO_NO = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKORDERID" prepend=",">
+              WORK_ORDER_ID = #WORKORDERID#
+        </isNotEmpty>
+        <isEmpty property="WORKORDERID" prepend=",">
+              WORK_ORDER_ID = NULL
+        </isEmpty>
+        <isNotEmpty property="WORKORDERSEQ" prepend=",">
+              WORK_ORDER_SEQ = $WORKORDERSEQ$
+        </isNotEmpty>
+        <isEmpty property="WORKORDERSEQ" prepend=",">
+              WORK_ORDER_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="SOSEQ" prepend=",">
+              SO_SEQ = $SOSEQ$
+        </isNotEmpty>
+        <isEmpty property="SOSEQ" prepend=",">
+              SO_SEQ = NULL
+        </isEmpty>
+        <isNotEmpty property="SHIPQTY" prepend=",">
+              SHIP_QTY = $SHIPQTY$
+        </isNotEmpty>
+        <isEmpty property="SHIPQTY" prepend=",">
+              SHIP_QTY = NULL
+        </isEmpty>
+        <isNotEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE = $UNITPRICE$
+        </isNotEmpty>
+        <isEmpty property="UNITPRICE" prepend=",">
+              UNIT_PRICE = NULL
+        </isEmpty>
+        <isNotEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE = $SUPPLYPRICE$
+        </isNotEmpty>
+        <isEmpty property="SUPPLYPRICE" prepend=",">
+              SUPPLY_PRICE = NULL
+        </isEmpty>
+        <isNotEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX = $ADDITIONALTAX$
+        </isNotEmpty>
+        <isEmpty property="ADDITIONALTAX" prepend=",">
+              ADDITIONAL_TAX = NULL
+        </isEmpty>
+        <isNotEmpty property="SHIPMENTINSPECTIONYN" prepend=",">
+              SHIPMENT_INSPECTION_YN = #SHIPMENTINSPECTIONYN#
+        </isNotEmpty>
+        <isNotEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE = #ITEMCODE#
+        </isNotEmpty>
+        <!-- <isEmpty property="ITEMCODE" prepend=",">
+              ITEM_CODE = NULL
+        </isEmpty> -->
+        <isNotEmpty property="SONOPOST" prepend=",">
+              SO_NO_POST = #SONOPOST#
+        </isNotEmpty>
+        <isEmpty property="SONOPOST" prepend=",">
+              SO_NO_POST = NULL
+        </isEmpty>
+        <isNotEmpty property="SOSEQPOST" prepend=",">
+              SO_SEQ_POST = $SOSEQPOST$
+        </isNotEmpty>
+        <isEmpty property="SOSEQPOST" prepend=",">
+              SO_SEQ_POST = NULL
+        </isEmpty>
+        <isNotEmpty property="LOTNOPOST" prepend=",">
+              LOT_NO_POST = #LOTNOPOST#
+        </isNotEmpty>
+        <isEmpty property="LOTNOPOST" prepend=",">
+              LOT_NO_POST = NULL
+        </isEmpty>
+        <isNotEmpty property="ITEMCODEPOST" prepend=",">
+              ITEM_CODE_POST = #ITEMCODEPOST#
+        </isNotEmpty>
+        <isEmpty property="ITEMCODEPOST" prepend=",">
+              ITEM_CODE_POST = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+              REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+              REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+       WHERE ORG_ID = #Orgid#
+          AND COMPANY_ID = #CompanyId#
+          AND SHIP_NO = #Shipno#
+          AND SHIP_SEQ = #SHIPSEQ#
+        ]]>
+    </update>
+    
+    <delete id="order.ship.shipregistmanagelist.master.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPPING_H
+        WHERE ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND SHIP_NO = #SHIPNO#
+    </delete>
+    
+    <delete id="order.ship.shipregistmanagelist.detail.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_SHIPPING_D
+         WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND SHIP_NO = #SHIPNO#
+          AND SHIP_SEQ = $SHIPSEQ$
+    </delete>
+    <!-- 출하등록관리 끝 -->
+    
+    <!-- 제품입출고 조회 / 등록 시작 -->
+    <sql id="order.prod.release.master.list.sql-select">
+        SELECT RANK() OVER(ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO) AS RN
+                ,RH.ORG_ID AS ORGID
+                ,RH.COMPANY_ID AS COMPANYID
+                ,RH.RELEASE_NO AS RELEASENO
+                ,TO_CHAR(RH.RELEASE_DATE, 'YYYY-MM-DD') AS RELEASEDATE
+                ,RH.USE_DIV AS USEDIV
+                ,DECODE(RH.USE_DIV
+                       ,'EP', '제품입고'
+                       ,'FP', '제품출고'
+                       ,(SELECT SC.SMALL_NAME
+                          FROM CB_SMALL_CODE SC
+                         WHERE 1=1
+                           AND SC.ORG_ID = RH.ORG_ID
+                           AND SC.COMPANY_ID = RH.COMPANY_ID
+                           AND SC.BIG_CODE = 'MAT'
+                           AND SC.MIDDLE_CODE = 'USE_DIV'
+                           AND SC.SMALL_CODE = RH.USE_DIV)) AS USEDIVNAME
+                ,RH.RELEASE_PERSON AS RELEASEPERSON
+                ,(SELECT HV.KR_NAME
+                    FROM CB_HUMANRESOURCE_MANAGER_V HV
+                   WHERE 1=1
+                     AND HV.ORG_ID = RH.ORG_ID
+                     AND HV.COMPANY_ID = RH.COMPANY_ID
+                     AND HV.EMPLOYEE_NUMBER = RH.RELEASE_PERSON) AS RELEASEPERSONNAME
+                ,RH.REMARKS AS REMARKS
+        FROM CB_RELEASE_H RH
+    </sql>
+
+    <sql id="order.prod.release.master.list.sql-where">
+         WHERE 1 = 1
+          <isNotEmpty property="ORGID" prepend="AND">
+             RH.ORG_ID = #ORGID#
+          </isNotEmpty>
+          <isNotEmpty property="COMPANYID" prepend="AND">
+             RH.COMPANY_ID = #COMPANYID#
+          </isNotEmpty>
+        <isEmpty property="USEDIV" prepend="AND">
+             RH.USE_DIV IN ('EP', 'FP')
+        </isEmpty>
+          <isNotEmpty property="USEDIV" prepend="AND">
+             RH.USE_DIV = #USEDIV#
+          </isNotEmpty>
+           <isNotEmpty property="SEARCHTO">
+               <isNotEmpty property="SEARCHFROM" prepend="AND">
+                  RH.RELEASE_DATE BETWEEN TO_DATE(#SEARCHFROM#, 'YYYY-MM-DD') AND TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+               </isNotEmpty>
+               <isEmpty property="SEARCHFROM" prepend="AND">
+                  RH.RELEASE_DATE = TO_DATE(#SEARCHTO#, 'YYYY-MM-DD')
+               </isEmpty>
+           </isNotEmpty>
+           <isNotEmpty property="RELNO" prepend="AND">
+              RH.RELEASE_NO = #RELNO#
+           </isNotEmpty>
+           <isNotEmpty property="RELEASEPERSON" prepend="AND">
+              RH.RELEASE_PERSON = #RELEASEPERSON#
+           </isNotEmpty>
+                 AND RH.RELEASE_NO IN (SELECT RD.RELEASE_NO FROM CB_RELEASE_D RD , CB_ITEM_MASTER CIM
+                                                WHERE 1 = 1
+                                                AND RD.ORG_ID = CIM.ORG_ID
+                                                AND RD.COMPANY_ID = CIM.COMPANY_ID
+                                                AND RD.ITEM_CODE = CIM.ITEM_CODE
+           <isNotEmpty property="ITEMCODE" prepend="AND">
+              RD.ITEM_CODE = #ITEMCODE#
+           </isNotEmpty>
+           <isNotEmpty property="ITEMNAME" prepend="AND">
+              CIM.ITEM_NAME LIKE '%'|| #ITEMNAME# ||'%'
+           </isNotEmpty>
+           <isNotEmpty property="ORDERNAME" prepend="AND">
+              CIM.ORDER_NAME LIKE '%'|| #ORDERNAME# ||'%'
+           </isNotEmpty>
+           <isNotEmpty property="WAREHOUSINGCODE" prepend="AND">
+              RD.WAREHOUSING = #WAREHOUSINGCODE#
+           </isNotEmpty>
+                                               )
+         ORDER BY RH.ORG_ID, RH.COMPANY_ID, RH.RELEASE_NO
+    </sql>
+
+    <select id="order.prod.release.master.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.prod.release.master.list.sql-select" />
+        <include refid="order.prod.release.master.list.sql-where" />
+    </select>
+
+    <select id="order.prod.release.master.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="order.prod.release.master.list.sql-select" />
+            <include refid="order.prod.release.master.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <select id="order.prod.release.detail.etc.first.select" parameterClass="java.util.Map"
+         resultClass="java.util.HashMap">
+         SELECT RELEASENO,ORGID,COMPANYID
+           FROM (
+          <include refid="order.prod.release.master.list.sql-select" />
+          <include refid="order.prod.release.master.list.sql-where" />
+         )
+         WHERE 1=1
+           AND RN = 1
+     </select>
+         
+    <sql id="order.prod.release.detail.list.sql-select">
+        SELECT RD.ORG_ID AS ORGID
+                ,RD.COMPANY_ID AS COMPANYID
+                ,RD.RELEASE_NO AS RELEASENO
+                ,RD.RELEASE_SEQ AS RELEASESEQ
+                ,RD.ITEM_CODE AS ITEMCODE
+                ,IM.ORDER_NAME AS ORDERNAME
+                ,IM.DRAWING_NO AS DRAWINGNO
+                ,IM.ITEM_NAME AS ITEMNAME
+                ,IM.CAR_TYPE AS CARTYPE
+                ,IM.CAR_TYPE_NAME AS CARTYPENAME
+                ,IM.MATERIAL_TYPE AS MATERIALTYPE
+                ,IM.UOM AS UOM
+                ,IM.UOM_NAME AS UOMNAME
+                ,IM.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                ,RD.RELEASE_QTY AS RELEASEQTY
+                ,RD.REMARKS AS REMARKS
+                ,RD.WAREHOUSING AS WAREHOUSING
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RD.ORG_ID
+                     AND SC.COMPANY_ID = RD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'WAREHOUSING'
+                     AND SC.SMALL_CODE = RD.WAREHOUSING) AS WAREHOUSINGNAME
+                ,RD.WAREHOUSING_TO AS WAREHOUSINGTO
+                ,(SELECT SC.SMALL_NAME
+                    FROM CB_SMALL_CODE SC
+                   WHERE 1=1
+                     AND SC.ORG_ID = RD.ORG_ID
+                     AND SC.COMPANY_ID = RD.COMPANY_ID
+                     AND SC.BIG_CODE = 'CMM'
+                     AND SC.MIDDLE_CODE = 'WAREHOUSING'
+                     AND SC.SMALL_CODE = RD.WAREHOUSING_TO) AS WAREHOUSINGTONAME
+                ,RD.LOT_NO AS LOTNO
+        FROM CB_RELEASE_D RD, CB_ITEM_MASTER_V IM
+    </sql>
+
+    <sql id="order.prod.release.detail.list.sql-where">
+         WHERE 1 = 1
+            AND RD.ORG_ID = IM.ORG_ID
+            AND RD.COMPANY_ID = IM.COMPANY_ID
+            AND RD.ITEM_CODE = IM.ITEM_CODE
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            RD.ITEM_CODE = #ITEMCODE#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            IM.ITEM_NAME LIKE '%' || #ITEMNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="ORDERNAME" prepend="AND">
+            IM.ORDER_NAME LIKE '%' || #ORDERNAME# || '%'
+         </isNotEmpty>
+         <isNotEmpty property="orgid" prepend="AND">
+            RD.ORG_ID = #orgid#
+         </isNotEmpty>
+         <isNotEmpty property="companyid" prepend="AND">
+            RD.COMPANY_ID = #companyid#
+         </isNotEmpty>
+         <isNotEmpty property="releaseno" prepend="AND">
+            RD.RELEASE_NO = #releaseno#
+         </isNotEmpty>
+         <isNotEmpty property="ORGID" prepend="AND">
+            RD.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            RD.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="RELEASENO" prepend="AND">
+            RD.RELEASE_NO = #RELEASENO#
+         </isNotEmpty>
+    </sql>
+
+    <select id="order.prod.release.detail.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="order.prod.release.detail.list.sql-select" />
+        <include refid="order.prod.release.detail.list.sql-where" />
+        ORDER BY RD.RELEASE_SEQ
+    </select>
+
+    <select id="order.prod.release.detail.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="order.prod.release.detail.list.sql-select" />
+            <include refid="order.prod.release.detail.list.sql-where" />
+        ) TOT
+    </select>
+    
+    <delete id="order.prod.release.header.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_RELEASE_H
+         WHERE 1=1
+          AND ORG_ID =  #searchOrgId#
+          AND COMPANY_ID  =  #searchCompanyId#
+          AND RELEASE_NO = #RELNO#
+    </delete>
+    <!-- 제품입출고 조회 / 등록 종료 -->
+    
+<!--     월별 출하현황 -->
+<sql id="ship.model.detail.list.sql-select">
+    <![CDATA[
+        SELECT SDV.ORG_ID AS ORGID
+				       ,SDV.COMPANY_ID AS COMPANYID
+				       ,SDV.ORDER_NAME AS ORDERNAME
+				       ,SDV.ITEM_NAME AS ITEMNAME
+				       ,SDV.CAR_TYPE AS CARTYPE
+				       ,SDV.CAR_TYPE_NAME AS CARTYPENAME 
+				       ,SDV.ITEM_STANDARD_DETAIL AS ITEMSTANDARDDETAIL
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'MONTHLY'
+                                                    ,'SHIP_QTY') AS SHIPQTY
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,1
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY01
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,2
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY02
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,3
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY03
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,4
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY04
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,5
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY05
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,6
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY06
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,7
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY07
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,8
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY08
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,9
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY09
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,10
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY10
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,11
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY11
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,12
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY12
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,13
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY13
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,14
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY14
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,15
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY15
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,16
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY16
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,17
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY17
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,18
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY18
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,19
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY19
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,20
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY20
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,21
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY21
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,22
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY22
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,23
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY23
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,24
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY24
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,25
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY25
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,26
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY26
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,27
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY27
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,28
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY28
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,29
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY29
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,30
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY30
+                ,CB_NEW_MFG_PKG.CB_QUESTION_QTY_FIND(SDV.ORG_ID
+                                                    ,SDV.COMPANY_ID
+                                                    ,SDV.ITEM_CODE
+                                                    ,''
+                                                    ,TMP.SEARCH_MONTH
+                                                    ,31
+                                                    ,'DAY'
+                                                    ,'SHIP_QTY') AS DAY31
+        FROM CB_SHIPPING_D_POST_V SDV
+                ,(SELECT #SEARCHMONTH# AS SEARCH_MONTH
+                    FROM DUAL) TMP
+    ]]>
+    </sql>
+
+    <sql id="ship.model.detail.list.sql-where">
+          WHERE 1=1
+             <isNotEmpty property="ORGID" prepend="AND">
+            SDV.ORG_ID = #ORGID#
+         </isNotEmpty>
+         <isNotEmpty property="COMPANYID" prepend="AND">
+            SDV.COMPANY_ID = #COMPANYID#
+         </isNotEmpty>
+         <isNotEmpty property="ITEMNAME" prepend="AND">
+            SDV.ITEM_NAME LIKE '%' || #ITEMNAME# || '%' 
+         </isNotEmpty>
+         <isNotEmpty property="ITEMCODE" prepend="AND">
+            SDV.ITEM_CODE LIKE '%' || #ITEMCODE# || '%' 
+         </isNotEmpty>
+         <isNotEmpty property="CARTYPE" prepend="AND">
+            SDV.CAR_TYPE_NAME LIKE '%' || #CARTYPE# || '%'
+         </isNotEmpty>
+        <isNotEmpty property="ITEMSTANDARDDETAIL" prepend="AND">
+            SDV.ITEM_STANDARD_DETAIL LIKE '%' || #ITEMSTANDARDDETAIL# || '%'
+        </isNotEmpty>
+        <isNotEmpty property="SEARCHMONTH" prepend="AND">
+                SDV.SHIP_DATE  BETWEEN TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM')  AND LAST_DAY(TO_DATE(TMP.SEARCH_MONTH,'YYYY-MM'))
+        </isNotEmpty>
+         GROUP BY SDV.ORG_ID,          SDV.COMPANY_ID,          SDV.ORDER_NAME,    SDV.ITEM_CODE,  SDV.ITEM_NAME,          SDV.CAR_TYPE,          SDV.CAR_TYPE_NAME,          SDV.ITEM_STANDARD_DETAIL,  TMP.SEARCH_MONTH
+    </sql>
+    
+    <sql id="ship.model.total.list.sql-select">
+    <![CDATA[
+        SELECT RANK() OVER(ORDER BY ITEMNAME, CARTYPENAME, ORDERNAME) AS RN
+                  ,ORGID
+                  ,COMPANYID
+                  ,ORDERNAME
+                  ,ITEMNAME
+                  ,CARTYPE
+                  ,CARTYPENAME
+                  ,ITEMSTANDARDDETAIL
+                  ,SUM(SHIPQTY) AS SHIPQTY
+                  ,SUM(DAY01) AS DAY01
+                  ,SUM(DAY02) AS DAY02
+                  ,SUM(DAY03) AS DAY03
+                  ,SUM(DAY04) AS DAY04
+                  ,SUM(DAY05) AS DAY05
+                  ,SUM(DAY06) AS DAY06
+                  ,SUM(DAY07) AS DAY07
+                  ,SUM(DAY08) AS DAY08
+                  ,SUM(DAY09) AS DAY09
+                  ,SUM(DAY10) AS DAY10
+                  ,SUM(DAY11) AS DAY11
+                  ,SUM(DAY12) AS DAY12
+                  ,SUM(DAY13) AS DAY13
+                  ,SUM(DAY14) AS DAY14
+                  ,SUM(DAY15) AS DAY15
+                  ,SUM(DAY16) AS DAY16
+                  ,SUM(DAY17) AS DAY17
+                  ,SUM(DAY18) AS DAY18
+                  ,SUM(DAY19) AS DAY19
+                  ,SUM(DAY20) AS DAY20
+                  ,SUM(DAY21) AS DAY21
+                  ,SUM(DAY22) AS DAY22
+                  ,SUM(DAY23) AS DAY23
+                  ,SUM(DAY24) AS DAY24
+                  ,SUM(DAY25) AS DAY25
+                  ,SUM(DAY26) AS DAY26
+                  ,SUM(DAY27) AS DAY27
+                  ,SUM(DAY28) AS DAY28
+                  ,SUM(DAY29) AS DAY29
+                  ,SUM(DAY30) AS DAY30
+                  ,SUM(DAY31) AS DAY31
+          FROM (
+    ]]>
+    </sql>
+
+    <sql id="ship.model.total.list.sql-where">
+          )
+       WHERE 1=1
+       GROUP BY ORGID, COMPANYID, ORDERNAME, ITEMNAME, CARTYPE, CARTYPENAME, ITEMSTANDARDDETAIL
+    </sql>
+
+    <select id="ship.model.total.list.select" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="ship.model.total.list.sql-select" />
+        <include refid="ship.model.detail.list.sql-select" />
+        <include refid="ship.model.detail.list.sql-where" />
+        <include refid="ship.model.total.list.sql-where" />
+    </select>
+
+    <select id="ship.model.total.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+        <include refid="ship.model.total.list.sql-select" />
+        <include refid="ship.model.detail.list.sql-select" />
+        <include refid="ship.model.detail.list.sql-where" />
+        <include refid="ship.model.total.list.sql-where" />
+        ) TOT
+    </select>
+
+    
+</sqlMap>

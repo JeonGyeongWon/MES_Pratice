@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EisMonthlyYearSalesResult" language="groovy" pageWidth="1754" pageHeight="1240" orientation="Landscape" columnWidth="1724" leftMargin="15" rightMargin="15" topMargin="30" bottomMargin="25" uuid="cbfd0803-5fa6-48c8-aca4-e0e3708c4e99">
+	<property name="ireport.zoom" value="0.6655000000000002"/>
+	<property name="ireport.x" value="111"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\WEB-INF\\jsp\\report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata1" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="SUBDIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata2" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata3" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata4" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select '월별/년도별 매출실적' AS TITLE
+ from DUAL]]>
+	</queryString>
+	<field name="TITLE" class="java.lang.String"/>
+	<background>
+		<band height="1185"/>
+	</background>
+	<title>
+		<band height="127" splitType="Stretch">
+			<staticText>
+				<reportElement x="1484" y="0" width="120" height="27" uuid="40548243-eadc-4c39-978d-3d0ee6be115a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[검  토]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="1364" height="127" isPrintWhenDetailOverflows="true" uuid="4580e325-eed3-428c-9249-59dc4e7bc733"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="34" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TITLE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1484" y="27" width="120" height="100" uuid="93c8ba9c-1f03-4c09-81df-cfc1b023b28a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1604" y="27" width="120" height="100" uuid="6d904b76-685f-4a71-a05c-e1685f072c50"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1604" y="0" width="120" height="27" uuid="af316961-59b1-47ce-96f1-8b1535d0b82a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[승 인]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1364" y="27" width="120" height="100" uuid="9ab738e9-e000-4440-bae6-4c2302a15e61"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1364" y="0" width="120" height="27" uuid="240dbf6c-443f-4b81-b57e-87f418daf7c7"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="18" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[작  성]]></text>
+			</staticText>
+			<image>
+				<reportElement x="0" y="1" width="207" height="126" uuid="dcbba4c9-c804-414f-9db6-78539616be31"/>
+				<imageExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\images\\favicon.png"]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageFooter>
+		<band height="1058">
+			<subreport>
+				<reportElement x="0" y="436" width="1724" height="300" uuid="9a35da7c-5d99-4ddd-8c5d-4ce1c34440f2"/>
+				<subreportParameter name="ORGID"/>
+				<subreportParameter name="COMPANYID"/>
+				<subreportParameter name="SEARCHYEAR"/>
+				<dataSourceExpression><![CDATA[$P{subdata1}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisMonthlyYearSalesResultReport_Sub1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="758" width="861" height="300" uuid="dded1fc7-1f1e-4ef8-935c-7732df014df1"/>
+				<subreportParameter name="ORGID"/>
+				<subreportParameter name="COMPANYID"/>
+				<subreportParameter name="SEARCHYEAR"/>
+				<dataSourceExpression><![CDATA[$P{subdata2}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "EisMonthlyYearSalesResultReport_Sub2.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="912" y="0" width="812" height="396" uuid="49b2822e-7945-4d0a-88dc-b8ad743c6e0b"/>
+				<dataSourceExpression><![CDATA[$P{subdata4}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisMonthlyYearSalesResultReport_Sub4.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="0" width="812" height="396" uuid="fe73e6ef-3364-42d6-a1a1-6a141add95c8"/>
+				<dataSourceExpression><![CDATA[$P{subdata3}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR} + "EisMonthlyYearSalesResultReport_Sub3.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="1604" y="421" width="120" height="24" uuid="382f95c9-cbed-475c-b6a8-2ac4fc0f62b3"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="맑은 고딕" size="18" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[(단위 : 만원)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="741" y="740" width="120" height="24" uuid="1e1795fd-0e16-4437-b0e8-c571258e0c48"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="맑은 고딕" size="18" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[(단위 : 만원)]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

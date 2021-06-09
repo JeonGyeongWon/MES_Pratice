@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="customer">
+    <sql id="customer.list.sql-select">
+        SELECT RANK() OVER(ORDER BY CC.CUSTOMER_NAME) AS RN
+                  ,ORG_ID AS ORGID
+                  ,COMPANY_ID AS COMPANYID
+                  ,CC.CUSTOMER_CODE AS CUSTOMERCODE
+                  ,CC.CUSTOMER_NAME AS CUSTOMERNAME
+                  ,CC.CUSTOMER_TYPE AS CUSTOMERTYPE
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE 1=1
+                       AND SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'CUSTOMER_TYPE'
+                       AND SC.SMALL_CODE = CC.CUSTOMER_TYPE) AS CUSTOMERTYPENAME
+                  ,CC.CUSTOMER_DIV AS CUSTOMERDIV
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE 1=1
+                       AND SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'CUSTOMER_DIV'
+                       AND SC.SMALL_CODE = CC.CUSTOMER_DIV) AS CUSTOMERDIVNAME
+                  ,CC.UNIT_PRICE_DIV AS UNITPRICEDIV
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE 1=1
+                       AND SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'UNIT_DIV'
+                       AND SC.SMALL_CODE = CC.UNIT_PRICE_DIV) AS UNITPRICEDIVNAME
+                  ,CC.LICENSE_NO AS LICENSENO
+                  ,CC.OWNER AS OWNER
+                  ,CC.PHONE_NUMBER AS PHONENUMBER
+                  ,CC.FAX_NUMBER AS FAXNUMBER
+                  ,CC.BIS_STATUS AS BISSTATUS
+                  ,CC.BIS_TYPE AS BISTYPE
+                  ,CC.ZIP_CODE AS ZIPCODE
+                  ,CC.ADDRESS AS ADDRESS
+                  ,CC.PERSON AS PERSON
+                  ,CC.PERSON_DEPT AS PERSONDEPT
+                  ,CC.PERSON_PHONE AS PERSONPHONE
+                  ,CC.PERSON_CELL AS PERSONCELL
+                  ,CC.PERSON_MAIL AS PERSONMAIL
+                  ,CC.USE_YN AS USEYN
+                  ,CC.REMARKS AS REMARKS
+                  ,CC.HOMEPAGE AS HOMEPAGE
+                  ,CC.FREIGHT_POINT AS FREIGHTPOINT
+                  ,CC.BANK_CODE AS BANKCODE
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE 1=1
+                       AND SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'BANK_CODE'
+                       AND SC.SMALL_CODE = CC.BANK_CODE) AS BANKNAME
+                  ,CC.BANK_ACCOUNT AS BANKACCOUNT
+                  ,CC.BANK_NAME AS BANKNAME
+                  ,CC.DM_ZIP_CODE AS DMZIPCODE
+                  ,CC.DM_ADDRESS AS DMADDRESS
+                  ,CC.SEARCH_DESC AS SEARCHDESC
+                  ,CC.ORDER_YN AS ORDERYN
+                  ,CC.CLOSING_DATE AS CLOSINGDATE
+                  ,(SELECT SC.SMALL_NAME
+                      FROM CB_SMALL_CODE SC
+                     WHERE 1=1
+                       AND SC.ORG_ID = CC.ORG_ID
+                       AND SC.COMPANY_ID = CC.COMPANY_ID
+                       AND SC.BIG_CODE = 'CMM'
+                       AND SC.MIDDLE_CODE = 'CLOSING_DATE'
+                       AND SC.SMALL_CODE = CC.CLOSING_DATE) AS CLOSINGDATENAME
+        FROM CB_CUSTOMER CC
+    </sql>
+
+    <sql id="customer.list.sql-where">
+         WHERE 1 = 1
+        <isNotEmpty property="orgid" prepend="AND">
+            ORG_ID = #orgid#
+        </isNotEmpty>
+        <isNotEmpty property="companyid" prepend="AND">
+            COMPANY_ID = #companyid#
+        </isNotEmpty>
+         <isNotEmpty property="searchCustomerCode" prepend="AND">
+            CC.CUSTOMER_CODE= #searchCustomerCode#
+         </isNotEmpty>
+         <isEmpty property="USEYN">
+           <isNotEmpty property="searchUseYn" prepend="AND">
+              CC.USE_YN= #searchUseYn#
+           </isNotEmpty>
+           <!-- <isEmpty property="searchUseYn" prepend="AND">
+              CC.USE_YN = 'Y'
+           </isEmpty> -->
+         </isEmpty>
+         <isNotEmpty property="searchCustomerName" prepend="AND">
+            CC.CUSTOMER_NAME LIKE '%' || #searchCustomerName# || '%'
+         </isNotEmpty>
+        ORDER BY CC.ORG_ID, CC.COMPANY_ID, CC.CUSTOMER_NAME
+    </sql>
+
+    <select id="customer.list.select" parameterClass="java.util.Map" fetchSize="100"
+        resultClass="java.util.HashMap">
+        <include refid="customer.list.sql-select" />
+        <include refid="customer.list.sql-where" />
+    </select>
+
+    <select id="customer.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="customer.list.sql-select" />
+            <include refid="customer.list.sql-where" />
+        ) TOT
+    </select>
+    
+  <select id="customer.list.firstlist.select" parameterClass="java.util.Map"
+      resultClass="java.util.HashMap">
+      SELECT CUSTOMERCODE AS CUSTOMERCODE FROM (
+      <include refid="customer.list.sql-select" />
+      <include refid="customer.list.sql-where" />
+      )
+      WHERE 1=1
+        AND ROWNUM = 1
+  </select>
+        
+    <select id="customer.new.code.select" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+        SELECT (CASE
+               WHEN NUM BETWEEN 0 AND 8 THEN
+                TO_CHAR('000000000')
+               WHEN NUM BETWEEN 9 AND 98 THEN
+                TO_CHAR('00000000')
+               WHEN NUM BETWEEN 99 AND 998 THEN
+                TO_CHAR('0000000')
+               WHEN NUM BETWEEN 999 AND 9998 THEN
+                TO_CHAR('000000')
+               WHEN NUM BETWEEN 9999 AND 99998 THEN
+                TO_CHAR('00000')
+               WHEN NUM BETWEEN 99999 AND 999998 THEN
+                TO_CHAR('0000')
+               WHEN NUM BETWEEN 999999 AND 9999998 THEN
+                TO_CHAR('000')
+               WHEN NUM BETWEEN 9999999 AND 99999998 THEN
+                TO_CHAR('00')
+               WHEN NUM BETWEEN 99999999 AND 999999998 THEN
+                TO_CHAR('0')
+               ELSE
+                TO_CHAR('')
+             END) || TO_NUMBER(NUM + 1) AS CUSTOMERCODE
+      FROM (SELECT TO_NUMBER(NVL(MAX(CC.CUSTOMER_CODE),0)) AS NUM
+              FROM CB_CUSTOMER CC
+             WHERE 1 = 1
+               AND CC.CUSTOMER_CODE NOT IN ('9999999999', '9999999998')
+               )
+    </select>
+    
+    <insert id="customer.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_CUSTOMER
+            ( ORG_ID
+              ,COMPANY_ID
+              ,CUSTOMER_CODE
+              ,CUSTOMER_NAME
+              ,USE_YN
+              ,ORDER_YN
+              ,REMARKS
+              ,CUSTOMER_TYPE
+              ,CUSTOMER_DIV
+              ,UNIT_PRICE_DIV
+              ,OWNER
+              ,LICENSE_NO
+              ,PHONE_NUMBER
+              ,FAX_NUMBER
+              ,BIS_STATUS
+              ,BIS_TYPE
+              ,HOMEPAGE
+              ,ZIP_CODE
+              ,ADDRESS
+              ,PERSON
+              ,PERSON_DEPT
+              ,PERSON_PHONE
+              ,PERSON_CELL
+              ,PERSON_MAIL
+              ,FREIGHT_POINT
+              ,BANK_CODE
+              ,BANK_ACCOUNT
+              ,BANK_NAME
+              ,DM_ZIP_CODE
+              ,DM_ADDRESS
+              ,SEARCH_DESC
+              ,CLOSING_DATE
+              ,CREATED_BY
+              ,CREATION_DATE
+              ,LAST_UPDATED_BY
+              ,LAST_UPDATE_DATE
+            )
+            VALUES
+            (
+              #searchOrgId#
+              ,#searchCompanyId#
+              ,#CUSTOMERCODE#
+              ,#CUSTOMERNAME#
+              ,#USEYN#
+              ,#ORDERYN#
+              ,#REMARKS#
+              ,#CUSTOMERTYPE#
+              ,#CUSTOMERDIV#
+              ,#UNITPRICEDIV#
+              ,#OWNER#
+              ,#LICENSENO#
+              ,#PHONENUMBER#
+              ,#FAXNUMBER#
+              ,#BISSTATUS#
+              ,#BISTYPE#
+              ,#HOMEPAGE#
+              ,#ZIPCODE#
+              ,#ADDRESS#
+              ,#PERSON#
+              ,#PERSONDEPT#
+              ,#PERSONPHONE#
+              ,#PERSONCELL#
+              ,#PERSONMAIL#
+              ,#FREIGHTPOINT#
+              ,#BANKCODE#
+              ,#BANKACCOUNT#
+              ,#BANKNAME#
+              ,#DMZIPCODE#
+              ,#DMADDRESS#
+              ,#SEARCHDESC#
+              ,#CLOSINGDATE#
+              ,#REGISTID#
+              ,SYSDATE
+              ,#REGISTID#
+              ,SYSDATE
+            )
+        ]]>
+    </insert>
+    
+    <update id="customer.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_CUSTOMER
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+               , CUSTOMER_NAME = #CUSTOMERNAME#
+               , USE_YN = #USEYN#
+               , ORDER_YN = #ORDERYN#
+               , REMARKS = #REMARKS#
+               , CUSTOMER_TYPE = #CUSTOMERTYPE#
+               , CUSTOMER_DIV = #CUSTOMERDIV#
+               , UNIT_PRICE_DIV = #UNITPRICEDIV#
+               , OWNER = #OWNER#
+               , LICENSE_NO = #LICENSENO#
+               , PHONE_NUMBER = #PHONENUMBER#
+               , FAX_NUMBER = #FAXNUMBER#
+               , BIS_STATUS = #BISSTATUS#
+               , BIS_TYPE = #BISTYPE#
+               , HOMEPAGE = #HOMEPAGE#
+               , ZIP_CODE = #ZIPCODE#
+               , ADDRESS = #ADDRESS#
+               , PERSON = #PERSON#
+               , PERSON_DEPT = #PERSONDEPT#
+               , PERSON_PHONE = #PERSONPHONE#
+               , PERSON_CELL = #PERSONCELL#
+               , PERSON_MAIL = #PERSONMAIL#
+               , FREIGHT_POINT = #FREIGHTPOINT#
+               , BANK_CODE = #BANKCODE#
+               , BANK_ACCOUNT = #BANKACCOUNT#
+               , BANK_NAME = #BANKNAME#
+               , DM_ZIP_CODE = #DMZIPCODE#
+               , DM_ADDRESS = #DMADDRESS#
+               , SEARCH_DESC = #SEARCHDESC#
+               , CLOSING_DATE = #CLOSINGDATE#
+        WHERE 1=1
+           AND CUSTOMER_CODE = #CUSTOMERCODE#
+           AND ORG_ID = #searchOrgId#
+           AND COMPANY_ID = #searchCompanyId#
+        ]]>
+    </update>
+    
+    <sql id="customer.member.list.sql-select">
+      SELECT RANK() OVER(ORDER BY CM.ORG_ID, CM.COMPANY_ID, CM.CUSTOMER_CODE, CM.MEMBER_ID) AS RN
+            ,CM.ORG_ID AS ORGID
+            ,CM.COMPANY_ID AS COMPANYID
+            ,CM.CUSTOMER_CODE AS CUSTOMERCODE
+            ,CM.MEMBER_ID AS MEMBERID
+            ,CM.MEMBER_NAME AS MEMBERNAME
+            ,CM.DEPT_NAME AS DEPTNAME
+            ,CM.POSITION_NAME AS POSITIONNAME
+            ,CM.CELL_NUMBER AS CELLNUMBER
+            ,CM.PHONE_NUMBER AS PHONENUMBER
+            ,CM.EMAIL AS EMAIL
+            ,TO_CHAR(CM.EFFECTIVE_START_DATE, 'YYYY-MM-DD') AS EFFECTIVESTARTDATE
+            ,TO_CHAR(CM.EFFECTIVE_END_DATE, 'YYYY-MM-DD') AS EFFECTIVEENDDATE
+            ,CM.REMARKS AS REMARKS
+        FROM CB_CUSTOMER_MEMBER CM
+    </sql>
+
+    <sql id="customer.member.list.sql-where">
+       WHERE 1=1
+           AND CM.CUSTOMER_CODE = #CUSTOMERCODE#
+        <isNotEmpty property="ORGID" prepend="AND">
+            CM.ORG_ID = #ORGID#
+        </isNotEmpty>
+        <isNotEmpty property="COMPANYID" prepend="AND">
+            CM.COMPANY_ID = #COMPANYID#
+        </isNotEmpty>
+       ORDER BY CM.ORG_ID, CM.COMPANY_ID, CM.CUSTOMER_CODE, CM.MEMBER_ID
+    </sql>
+
+    <select id="customer.member.list.select" parameterClass="java.util.Map" fetchSize="100"
+        resultClass="java.util.HashMap">
+        <include refid="customer.member.list.sql-select" />
+        <include refid="customer.member.list.sql-where" />
+    </select>
+
+    <select id="customer.member.list.count" parameterClass="java.util.Map"
+        resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM (
+            <include refid="customer.member.list.sql-select" />
+            <include refid="customer.member.list.sql-where" />
+        ) TOT
+    </select>
+        
+    <sql id="customer.member.memberid.sql-select">
+        SELECT NVL(MAX(CM.MEMBER_ID), 0) + 1 AS MEMBERID
+          FROM CB_CUSTOMER_MEMBER CM
+    </sql>
+
+    <sql id="customer.member.memberid.sql-where">
+         WHERE 1=1
+           AND CM.ORG_ID = #ORGID#
+           AND CM.COMPANY_ID = #COMPANYID#
+           AND CM.CUSTOMER_CODE = #CUSTOMERCODE#
+    </sql>
+
+    <select id="customer.member.memberid.find" parameterClass="java.util.Map"
+        resultClass="java.util.HashMap">
+        <include refid="customer.member.memberid.sql-select" />
+        <include refid="customer.member.memberid.sql-where" />
+    </select>
+    
+    <insert id="customer.member.list.insert" parameterClass="java.util.Map">
+        <![CDATA[
+            INSERT INTO CB_CUSTOMER_MEMBER
+              (ORG_ID
+							,COMPANY_ID
+							,CUSTOMER_CODE
+							,MEMBER_ID
+        ]]>
+        <isNotEmpty property="MEMBERNAME" prepend=",">
+               MEMBER_NAME
+        </isNotEmpty>
+        <isNotEmpty property="DEPTNAME" prepend=",">
+               DEPT_NAME
+        </isNotEmpty>
+        <isNotEmpty property="POSITIONNAME" prepend=",">
+               POSITION_NAME
+        </isNotEmpty>
+        <isNotEmpty property="PHONENUMBER" prepend=",">
+               PHONE_NUMBER
+        </isNotEmpty>
+        <isNotEmpty property="CELLNUMBER" prepend=",">
+               CELL_NUMBER
+        </isNotEmpty>
+        <isNotEmpty property="EMAIL" prepend=",">
+               EMAIL
+        </isNotEmpty>
+        <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+               EFFECTIVE_START_DATE
+        </isNotEmpty>
+        <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+               EFFECTIVE_END_DATE
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS
+        </isNotEmpty>
+        <![CDATA[
+               ,CREATION_DATE
+               ,CREATED_BY
+               ,LAST_UPDATE_DATE
+               ,LAST_UPDATED_BY
+               )
+            VALUES
+             (#ORGID#
+             ,#COMPANYID#
+             ,#CUSTOMERCODE#
+             ,#MEMBERID#
+        ]]>
+        <isNotEmpty property="MEMBERNAME" prepend=",">
+               #MEMBERNAME#
+        </isNotEmpty>
+        <isNotEmpty property="DEPTNAME" prepend=",">
+               #DEPTNAME#
+        </isNotEmpty>
+        <isNotEmpty property="POSITIONNAME" prepend=",">
+               #POSITIONNAME#
+        </isNotEmpty>
+        <isNotEmpty property="PHONENUMBER" prepend=",">
+               #PHONENUMBER#
+        </isNotEmpty>
+        <isNotEmpty property="CELLNUMBER" prepend=",">
+               #CELLNUMBER#
+        </isNotEmpty>
+        <isNotEmpty property="EMAIL" prepend=",">
+               #EMAIL#
+        </isNotEmpty>
+        <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+               TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+               TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               #REMARKS#
+        </isNotEmpty>
+        <![CDATA[
+               ,SYSDATE
+               ,#REGISTID#
+               ,SYSDATE
+               ,#REGISTID#
+               )
+        ]]>
+    </insert>
+    
+    <update id="customer.member.list.update" parameterClass="java.util.Map">
+        <![CDATA[
+        UPDATE CB_CUSTOMER_MEMBER
+           SET LAST_UPDATED_BY  = #UPDATEID#
+               , LAST_UPDATE_DATE = SYSDATE
+        ]]>
+        <isNotEmpty property="MEMBERNAME" prepend=",">
+               MEMBER_NAME = #MEMBERNAME#
+        </isNotEmpty>
+        <isEmpty property="MEMBERNAME" prepend=",">
+               MEMBER_NAME = NULL
+        </isEmpty>
+        <isNotEmpty property="DEPTNAME" prepend=",">
+               DEPT_NAME = #DEPTNAME#
+        </isNotEmpty>
+        <isEmpty property="DEPTNAME" prepend=",">
+               DEPT_NAME = NULL
+        </isEmpty>
+        <isNotEmpty property="POSITIONNAME" prepend=",">
+               POSITION_NAME = #POSITIONNAME#
+        </isNotEmpty>
+        <isEmpty property="POSITIONNAME" prepend=",">
+               POSITION_NAME = NULL
+        </isEmpty>
+        <isNotEmpty property="PHONENUMBER" prepend=",">
+               PHONE_NUMBER = #PHONENUMBER#
+        </isNotEmpty>
+        <isEmpty property="PHONENUMBER" prepend=",">
+               PHONE_NUMBER = NULL
+        </isEmpty>
+        <isNotEmpty property="CELLNUMBER" prepend=",">
+               CELL_NUMBER = #CELLNUMBER#
+        </isNotEmpty>
+        <isEmpty property="CELLNUMBER" prepend=",">
+               CELL_NUMBER = NULL
+        </isEmpty>
+        <isNotEmpty property="EMAIL" prepend=",">
+               EMAIL = #EMAIL#
+        </isNotEmpty>
+        <isEmpty property="EMAIL" prepend=",">
+               EMAIL = NULL
+        </isEmpty>
+        <isNotEmpty property="EFFECTIVESTARTDATE" prepend=",">
+               EFFECTIVE_START_DATE = TO_DATE(#EFFECTIVESTARTDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="EFFECTIVESTARTDATE" prepend=",">
+               EFFECTIVE_START_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="EFFECTIVEENDDATE" prepend=",">
+               EFFECTIVE_END_DATE = TO_DATE(#EFFECTIVEENDDATE#, 'YYYY-MM-DD')
+        </isNotEmpty>
+        <isEmpty property="EFFECTIVEENDDATE" prepend=",">
+               EFFECTIVE_END_DATE = NULL
+        </isEmpty>
+        <isNotEmpty property="REMARKS" prepend=",">
+               REMARKS = #REMARKS#
+        </isNotEmpty>
+        <isEmpty property="REMARKS" prepend=",">
+               REMARKS = NULL
+        </isEmpty>
+        <![CDATA[
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND CUSTOMER_CODE = #CUSTOMERCODE#
+          AND MEMBER_ID = #MEMBERID#
+        ]]>
+    </update>
+    
+    <delete id="customer.member.list.delete" parameterClass="java.util.Map">
+        DELETE FROM CB_CUSTOMER_MEMBER
+        WHERE 1=1
+          AND ORG_ID = #ORGID#
+          AND COMPANY_ID = #COMPANYID#
+          AND CUSTOMER_CODE = #CUSTOMERCODE#
+          AND MEMBER_ID = #MEMBERID#
+    </delete>
+</sqlMap>

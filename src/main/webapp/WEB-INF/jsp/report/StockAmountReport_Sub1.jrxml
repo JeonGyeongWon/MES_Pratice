@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StockAmountReport_Sub1" language="groovy" pageWidth="1724" pageHeight="1005" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1724" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryWithPageHeaderAndFooter="true" uuid="84353c55-455d-4ccf-bffe-c70fc4f971cc">
+	<property name="ireport.zoom" value="0.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANYID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SEARCHDATE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT NVL(RN, 999) AS RN
+      ,NVL(SUBTITLE, '합계') AS SUBTITLE
+      ,SUBSTR(YYYYMM, -2) AS YYYYMM
+      ,ORGID
+      ,COMPANYID
+      ,SUM(AMOUNT) AS AMOUNT
+  FROM (
+        SELECT RANK() OVER(ORDER BY SC.ORG_ID, SC.COMPANY_ID, SC.SMALL_CODE, CONCAT(TMP.SEARCH_YEAR, '-' || TMP.SEARCH_MONTH) ) AS RN
+              ,SC.SMALL_NAME AS SUBTITLE
+              ,CONCAT(TMP.SEARCH_YEAR, '-' || TMP.SEARCH_MONTH) AS YYYYMM
+              ,TMP.ORG_ID AS ORGID
+              ,TMP.COMPANY_ID AS COMPANYID
+              ,CB_REPORT_PKG.CB_STOCK_AMOUNT_FIND(TMP.ORG_ID
+                                                 ,TMP.COMPANY_ID
+                                                 ,CONCAT(TMP.SEARCH_YEAR, '-' || TMP.SEARCH_MONTH)
+                                                 ,SC.SMALL_CODE
+                                                  ) AS AMOUNT
+          FROM CB_SMALL_CODE SC
+              ,(SELECT $P{ORGID} AS ORG_ID
+                      ,$P{COMPANYID} AS COMPANY_ID
+                      ,TO_CHAR(TO_DATE($P{SEARCHDATE}, 'YYYY-MM-DD'), 'YYYY') AS SEARCH_YEAR
+                      ,LPAD(LEVEL, 2, '0') AS SEARCH_MONTH
+                  FROM DUAL
+                CONNECT BY LEVEL <= 12) TMP
+         WHERE 1=1
+           AND SC.ORG_ID = TMP.ORG_ID
+           AND SC.COMPANY_ID = TMP.COMPANY_ID
+           AND SC.BIG_CODE = 'MFG'
+           AND SC.MIDDLE_CODE = 'INVENTORY_DIV'
+           AND SC.USE_YN = 'Y'
+        ) GA
+ WHERE 1=1
+ GROUP BY ORGID, COMPANYID, ROLLUP(YYYYMM, RN, SUBTITLE)
+ HAVING ((GROUPING_ID(RN, SUBTITLE) = 3 AND GROUPING(YYYYMM) = 0) OR (GROUPING(RN) = 0 AND SUBTITLE IS NOT NULL))
+ ORDER BY ORGID, COMPANYID, RN, SUBTITLE, YYYYMM]]>
+	</queryString>
+	<field name="RN" class="java.math.BigDecimal"/>
+	<field name="SUBTITLE" class="java.lang.String"/>
+	<field name="YYYYMM" class="java.lang.String"/>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<summary>
+		<band height="1005" splitType="Stretch">
+			<lineChart>
+				<chart>
+					<reportElement x="0" y="0" width="1724" height="1005" uuid="ec9b64e1-bfad-437f-ae20-641854f16070"/>
+					<box>
+						<topPen lineWidth="3.0"/>
+						<leftPen lineWidth="3.0"/>
+						<bottomPen lineWidth="3.0"/>
+						<rightPen lineWidth="3.0"/>
+					</box>
+					<chartTitle position="Top">
+						<font fontName="맑은 고딕" size="24" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+						<titleExpression><![CDATA["재고 금액"]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle>
+						<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartSubtitle>
+					<chartLegend position="Right">
+						<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+					</chartLegend>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{SUBTITLE}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{YYYYMM}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{AMOUNT}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot>
+						<seriesColor seriesOrder="0" color="#0066CC"/>
+						<seriesColor seriesOrder="1" color="#FF0000"/>
+						<seriesColor seriesOrder="2" color="#009933"/>
+						<seriesColor seriesOrder="3" color="#6600CC"/>
+					</plot>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont>
+								<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</labelFont>
+							<tickLabelFont>
+								<font fontName="맑은 고딕" pdfFontName="malgun.ttf" pdfEncoding="Identity-H"/>
+							</tickLabelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+		</band>
+	</summary>
+</jasperReport>

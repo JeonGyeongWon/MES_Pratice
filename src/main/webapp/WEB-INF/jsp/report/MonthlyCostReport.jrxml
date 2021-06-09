@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MonthlyCostReport" language="groovy" pageWidth="1754" pageHeight="1240" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1724" leftMargin="15" rightMargin="15" topMargin="30" bottomMargin="25" isSummaryWithPageHeaderAndFooter="true" isFloatColumnFooter="true" uuid="7dcbe64c-41b3-498e-a47f-302f53409f45">
+	<property name="ireport.zoom" value="0.5131581182307067"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ORGID" class="java.lang.String"/>
+	<parameter name="COMPANYID" class="java.lang.String"/>
+	<parameter name="SEARCHYEAR" class="java.lang.String"/>
+	<parameter name="SUBDIR" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\WEB-INF\\jsp\\report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdata1" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata2" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata3" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<parameter name="subdata4" class="net.sf.jasperreports.engine.JRDataSource" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT TMP.ORGID AS ORGID
+       ,TMP.COMPANYID AS COMPANYID
+       ,TMP.SEARCHYEAR AS SEARCHYEAR
+       ,'월별 매출 실적 (' || TMP.SEARCHYEAR || '년)' AS TITLE
+  FROM (
+SELECT $P{ORGID} AS ORGID
+       ,$P{COMPANYID} AS COMPANYID
+       ,$P{SEARCHYEAR} AS SEARCHYEAR
+  FROM DUAL) TMP]]>
+	</queryString>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="COMPANYID" class="java.lang.String"/>
+	<field name="SEARCHYEAR" class="java.lang.String"/>
+	<field name="TITLE" class="java.lang.String"/>
+	<pageHeader>
+		<band height="80">
+			<textField>
+				<reportElement mode="Transparent" x="192" y="0" width="1532" height="80" backcolor="#00FFFF" uuid="35f6bbc4-8efc-4ef8-b8d3-90c790a6e72d"/>
+				<box>
+					<pen lineStyle="Double"/>
+					<topPen lineStyle="Double"/>
+					<leftPen lineStyle="Double"/>
+					<bottomPen lineWidth="2.0" lineStyle="Double"/>
+					<rightPen lineStyle="Double"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="46" isBold="true" pdfFontName="malgunbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TITLE}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="192" height="80" backcolor="#00FFFF" uuid="21cb9a05-3d7b-498e-9b41-a8b44267de05"/>
+				<box>
+					<pen lineStyle="Double"/>
+					<topPen lineStyle="Double"/>
+					<leftPen lineStyle="Double"/>
+					<bottomPen lineWidth="2.0" lineStyle="Double"/>
+					<rightPen lineStyle="Double"/>
+				</box>
+				<imageExpression><![CDATA["D:\\eGovFrameDev-3.7.0-HYT\\workspace\\HYT\\src\\main\\webapp\\images\\favicon.png"]]></imageExpression>
+			</image>
+		</band>
+	</pageHeader>
+	<summary>
+		<band height="1105" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="15" width="850" height="390" uuid="f4c98712-cbf4-417c-8276-1607bbdb2e48"/>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$P{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$P{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SEARCHYEAR">
+					<subreportParameterExpression><![CDATA[$P{SEARCHYEAR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata1}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR}+"MonthlyCostReport_Sub1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="420" width="1724" height="335" uuid="5c819f4b-ebca-4f09-8cd0-e6545129c24a"/>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$F{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$F{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SEARCHYEAR">
+					<subreportParameterExpression><![CDATA[$F{SEARCHYEAR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata2}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR}+"MonthlyCostReport_Sub2.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="874" y="15" width="850" height="390" uuid="f0c30da8-accf-4437-a0d4-345b1b62dc26"/>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$F{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$F{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SEARCHYEAR">
+					<subreportParameterExpression><![CDATA[$F{SEARCHYEAR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata3}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR}+"MonthlyCostReport_Sub3.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="755" width="1724" height="350" uuid="73ffde7d-f33f-4f29-9cac-25619ba847e6"/>
+				<subreportParameter name="ORGID">
+					<subreportParameterExpression><![CDATA[$P{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COMPANYID">
+					<subreportParameterExpression><![CDATA[$P{COMPANYID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SEARCHYEAR">
+					<subreportParameterExpression><![CDATA[$P{SEARCHYEAR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{subdata4}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{SUBDIR}+"MonthlyCostReport_Sub4.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</summary>
+</jasperReport>
