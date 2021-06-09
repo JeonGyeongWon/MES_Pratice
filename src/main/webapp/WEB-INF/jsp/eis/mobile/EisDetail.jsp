@@ -16,7 +16,7 @@
 <%
 	LoginVO loginVO = (LoginVO) session.getAttribute("LoginVO");
 	String authCode = loginVO.getAuthCode();
-
+// 테스트
 	/* Image Path 설정 */
 	String imagePath_icon = "/images/egovframework/sym/mpm/icon/";
 	String imagePath_button = "/images/egovframework/sym/mpm/button/";
